@@ -2166,7 +2166,7 @@ function renderMemberList() {
           </div>
         </div>
 
-        <div onclick="event.stopPropagation();openTask(${idx},'${dkey}')"
+        <div onclick="event.stopPropagation();openTaskDirect(${idx},'${dkey}')"
           title="임무 수정"
           style="width:30px;height:30px;border-radius:8px;flex-shrink:0;
           background:${gc.bg}22;border:1.5px solid ${gc.bg}66;
@@ -3309,6 +3309,12 @@ function openTask(idx, dkeyOverride) {
   const panel = document.getElementById('task-panel');
   setPanelPos(panel);
   panel.classList.add('open');
+}
+
+// ✏️ 버튼 클릭 → 임무뷰 없이 수정 모달 바로 열기
+function openTaskDirect(idx, dkey) {
+  openTask(idx, dkey);   // 패널 세팅 + currentMemberIdx 설정
+  openTaskEdit();        // 수정 모달 즉시 표시
 }
 
 // ── 임무 수정 모달 ────────────────────────────────────
