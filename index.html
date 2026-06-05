@@ -2087,8 +2087,7 @@ function renderMemberList() {
 
   let html = '';
 
-  // ── 멤버 카드 플랫 나열 ──
-  html += `<div style="margin:10px 10px 4px;background:white;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.10);">`;
+  // ── 멤버 카드 플랫 나열 (개별 카드) ──
 
   members.forEach((m, idx) => {
     const gc = groupColors[m.group] || { bg: d.color, label: m.group };
@@ -2136,20 +2135,24 @@ function renderMemberList() {
           String(ti + 1).padStart(2, '0') + '</span>' + displayText + equipBtn + '</div></div>';
       });
       accordionHtml =
-        '<div style="border-top:2px solid ' + gc.bg + '33;">' +
+        '<div style="border-top:2px solid ' + gc.bg + '33;border-radius:0 0 14px 14px;overflow:hidden;">' +
         tasksHtml +
         '</div>';
     }
 
+    const cardMargin = idx === 0 ? '10px 10px 4px' : '4px 10px';
+    const cardStyle = isOpen
+      ? `margin:${cardMargin};background:white;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,0.13);`
+      : `margin:${cardMargin};background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);`;
+
     html += `
-    <div id="mc-${idx}">
+    <div id="mc-${idx}" style="${cardStyle}">
       <div onclick="toggleMemberAccordion(${idx})"
         style="padding:11px 14px;cursor:pointer;
           display:flex;align-items:center;gap:11px;
-          ${isOpen ? '' : borderTop}
           background:${isOpen ? gc.bg+'22' : isComplete ? '#f0fdf4' : 'white'};
           transition:background .15s;
-          ${isOpen ? 'position:sticky;top:0;z-index:5;box-shadow:0 3px 10px rgba(0,0,0,0.12);' : 'position:relative;'}
+          ${isOpen ? 'position:sticky;top:0;z-index:6;border-radius:14px 14px 0 0;box-shadow:0 3px 10px rgba(0,0,0,0.12);' : 'position:relative;'}
           overflow:hidden;">
 
         <div style="position:absolute;left:0;top:0;bottom:0;width:4px;
@@ -2204,8 +2207,6 @@ function renderMemberList() {
       ${accordionHtml}
     </div>`;
   });
-
-  html += `</div>`;
 
   html += `<div style="height:6px;"></div>`;
 
