@@ -2142,7 +2142,7 @@ function renderMemberList() {
     }
 
     html += `
-    <div>
+    <div id="mc-${idx}">
       <div onclick="toggleMemberAccordion(${idx})"
         style="padding:11px 14px;cursor:pointer;
           display:flex;align-items:center;gap:11px;
@@ -2246,6 +2246,16 @@ function toggleGroupAccordion(key) {
 function toggleMemberAccordion(idx) {
   openMemberIdx = openMemberIdx === idx ? null : idx;
   renderMemberList();
+  if (openMemberIdx !== null) {
+    setTimeout(function() {
+      var card = document.getElementById('mc-' + openMemberIdx);
+      var scrollEl = document.querySelector('#detail-panel .panel-scroll');
+      if (card && scrollEl) {
+        var cardTop = card.offsetTop;
+        scrollEl.scrollTo({ top: cardTop, behavior: 'smooth' });
+      }
+    }, 30);
+  }
 }
 
 function toggleTaskInline(key) {
