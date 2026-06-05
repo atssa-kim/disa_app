@@ -2150,9 +2150,9 @@ function renderMemberList() {
       <div onclick="toggleMemberAccordion(${idx})"
         style="padding:11px 14px;cursor:pointer;
           display:flex;align-items:center;gap:11px;
-          background:${isOpen ? gc.bg+'22' : isComplete ? '#f0fdf4' : 'white'};
+          background:${isOpen ? 'white' : isComplete ? '#f0fdf4' : 'white'};
           transition:background .15s;
-          ${isOpen ? 'position:sticky;top:0;z-index:6;border-radius:14px 14px 0 0;box-shadow:0 3px 10px rgba(0,0,0,0.12);' : 'position:relative;'}
+          ${isOpen ? 'position:sticky;top:0;z-index:6;border-radius:14px 14px 0 0;box-shadow:0 2px 10px rgba(0,0,0,0.14);border-bottom:2px solid ' + gc.bg + '33;' : 'position:relative;'}
           overflow:hidden;">
 
         <div style="position:absolute;left:0;top:0;bottom:0;width:4px;
@@ -2253,8 +2253,10 @@ function toggleMemberAccordion(idx) {
       var card = document.getElementById('mc-' + openMemberIdx);
       var scrollEl = document.querySelector('#detail-panel .panel-scroll');
       if (card && scrollEl) {
-        var cardTop = card.offsetTop;
-        scrollEl.scrollTo({ top: cardTop, behavior: 'smooth' });
+        var cardRect = card.getBoundingClientRect();
+        var scrollRect = scrollEl.getBoundingClientRect();
+        var target = scrollEl.scrollTop + (cardRect.top - scrollRect.top);
+        scrollEl.scrollTo({ top: target, behavior: 'smooth' });
       }
     }, 30);
   }
