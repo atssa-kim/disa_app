@@ -3338,21 +3338,14 @@ function openTaskEdit() {
 
   const tasksHtml = m.tasks.map((t,i) => `
     <div style="display:flex;align-items:center;gap:0;margin-bottom:6px;" id="edit-row-${i}">
-      <div style="background:${d.color}80;color:white;font-size:11px;font-weight:800;
+      <div data-badge onmousedown="editDragHandleDown(event,this)" ontouchstart="editDragHandleDown(event,this)"
+        style="background:${d.color}80;color:white;font-size:11px;font-weight:800;
         padding:0 8px;height:38px;display:flex;align-items:center;flex-shrink:0;
-        min-width:28px;justify-content:center;">${i+1}</div>
+        min-width:28px;justify-content:center;cursor:grab;user-select:none;touch-action:none;">${i+1}</div>
       <input type="text" value="${t.replace(/"/g,'&quot;')}"
         style="flex:1;padding:9px 10px;border:1.5px solid #e2e8f0;border-left:none;
         font-size:12.5px;font-family:inherit;color:#1e293b;height:38px;"
         id="edit-task-${i}">
-      <button onclick="moveEditTask(this,-1)"
-        style="width:30px;height:38px;background:#475569;border:none;
-        border-left:2px solid rgba(255,255,255,0.2);
-        color:white;font-size:14px;cursor:pointer;flex-shrink:0;line-height:1;">▲</button>
-      <button onclick="moveEditTask(this,1)"
-        style="width:30px;height:38px;background:#475569;border:none;
-        border-left:1px solid rgba(255,255,255,0.15);
-        color:white;font-size:14px;cursor:pointer;flex-shrink:0;line-height:1;">▼</button>
       <button onclick="deleteEditTask(${i})"
         style="width:38px;height:38px;background:#dc2626;border:none;
         border-left:2px solid rgba(255,255,255,0.2);
@@ -3427,21 +3420,14 @@ function addEditTask() {
   div.id = `edit-row-${i}`;
   div.style.cssText = 'display:flex;align-items:center;gap:0;margin-bottom:6px;';
   div.innerHTML = `
-    <div style="background:${color}80;color:white;font-size:11px;font-weight:800;
+    <div data-badge onmousedown="editDragHandleDown(event,this)" ontouchstart="editDragHandleDown(event,this)"
+      style="background:${color}80;color:white;font-size:11px;font-weight:800;
       padding:0 8px;height:38px;display:flex;align-items:center;flex-shrink:0;
-      min-width:28px;justify-content:center;">${i+1}</div>
+      min-width:28px;justify-content:center;cursor:grab;user-select:none;touch-action:none;">${i+1}</div>
     <input type="text" placeholder="새 임무 내용 입력..."
       style="flex:1;padding:9px 10px;border:1.5px solid #bfdbfe;border-left:none;
       font-size:12.5px;font-family:inherit;color:#1e293b;height:38px;"
       id="edit-task-${i}">
-    <button onclick="moveEditTask(this,-1)"
-      style="width:30px;height:38px;background:#475569;border:none;
-      border-left:2px solid rgba(255,255,255,0.2);
-      color:white;font-size:14px;cursor:pointer;flex-shrink:0;line-height:1;">▲</button>
-    <button onclick="moveEditTask(this,1)"
-      style="width:30px;height:38px;background:#475569;border:none;
-      border-left:1px solid rgba(255,255,255,0.15);
-      color:white;font-size:14px;cursor:pointer;flex-shrink:0;line-height:1;">▼</button>
     <button onclick="deleteEditTask(${i})"
       style="width:38px;height:38px;background:#dc2626;border:none;
       border-left:2px solid rgba(255,255,255,0.2);
@@ -3450,21 +3436,53 @@ function addEditTask() {
   div.querySelector('input').focus();
 }
 
-function moveEditTask(btn, direction) {
-  const list = document.getElementById('edit-task-list');
-  const rows = Array.from(list.querySelectorAll('[id^="edit-row-"]'));
-  const row = btn.closest('[id^="edit-row-"]');
-  const idx = rows.indexOf(row);
-  const targetIdx = idx + direction;
-  if (targetIdx < 0 || targetIdx >= rows.length) return;
-  // 입력값만 교환 (번호 배지는 그대로 유지)
-  const srcInput = row.querySelector('input');
-  const dstInput = rows[targetIdx].querySelector('input');
-  const tmp = srcInput.value;
-  srcInput.value = dstInput.value;
-  dstInput.value = tmp;
-  // 이동한 행의 input에 포커스
-  srcInput.focus();
+let _editDragRow = null;
+function editDragHandleDown(e, handle) {
+  e.preventDefault();
+  const row = handle.closest('[id^="edit-row-"]');
+  if (!row) return;
+  _editDragRow = row;
+  row.style.opacity = '0.5';
+  row.style.boxShadow = '0 4px 16px rgba(0,0,0,0.18)';
+  row.style.transition = 'none';
+  const getY = function(ev) { return ev.touches ? ev.touches[0].clientY : ev.clientY; };
+  function onMove(ev) {
+    ev.preventDefault();
+    if (!_editDragRow) return;
+    const y = getY(ev);
+    const list = document.getElementById('edit-task-list');
+    if (!list) return;
+    const rows = Array.from(list.querySelectorAll('[id^="edit-row-"]')).filter(function(r) { return r !== _editDragRow; });
+    let before = null;
+    for (let i = 0; i < rows.length; i++) {
+      const rect = rows[i].getBoundingClientRect();
+      if (y < rect.top + rect.height / 2) { before = rows[i]; break; }
+    }
+    before ? list.insertBefore(_editDragRow, before) : list.appendChild(_editDragRow);
+  }
+  function onUp() {
+    if (_editDragRow) {
+      _editDragRow.style.opacity = '';
+      _editDragRow.style.boxShadow = '';
+      _editDragRow.style.transition = '';
+      _editDragRow = null;
+    }
+    const list = document.getElementById('edit-task-list');
+    if (list) {
+      list.querySelectorAll('[id^="edit-row-"]').forEach(function(r, i) {
+        const b = r.querySelector('[data-badge]');
+        if (b) b.textContent = i + 1;
+      });
+    }
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onUp);
 }
 
 function deleteEditTask(i) {
