@@ -2146,10 +2146,11 @@ function renderMemberList() {
       <div onclick="toggleMemberAccordion(${idx})"
         style="padding:11px 14px;cursor:pointer;
           display:flex;align-items:center;gap:11px;
-          ${borderTop}
-          background:${isOpen ? gc.bg+'18' : isComplete ? '#f0fdf4' : 'white'};
+          ${isOpen ? '' : borderTop}
+          background:${isOpen ? gc.bg+'22' : isComplete ? '#f0fdf4' : 'white'};
           transition:background .15s;
-          position:relative;overflow:hidden;">
+          ${isOpen ? 'position:sticky;top:0;z-index:5;box-shadow:0 3px 10px rgba(0,0,0,0.12);' : 'position:relative;'}
+          overflow:hidden;">
 
         <div style="position:absolute;left:0;top:0;bottom:0;width:4px;
           background:${barColor};opacity:${isComplete?'1':'0.35'};"></div>
