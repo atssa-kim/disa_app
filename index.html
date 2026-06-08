@@ -794,8 +794,16 @@ body {
   </div>
 
   <div class="content" id="main-content">
-    <div class="tab-pane active" id="pane-0" style="overflow-y:auto;">
+    <div class="tab-pane active" id="pane-0" style="overflow-y:auto;position:relative;">
       <div class="icons-grid" id="icons-grid"></div>
+      <!-- 화재 시나리오 인라인 팝업 -->
+      <div id="fire-scenario-backdrop" onclick="closeScenarioInline()"
+        style="display:none;position:absolute;inset:0;z-index:49;"></div>
+      <div id="fire-scenario-popup" onclick="event.stopPropagation()"
+        style="display:none;position:absolute;z-index:50;
+        background:white;border-radius:14px;
+        box-shadow:0 8px 32px rgba(0,0,0,0.22);
+        border:2px solid #dc2626;overflow:hidden;min-width:190px;"></div>
       <input type="file" id="excel-import-input" accept=".xlsx,.xls" style="display:none;"
         onchange="importFromExcel(this)">
     </div>
@@ -2645,18 +2653,18 @@ function renderIconGrid() {
   grid.innerHTML = DISASTERS.map(d => {
     if (d.key === '화재') {
       const isGen  = currentFireScenario === 'general';
-      const chip   = isGen ? '+화재시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
-      const chipBg = isGen ? 'rgba(220,38,38,0.08)' : '#dc2626';
+      const chip   = isGen ? '+ 화재시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
+      const chipBg = isGen ? 'rgba(220,38,38,0.10)' : '#dc2626';
       const chipCo = isGen ? '#dc2626' : 'white';
       return `
-        <div class="disaster-btn" onclick="openDisaster('화재')" style="position:relative;">
-          <div onclick="event.stopPropagation();openScenarioMenu()"
+        <div class="disaster-btn" id="fire-card-btn" onclick="openDisaster('화재')" style="position:relative;overflow:visible;">
+          <div onclick="event.stopPropagation();toggleScenarioInline()"
             style="position:absolute;top:0;left:0;right:0;
             background:${chipBg};color:${chipCo};
-            font-size:9.5px;font-weight:800;padding:4px 8px;
+            font-size:11px;font-weight:900;padding:5px 6px;
             border-radius:12px 12px 0 0;text-align:center;
             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-            cursor:pointer;letter-spacing:-0.2px;">${chip}</div>
+            cursor:pointer;letter-spacing:-0.3px;line-height:1.2;">${chip}</div>
           <div class="d-icon">${d.iconSvg}</div>
           <div class="d-label">${d.label}</div>
         </div>`;
@@ -4478,6 +4486,72 @@ function goToProc(disasterKey) {
       setTimeout(() => openSubPanel(procKey), 120);
     });
   }
+}
+
+function toggleScenarioInline() {
+  const popup = document.getElementById('fire-scenario-popup');
+  if (!popup) return;
+  popup.style.display === 'none' ? openScenarioInline() : closeScenarioInline();
+}
+
+function openScenarioInline() {
+  const fireCard = document.getElementById('fire-card-btn');
+  const pane     = document.getElementById('pane-0');
+  const popup    = document.getElementById('fire-scenario-popup');
+  const backdrop = document.getElementById('fire-scenario-backdrop');
+  if (!fireCard || !popup || !pane) return;
+
+  const cardRect = fireCard.getBoundingClientRect();
+  const paneRect = pane.getBoundingClientRect();
+  const top  = cardRect.top  - paneRect.top  + pane.scrollTop;
+  const left = cardRect.left - paneRect.left;
+
+  const scenarios = [
+    { key:'general',    emoji:'🔥', label:'일반화재',            sub:'표준 대응 매뉴얼' },
+    { key:'kitchen',    emoji:'🍳', label:'음식점주방 K급화재',  sub:'K급 소화기·물소화 금지' },
+    { key:'electrical', emoji:'⚡', label:'전기실·가스방호구역', sub:'가스방출 후 10분 후 진입' },
+    { key:'ups',        emoji:'🔋', label:'UPS실 화재',          sub:'CB Trip·오프가스 환기 우선' },
+    { key:'parking',    emoji:'🚗', label:'지하주차장 화재',      sub:'프리액션밸브·방화셔터 강하' },
+  ];
+
+  popup.innerHTML =
+    '<div style="padding:9px 12px;background:#dc2626;color:white;' +
+    'font-size:11.5px;font-weight:800;letter-spacing:-0.2px;">🔥 화재 시나리오 선택</div>' +
+    scenarios.map(function(s) {
+      const active = currentFireScenario === s.key;
+      return '<div onclick="selectAndOpenScenario(\'' + s.key + '\')"' +
+        ' style="padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;' +
+        'background:' + (active ? '#fef2f2' : 'white') + ';' +
+        'border-bottom:1px solid #f1f5f9;"' +
+        ' onmouseenter="this.style.background=\'' + (active ? '#fef2f2' : '#f8fafc') + '\'"' +
+        ' onmouseleave="this.style.background=\'' + (active ? '#fef2f2' : 'white') + '\'">' +
+        '<span style="font-size:18px;width:24px;text-align:center;">' + s.emoji + '</span>' +
+        '<span style="flex:1;min-width:0;">' +
+          '<div style="font-size:12px;font-weight:800;color:' + (active ? '#dc2626' : '#1e293b') + ';">' + s.label + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;margin-top:1px;">' + s.sub + '</div>' +
+        '</span>' +
+        (active ? '<span style="color:#dc2626;font-size:14px;font-weight:900;flex-shrink:0;">✓</span>' : '') +
+        '</div>';
+    }).join('');
+
+  popup.style.top  = top + 'px';
+  popup.style.left = left + 'px';
+  popup.style.display = 'block';
+  backdrop.style.display = 'block';
+}
+
+function closeScenarioInline() {
+  const popup    = document.getElementById('fire-scenario-popup');
+  const backdrop = document.getElementById('fire-scenario-backdrop');
+  if (popup)    popup.style.display    = 'none';
+  if (backdrop) backdrop.style.display = 'none';
+}
+
+function selectAndOpenScenario(key) {
+  currentFireScenario = key;
+  closeScenarioInline();
+  renderIconGrid();
+  openDisaster('화재');
 }
 
 function openScenarioMenu() {
