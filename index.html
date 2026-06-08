@@ -1705,6 +1705,31 @@ body {
 
     </div></div>
 
+  <!-- ── 화재 시나리오 선택 시트 ── -->
+  <div id="scenario-sheet-overlay"
+    onclick="closeScenarioMenu()"
+    style="position:absolute;inset:0;background:rgba(0,0,0,0.45);
+    z-index:60;display:none;opacity:0;transition:opacity 0.25s;"></div>
+  <div id="scenario-sheet"
+    style="position:absolute;bottom:0;left:0;right:0;
+    background:white;border-radius:22px 22px 0 0;z-index:61;
+    box-shadow:0 -4px 24px rgba(0,0,0,0.18);
+    transform:translateY(100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1);
+    padding-bottom:calc(env(safe-area-inset-bottom,0px));">
+    <div style="display:flex;justify-content:center;padding:10px 0 4px;">
+      <div style="width:40px;height:4px;background:#e2e8f0;border-radius:2px;"></div>
+    </div>
+    <div style="padding:8px 18px 22px;">
+      <div style="display:flex;align-items:center;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:800;color:#1e293b;flex:1;">🔥 화재 시나리오 선택</div>
+        <button onclick="closeScenarioMenu()"
+          style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:50%;
+          font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;">✕</button>
+      </div>
+      <div id="scenario-options" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- ── 엑셀 임무수정 팝업 시트 ── -->
   <div id="excel-sheet-overlay"
     onclick="closeExcelMenu()"
@@ -2311,6 +2336,90 @@ const FIRE_BMS = [
    ]},
 ];
 
+// ── 화재 시나리오 데이터 ──────────────────────────────────
+const FIRE_SCENARIOS = {
+  general: { label: '일반화재', members: null }, // DISASTERS['화재'].members 사용
+  kitchen: {
+    label: '음식점주방-K급화재',
+    members: [
+      {group:'지휘', role:'🎖️ 총괄관리자 (센터장)', badge:'총괄', bc:'#7f1d1d',
+       tasks:['K급(주방) 화재 상황 파악 — 물 소화 절대 금지 지시','가스·전열 차단 지시','주방 고정 소화장치 작동 여부 확인 지시','관계기관 및 입주사 신속 전파','인명피해 여부 파악 및 119 신고 지시']},
+      {group:'연락반', role:'📻 상황실 (통보연락)', badge:'상황', bc:'#b91c1c',
+       tasks:['화재 접수 및 상황 파악','119 신고 — K급(주방화재) 임을 명시','초기·자위소방대 비상연락망 가동','입주사 및 관계자 비상문자 발송','가스·전열 차단 지시 전달','시간대별 현황판 기록']},
+      {group:'대응반', role:'💥 비상출동조 (전기/소방파트)', badge:'출동', bc:'#dc2626',
+       tasks:['출동 — 주방화재 확인 (물 소화 금지)','K급 소화기 확보·사용 (주방 비치 위치 확인)','고정식 주방자동소화장치 수동 기동','주방 가스 밸브 차단 (LPG·도시가스)','주방 전열 기기 전원 차단','주방 배기팬 정지 (연기 확산 방지)','화재 확대 방지 및 피난유도','진압 상황 상황실 보고']},
+      {group:'대응반', role:'🧯 소화조 (기계파트)', badge:'소화', bc:'#ef4444',
+       tasks:['출동 — K급 화재 (물 소화 금지) 확인','K급 소화기 또는 건조사 사용','주방 후드·덕트 화재 확대 확인','화재 진압 완료 후 잔불 확인','소방관 도착 시 정보 제공','진압 상황 보고']},
+      {group:'대응반', role:'🪜 인명구조조 (보안파트)', badge:'구조', bc:'#b91c1c',
+       tasks:['주방 내 인원 신속 대피 유도','부상자 발생 시 안전지점 이송','화상 환자 응급처치 — 흐르는 냉수 15분','피난 동로 확보','피해 상황 보고']},
+      {group:'유도반', role:'🚶 유도조 (운영/보안1/주차)', badge:'유도', bc:'#c2410c',
+       tasks:['주방 인근 식당 고객 즉시 대피 유도','연기 확산 경로 방화문 폐쇄','주차 차량 출입 통제','재해약자 우선 대피 유도']},
+      {group:'유도반', role:'🔒 경계조 (보안파트2)', badge:'경계', bc:'#78350f',
+       tasks:['주방 인근 출입 통제','소방대원 진입 동선 안내','2차 화재 확산 감시']},
+    ]
+  },
+  electrical: {
+    label: '전기실·가스방호구역 화재',
+    members: [
+      {group:'지휘', role:'🎖️ 총괄관리자 (센터장)', badge:'총괄', bc:'#7f1d1d',
+       tasks:['가스방호구역 화재 상황 파악','구역 내 인원 전원 대피 지시 (가스 수동방출 전)','가스 방출 여부 및 방출 시간 확인 지시 (방출 후 10분)','물 소화 금지 — 가스 소화 우선 지시','가스 방출 실패 시 CO₂·분말 소화기 사용 지시','관계기관 신속 전파 및 보고']},
+      {group:'연락반', role:'📻 상황실 (통보연락)', badge:'상황', bc:'#b91c1c',
+       tasks:['화재 접수 — 가스방호구역 화재 상황 파악','119 신고 — 가스계 소화설비 방호구역 화재 명시','구역 내 인원 전원 대피 방송','가스 소화설비 동작 상태 확인 (수동·자동)','초기대응조 및 자위소방대 비상연락','방출 후 10분 경과 타이머 관리','입주사 및 관계자 비상문자 발송']},
+      {group:'대응반', role:'💥 비상출동조 (전기/소방파트)', badge:'출동', bc:'#dc2626',
+       tasks:['출동 — 가스방호구역 내 잔류인원 확인','구역 전원 차단 (가스방출 전 필수)','가스 소화설비 수동 기동함 위치 확인','구역 내 인원 전원 대피 후 출입문 폐쇄','수동 기동 (자동 미작동 시): 수동조작함 기동','방출 후 10분 경과 확인 → 공기호흡기 착용 진입·잔불 확인','환기 실시 (환기 전 진입 금지)','진압 상황 상황실 보고']},
+      {group:'대응반', role:'🧯 소화조 (기계파트)', badge:'소화', bc:'#ef4444',
+       tasks:['공기호흡기 착용 — CO₂ 농도 위험 (질식)','가스 방출 확인 (경보음·방출 표시등)','가스 방출 실패 시 CO₂·분말 소화기 투입','방출 후 10분 경과 후 공기호흡기 착용 진입','잔불 확인 및 재발화 감시','환기 후 정상화 확인','소방관 도착 시 정보 제공']},
+      {group:'대응반', role:'🪜 인명구조조 (보안파트)', badge:'구조', bc:'#b91c1c',
+       tasks:['구역 내 잔류인원 신속 확인 및 대피','가스 방출 전 진입 금지 — 인원 대피 완료 후 방출','부상자 발생 시 안전지점 이송','피난 동로 확보','피해 상황 보고']},
+      {group:'유도반', role:'🚶 유도조 (운영/보안1/주차)', badge:'유도', bc:'#c2410c',
+       tasks:['가스방호구역 인근 인원 대피 유도','방호구역 출입문 폐쇄 상태 확인 (가스 방출 효율)','가스 방출 중 구역 접근 금지 안내','소방대원 진입 지원']},
+      {group:'유도반', role:'🔒 경계조 (보안파트2)', badge:'경계', bc:'#78350f',
+       tasks:['가스방호구역 출입 통제 (방출 중·후 10분)','소방대원 진입 안내','재발화 감시']},
+    ]
+  },
+  ups: {
+    label: 'UPS실 화재',
+    members: [
+      {group:'지휘', role:'🎖️ 총괄관리자 (센터장)', badge:'총괄', bc:'#7f1d1d',
+       tasks:['UPS실 화재(배터리 열폭주) 상황 파악','UPS CB Trip(수동 전원 차단) 지시','오프가스(폭발성) 발생 — 환기 우선 지시','수계 소화 시 감전 주의 지시','인명 대피 및 119 신고 지시','관계기관 및 본사 신속 보고']},
+      {group:'연락반', role:'📻 상황실 (통보연락)', badge:'상황', bc:'#b91c1c',
+       tasks:['UPS실 화재 접수 및 상황 파악','119 신고 — UPS(배터리) 화재 명시','초기대응조 비상연락망 가동','UPS 벤더(유지보수 업체) 긴급 연락','UPS CB Trip 완료 여부 확인','입주사 및 관계자 비상문자 발송','오프가스 환기 완료 여부 확인']},
+      {group:'대응반', role:'💥 비상출동조 (전기/소방파트)', badge:'출동', bc:'#dc2626',
+       tasks:['출동 — UPS실 화재 확인','UPS CB Trip 수동 차단 (과충·방전·셀 최소전압 2.4/5.7V·과온도 57°C 이상)','오프가스(H₂·CH₄) 발생 — 환기 우선·점화원 제거','초기 소화기 사용 (CO₂ 또는 ABC 분말)','모듈 분리 가능 여부 확인 (전문업체 협조)','수계 소화 시 감전 주의 — 절연 확인 후 사용','화재 진압 상황 상황실 보고','UPS 벤더 도착 시 기술 정보 제공']},
+      {group:'대응반', role:'🧯 소화조 (기계파트)', badge:'소화', bc:'#ef4444',
+       tasks:['공기호흡기 착용 — 오프가스 질식·폭발 위험','CO₂ 또는 ABC 분말 소화기 사용','수계 소화 시 절연 확인 후 사용 (감전 주의)','열폭주 모듈 분리 — 전문업체 협조 시','환기 실시 (오프가스 제거)','잔불 및 재발화 감시','소방관 도착 시 정보 제공']},
+      {group:'대응반', role:'🪜 인명구조조 (보안파트)', badge:'구조', bc:'#b91c1c',
+       tasks:['UPS실 인근 인원 신속 대피 유도','오프가스 발생 구역 진입 금지 (환기 후)','부상자 발생 시 안전지점 이송','피난 동로 확보','피해 상황 보고']},
+      {group:'유도반', role:'🚶 유도조 (운영/보안1/주차)', badge:'유도', bc:'#c2410c',
+       tasks:['UPS실 인근 층 인원 대피 유도','오프가스 발생 구역 접근 금지 안내','주차 차량 출입 통제','소방대원 진입 안내']},
+      {group:'유도반', role:'🔒 경계조 (보안파트2)', badge:'경계', bc:'#78350f',
+       tasks:['UPS실 출입 통제','오프가스 환기 완료 전 접근 금지','소방대원 진입 안내','재발화 감시']},
+    ]
+  },
+  parking: {
+    label: '지하주차장 화재',
+    members: [
+      {group:'지휘', role:'🎖️ 총괄관리자 (센터장)', badge:'총괄', bc:'#7f1d1d',
+       tasks:['지하주차장 화재 상황 파악 (위치·차량 수·연기 확산)','프리액션밸브 수동 기동 지시','방화셔터 1단 강하 지시 (인접 구역 확대 방지)','초기살수장치 기동 지시 (지하3층 중앙계단앞)','차량 출입 즉시 통제 지시','119 신고 및 관계기관 보고','재해약자 대피 확인']},
+      {group:'연락반', role:'📻 상황실 (통보연락)', badge:'상황', bc:'#b91c1c',
+       tasks:['화재 접수 — 지하주차장 위치 및 차량 정보 파악','119 신고 — 지하주차장 차량화재 명시','프리액션밸브 수동 기동 여부 확인','방화셔터 동작 상태 확인','초기 소방대 비상연락망 가동','입주사 및 관계자 비상문자 발송','차량 출입 통제 지시 전달','시간대별 현황판 기록']},
+      {group:'대응반', role:'💥 비상출동조 (전기/소방파트)', badge:'출동', bc:'#dc2626',
+       tasks:['출동 — 지하주차장 화재 위치·차량 확인','프리액션밸브 수동 기동 (해당 구역)','방화셔터 1단 강하 (주변 구역 확산 차단)','초기살수장치 기동 (차량화재: 지하3층 중앙계단앞)','주변 가연물(차량 등) 이동 가능 시 이동','연기 확산 방향 확인 및 환기 시스템 조작','화재 상황 상황실 보고']},
+      {group:'대응반', role:'🧯 소화조 (기계파트)', badge:'소화', bc:'#ef4444',
+       tasks:['공기호흡기 착용 — 지하 밀폐 공간 연기 위험','소화전 활용 차량화재 진압','차량 연료 폭발 위험 — 안전거리 확보','전기차 화재 시 대량 주수·배터리 냉각 (장시간 소요)','방화셔터 폐쇄 상태 유지','소방관 도착 시 정보 제공']},
+      {group:'대응반', role:'🪜 인명구조조 (보안파트)', badge:'구조', bc:'#b91c1c',
+       tasks:['지하주차장 내 인원 신속 대피 유도','연기가 없는 대피 경로 확인·안내','부상자 발생 시 지상으로 이송','재해약자 확인 및 우선 대피','피해 상황 보고']},
+      {group:'유도반', role:'🚶 유도조 (운영/보안1/주차)', badge:'유도', bc:'#c2410c',
+       tasks:['지하주차장 차량 출입구 즉시 통제','지하 인원 지상 대피 유도','연기 확산 경로 방화문 폐쇄','소방차 진입로 확보 (지상)','재해약자 우선 대피 지원']},
+      {group:'유도반', role:'🔒 경계조 (보안파트2)', badge:'경계', bc:'#78350f',
+       tasks:['지하주차장 출입 통제 (지상 모든 출입구)','소방대원 진입 동선 안내','차량 추가 진입 차단','재발화 및 연기 확산 감시']},
+      {group:'유도반', role:'🔧 복구조 (미화파트)', badge:'복구', bc:'#6b3a2a',
+       tasks:['화재 진압 후 지하주차장 환기 지원','오염된 소화수 처리 (배수 지원)','2차 피해 방지 및 안전 진단','복구 상황 보고']},
+    ]
+  }
+};
+let currentFireScenario = 'general';
+
 // ── 엑셀 내보내기 ──────────────────────────────────────
 function exportToExcel() {
   if (!window.XLSX) {
@@ -2502,11 +2611,28 @@ function positionEditModal(modal, panelEl) {
 // ── INIT: render icon grid ──────────────────────────
 function renderIconGrid() {
   const grid = document.getElementById('icons-grid');
-  grid.innerHTML = DISASTERS.map(d => `
-    <div class="disaster-btn" onclick="openDisaster('${d.key}')">
+  grid.innerHTML = DISASTERS.map(d => {
+    if (d.key === '화재') {
+      const isGen = currentFireScenario === 'general';
+      const chipLabel = isGen ? '+ 시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
+      const chipStyle = isGen
+        ? 'background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.3);'
+        : 'background:#dc2626;color:white;border:1px solid #dc2626;';
+      return `
+        <div class="disaster-btn" onclick="openDisaster('화재')" style="padding-bottom:10px;">
+          <div class="d-icon">${d.iconSvg}</div>
+          <div class="d-label">${d.label}</div>
+          <div onclick="event.stopPropagation();openScenarioMenu()"
+            style="${chipStyle}border-radius:20px;padding:3px 9px;font-size:9px;font-weight:800;
+            white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis;cursor:pointer;
+            transition:opacity .15s;" onmousedown="event.stopPropagation()">${chipLabel}</div>
+        </div>`;
+    }
+    return `<div class="disaster-btn" onclick="openDisaster('${d.key}')">
       <div class="d-icon">${d.iconSvg}</div>
       <div class="d-label">${d.label}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── INIT: 대응 프로세스 그리드 (DISASTERS 아이콘 동일 사용) ──
@@ -2540,6 +2666,9 @@ function getProgress(dkey, idx) {
     tasks = FIRE_NIGHT[idx] ? FIRE_NIGHT[idx].tasks : [];
   } else if (dkey === '화재_상황실') {
     tasks = FIRE_BMS[idx] ? FIRE_BMS[idx].tasks : [];
+  } else if (dkey.startsWith('화재_') && FIRE_SCENARIOS[dkey.slice(3)]) {
+    const sc = FIRE_SCENARIOS[dkey.slice(3)];
+    tasks = sc.members && sc.members[idx] ? sc.members[idx].tasks : [];
   } else {
     const d = DISASTERS.find(x=>x.key===dkey);
     tasks = d ? d.members[idx].tasks : [];
@@ -2576,15 +2705,22 @@ function openDisaster(key) {
   openGroupKeys = new Set();
   openMemberIdx = null;
   const d = DISASTERS.find(x=>x.key===key);
-  document.getElementById('detail-title').textContent = d.label + ' 대응';
   document.getElementById('detail-header').style.background = d.color;
 
-  // 화재만 주간/야간 토글 표시
+  // 화재: 시나리오 여부에 따라 토글·제목 처리
   const toggle = document.getElementById('shift-toggle');
   if (key === '화재') {
-    toggle.style.display = 'flex';
-    setShift('day'); currentShift='day';
+    if (currentFireScenario === 'general') {
+      document.getElementById('detail-title').textContent = d.label + ' 대응';
+      toggle.style.display = 'flex';
+      setShift('day'); currentShift = 'day';
+    } else {
+      document.getElementById('detail-title').textContent =
+        '🔥 ' + FIRE_SCENARIOS[currentFireScenario].label + ' 대응';
+      toggle.style.display = 'none';
+    }
   } else {
+    document.getElementById('detail-title').textContent = d.label + ' 대응';
     toggle.style.display = 'none';
   }
 
@@ -2595,16 +2731,20 @@ function openDisaster(key) {
 }
 
 function renderMemberList() {
-  if (currentDisaster === '화재' && currentShift === 'bms') {
+  const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
+
+  if (!isScenario && currentDisaster === '화재' && currentShift === 'bms') {
     renderBmsList();
     return;
   }
   const d = DISASTERS.find(x=>x.key===currentDisaster);
 
-  // 화재 야간이면 야간 조직 데이터 사용
-  const members = currentDisaster === '화재'
-    ? (currentShift === 'night' ? FIRE_NIGHT : d.members)
-    : d.members;
+  // 시나리오 / 야간 / 일반 분기
+  const members = isScenario
+    ? FIRE_SCENARIOS[currentFireScenario].members
+    : (currentDisaster === '화재'
+        ? (currentShift === 'night' ? FIRE_NIGHT : d.members)
+        : d.members);
 
   const groupColors = {
     // 화재 주간 — 레드 계열 단계별
@@ -2642,9 +2782,11 @@ function renderMemberList() {
     '보안조':    { bg:'#4338ca',  label:'🔒 보안조' },
   };
 
-  const dkey = currentDisaster === '화재'
-    ? (currentShift === 'night' ? '화재_야간' : currentDisaster)
-    : currentDisaster;
+  const dkey = isScenario
+    ? '화재_' + currentFireScenario
+    : (currentDisaster === '화재'
+        ? (currentShift === 'night' ? '화재_야간' : currentDisaster)
+        : currentDisaster);
 
   let html = '';
 
@@ -3935,13 +4077,19 @@ function closeDetail() {
 function openTask(idx, dkeyOverride) {
   currentMemberIdx = idx;
   const d = DISASTERS.find(x=>x.key===currentDisaster);
-  const isNight = currentDisaster === '화재' && currentShift === 'night';
-  const isBms   = currentDisaster === '화재' && currentShift === 'bms';
-  const m = isNight ? FIRE_NIGHT[idx] : isBms ? FIRE_BMS[idx] : d.members[idx];
+  const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
+  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isBms      = !isScenario && currentDisaster === '화재' && currentShift === 'bms';
+  const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[idx]
+          : isNight    ? FIRE_NIGHT[idx]
+          : isBms      ? FIRE_BMS[idx]
+          : d.members[idx];
+  const shiftLabel = isScenario ? FIRE_SCENARIOS[currentFireScenario].label
+                   : isNight    ? '야간' : isBms ? '상황실' : '주간';
   document.getElementById('task-header').style.background = d.color;
   document.getElementById('task-member-name').textContent = m.role;
   document.getElementById('task-member-sub').textContent =
-    `${m.badge} · ${d.label} ${isNight ? '야간' : isBms ? '상황실' : '주간'} 대응 — ${m.tasks.length}개 임무`;
+    `${m.badge} · ${d.label} ${shiftLabel} 대응 — ${m.tasks.length}개 임무`;
   renderTaskList();
   const panel = document.getElementById('task-panel');
   setPanelPos(panel);
@@ -3957,11 +4105,13 @@ function openTaskDirect(idx, dkey) {
 // ── 임무 수정 모달 ────────────────────────────────────
 function openTaskEdit() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
-  const isNight = currentDisaster === '화재' && currentShift === 'night';
-  const isBms   = currentDisaster === '화재' && currentShift === 'bms';
-  const m = isNight ? FIRE_NIGHT[currentMemberIdx]
-          : isBms   ? FIRE_BMS[currentMemberIdx]
-          :            d.members[currentMemberIdx];
+  const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
+  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isBms      = !isScenario && currentDisaster === '화재' && currentShift === 'bms';
+  const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
+          : isNight    ? FIRE_NIGHT[currentMemberIdx]
+          : isBms      ? FIRE_BMS[currentMemberIdx]
+          :               d.members[currentMemberIdx];
 
   // task-panel 안에 모달 생성 (헤더 바로 아래)
   const taskPanel = document.getElementById('task-panel');
@@ -4129,11 +4279,13 @@ function deleteEditTask(i) {
 
 function saveTaskEdit() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
-  const isNight = currentDisaster === '화재' && currentShift === 'night';
-  const isBms   = currentDisaster === '화재' && currentShift === 'bms';
-  const m = isNight ? FIRE_NIGHT[currentMemberIdx]
-          : isBms   ? FIRE_BMS[currentMemberIdx]
-          :            d.members[currentMemberIdx];
+  const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
+  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isBms      = !isScenario && currentDisaster === '화재' && currentShift === 'bms';
+  const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
+          : isNight    ? FIRE_NIGHT[currentMemberIdx]
+          : isBms      ? FIRE_BMS[currentMemberIdx]
+          :               d.members[currentMemberIdx];
 
   // 살아있는 input 값만 수집
   const inputs = document.querySelectorAll('#edit-task-list input[type="text"]');
@@ -4151,9 +4303,10 @@ function saveTaskEdit() {
   m.tasks = newTasks;
 
   // localStorage에 저장 (key: "재난키-멤버인덱스")
-  const isNight2 = currentDisaster === '화재' && currentShift === 'night';
-  const isBms2   = currentDisaster === '화재' && currentShift === 'bms';
-  const storageKey = (isNight2 ? '화재_야간' : isBms2 ? '화재_상황실' : currentDisaster)
+  const storageKey = (isScenario ? '화재_' + currentFireScenario
+                   : isNight    ? '화재_야간'
+                   : isBms      ? '화재_상황실'
+                   : currentDisaster)
                    + '-' + currentMemberIdx;
   customTasks[storageKey] = newTasks;
   saveCustomTasks();
@@ -4182,10 +4335,17 @@ function resetTaskEdit() {
 
 function renderTaskList() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
-  const isNight = currentDisaster === '화재' && currentShift === 'night';
-  const isBms   = currentDisaster === '화재' && currentShift === 'bms';
-  const m = isNight ? FIRE_NIGHT[currentMemberIdx] : isBms ? FIRE_BMS[currentMemberIdx] : d.members[currentMemberIdx];
-  const dkey = isNight ? '화재_야간' : isBms ? '화재_상황실' : currentDisaster;
+  const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
+  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isBms      = !isScenario && currentDisaster === '화재' && currentShift === 'bms';
+  const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
+          : isNight    ? FIRE_NIGHT[currentMemberIdx]
+          : isBms      ? FIRE_BMS[currentMemberIdx]
+          : d.members[currentMemberIdx];
+  const dkey = isScenario ? '화재_' + currentFireScenario
+             : isNight    ? '화재_야간'
+             : isBms      ? '화재_상황실'
+             : currentDisaster;
   const {done,total,pct} = getProgress(dkey, currentMemberIdx);
   const c = pct===100 ? '#22c55e' : d.color;
 
@@ -4283,6 +4443,58 @@ function goToProc(disasterKey) {
     requestAnimationFrame(() => {
       setTimeout(() => openSubPanel(procKey), 120);
     });
+  }
+}
+
+function openScenarioMenu() {
+  const overlay = document.getElementById('scenario-sheet-overlay');
+  const sheet   = document.getElementById('scenario-sheet');
+  // 옵션 목록 동적 렌더
+  const opts = document.getElementById('scenario-options');
+  const scenarios = [
+    { key:'general',    emoji:'🔥', label:'일반화재',           sub:'현재 표준 대응 매뉴얼' },
+    { key:'kitchen',    emoji:'🍳', label:'음식점주방 K급화재',  sub:'K급 소화기 사용 · 물 소화 금지' },
+    { key:'electrical', emoji:'⚡', label:'전기실·가스방호구역', sub:'가스 방출 후 10분 경과 후 진입' },
+    { key:'ups',        emoji:'🔋', label:'UPS실 화재',          sub:'배터리 CB Trip · 오프가스 환기 우선' },
+    { key:'parking',    emoji:'🚗', label:'지하주차장 화재',     sub:'프리액션밸브 수동기동 · 방화셔터 강하' },
+  ];
+  opts.innerHTML = scenarios.map(s => {
+    const active = currentFireScenario === s.key;
+    return `<div onclick="selectScenario('${s.key}')"
+      style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+      background:${active ? '#fef2f2' : '#f8fafc'};
+      border:2px solid ${active ? '#dc2626' : '#e2e8f0'};cursor:pointer;transition:all .15s;"
+      onmouseenter="this.style.background='${active?'#fef2f2':'#f1f5f9'}'"
+      onmouseleave="this.style.background='${active?'#fef2f2':'#f8fafc'}'">
+      <div style="font-size:24px;width:36px;text-align:center;">${s.emoji}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:800;color:${active?'#dc2626':'#1e293b'};">${s.label}</div>
+        <div style="font-size:10.5px;color:#64748b;margin-top:2px;">${s.sub}</div>
+      </div>
+      ${active ? '<div style="color:#dc2626;font-size:18px;">✓</div>' : ''}
+    </div>`;
+  }).join('');
+  overlay.style.display = 'block';
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+    sheet.style.transform = 'translateY(0)';
+  });
+}
+function closeScenarioMenu() {
+  const overlay = document.getElementById('scenario-sheet-overlay');
+  const sheet   = document.getElementById('scenario-sheet');
+  overlay.style.opacity = '0';
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(() => { overlay.style.display = 'none'; }, 280);
+}
+function selectScenario(key) {
+  currentFireScenario = key;
+  closeScenarioMenu();
+  renderIconGrid();
+  // 이미 화재 패널이 열려 있으면 즉시 갱신
+  const panel = document.getElementById('detail-panel');
+  if (panel && panel.classList.contains('open') && currentDisaster === '화재') {
+    openDisaster('화재');
   }
 }
 
@@ -4931,6 +5143,9 @@ window.addEventListener('beforeunload', function(e) {
       if (FIRE_NIGHT[idx]) FIRE_NIGHT[idx].tasks = tasks;
     } else if (dkey === '화재_상황실') {
       if (FIRE_BMS[idx]) FIRE_BMS[idx].tasks = tasks;
+    } else if (dkey.startsWith('화재_') && FIRE_SCENARIOS[dkey.slice(3)]) {
+      const sc = FIRE_SCENARIOS[dkey.slice(3)];
+      if (sc.members && sc.members[idx]) sc.members[idx].tasks = tasks;
     } else {
       const d = DISASTERS.find(x => x.key === dkey);
       if (d && d.members[idx]) d.members[idx].tasks = tasks;
