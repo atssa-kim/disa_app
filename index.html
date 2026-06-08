@@ -437,8 +437,8 @@ body {
 /* Tab content panes */
 .tab-pane { display: none; }
 .tab-pane.active { display: flex; flex-direction: column; }
-#pane-0 { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-#pane-0.active { flex: 1; overflow: hidden; }
+#pane-0 { display: flex; flex-direction: column; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#pane-0.active { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 #pane-1.active { flex: 1; overflow: hidden; }
 .tab-bar { display: none !important; }  /* 탭바 완전 숨김 */
 
@@ -954,7 +954,7 @@ body {
       </div>
     </div>
     <!-- 문자작성 탭 -->
-    <div id="msgpane-compose" style="flex:1; overflow-y:auto; padding:10px; display:block;">
+    <div id="msgpane-compose" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 100px; display:block;">
       <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
         box-shadow:0 1px 4px rgba(0,0,0,.08);">
         <div style="font-size:11px; font-weight:800; color:#374151; margin-bottom:8px;">📌 보고 유형 선택</div>
@@ -1002,7 +1002,7 @@ body {
     </div><!-- /msgpane-compose -->
 
     <!-- 보고예시 탭 -->
-    <div id="msgpane-example" style="flex:1; overflow-y:auto; padding:10px; display:none;"></div>
+    <div id="msgpane-example" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 40px; display:none;"></div>
 
   </div><!-- /msg-modal -->
 
@@ -2808,18 +2808,14 @@ function openMsgModal(type) {
   const exPane = document.getElementById('msgpane-example');
   if (exPane) exPane.innerHTML = guide + initial + middle + final;
 
-  // 전체 앱 영역 덮도록
-  const app = document.getElementById('app');
-  const bottomNav = document.querySelector('.bottom-nav');
-  const appHeader = document.querySelector('.header');
-  const aRect = app.getBoundingClientRect();
-  const nRect = bottomNav.getBoundingClientRect();
-  const hRect = appHeader.getBoundingClientRect();
+  // #app 전체 덮기 — 키보드 열릴 때도 bottom-nav에 가리지 않도록
   panel.style.position = 'absolute';
-  panel.style.top = (hRect.bottom - aRect.top) + 'px';
-  panel.style.height = (nRect.top - hRect.bottom) + 'px';
-  panel.style.width = '100%';
+  panel.style.top = '0';
   panel.style.left = '0';
+  panel.style.right = '0';
+  panel.style.bottom = '0';
+  panel.style.width = '100%';
+  panel.style.height = '';   // top+bottom으로 결정
   panel.style.zIndex = '400';
   panel.classList.add('open');
   // 탭 초기화 — 항상 보고예시 탭 먼저
@@ -2829,7 +2825,22 @@ function openMsgModal(type) {
 }
 
 function closeMsgModal() {
-  document.getElementById('msg-modal').classList.remove('open');
+  // 키보드 닫기 (포커스 해제)
+  if (document.activeElement && document.activeElement.blur) {
+    document.activeElement.blur();
+  }
+  const panel = document.getElementById('msg-modal');
+  panel.classList.remove('open');
+  // 인라인 위치 스타일 초기화
+  panel.style.top = '';
+  panel.style.right = '';
+  panel.style.bottom = '';
+  panel.style.height = '';
+  // 스크롤 초기화 — 다음 열기 때 깨끗하게
+  const compose = document.getElementById('msgpane-compose');
+  const example = document.getElementById('msgpane-example');
+  if (compose) compose.scrollTop = 0;
+  if (example) example.scrollTop = 0;
 }
 
 // ── 비상문자 탭 전환 ──────────────────────────────
@@ -3869,11 +3880,12 @@ function goToProc(disasterKey) {
 }
 
 function goHome() {
-  // [개선1] 모든 패널 닫기 (equip-panel, proc-sub 포함)
+  // 모든 패널 닫기
   ['task-panel','detail-panel','weather-panel','emergency-panel','news-panel','equip-panel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('open');
   });
+  closeMsgModal();
 
   // proc-sub 슬라이드 닫기
   const procSub = document.getElementById('proc-sub');
