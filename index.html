@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>트윈타워 재난대응 메뉴얼</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 /* ── 트윈타워 파비콘 (Canvas 렌더링) ── */
 (function(){
@@ -787,8 +788,28 @@ body {
   </div>
 
   <div class="content" id="main-content">
-    <div class="tab-pane active" id="pane-0">
+    <div class="tab-pane active" id="pane-0" style="overflow-y:auto;">
       <div class="icons-grid" id="icons-grid"></div>
+      <div style="padding:12px 14px 20px;border-top:1px solid #e2e8f0;background:#f8fafc;">
+        <div style="font-size:11px;font-weight:800;color:#64748b;margin-bottom:8px;letter-spacing:0.2px;">📊 임무 데이터 관리</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="exportToExcel()"
+            style="flex:1;background:#1d4ed8;color:white;border:none;border-radius:10px;
+            padding:11px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+            📥 엑셀 내보내기
+          </button>
+          <button onclick="document.getElementById('excel-import-input').click()"
+            style="flex:1;background:#0f766e;color:white;border:none;border-radius:10px;
+            padding:11px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+            📤 엑셀 가져오기
+          </button>
+        </div>
+        <input type="file" id="excel-import-input" accept=".xlsx,.xls" style="display:none;"
+          onchange="importFromExcel(this)">
+        <div style="font-size:10px;color:#94a3b8;margin-top:7px;line-height:1.6;text-align:center;">
+          엑셀로 임무 수정 후 가져오기하면 앱에 즉시 반영됩니다
+        </div>
+      </div>
     </div>
 
   <div class="panel" id="detail-panel">
@@ -1876,6 +1897,132 @@ const FIRE_BMS = [
      '문자보고 프로세서(BMS Phone 010-7716-8449)',
    ]},
 ];
+
+// ── 엑셀 내보내기 ──────────────────────────────────────
+function exportToExcel() {
+  if (!window.XLSX) {
+    alert('SheetJS 라이브러리를 불러오는 중입니다. 인터넷 연결 후 다시 시도하세요.');
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  const HDR = ['그룹', '역할/담당', '배지', '배지색상(bc)', '임무번호', '임무내용'];
+  const COL_W = [{wch:14},{wch:36},{wch:8},{wch:14},{wch:8},{wch:70}];
+
+  function membersToRows(members) {
+    const rows = [HDR];
+    members.forEach(m => {
+      if (m.tasks.length === 0) {
+        rows.push([m.group, m.role, m.badge, m.bc || '', '', '']);
+      } else {
+        m.tasks.forEach((task, i) => {
+          rows.push([m.group, m.role, m.badge, m.bc || '', i + 1, task]);
+        });
+      }
+    });
+    return rows;
+  }
+
+  DISASTERS.forEach(d => {
+    const ws = XLSX.utils.aoa_to_sheet(membersToRows(d.members));
+    ws['!cols'] = COL_W;
+    XLSX.utils.book_append_sheet(wb, ws, d.key);
+  });
+
+  const wsNight = XLSX.utils.aoa_to_sheet(membersToRows(FIRE_NIGHT));
+  wsNight['!cols'] = COL_W;
+  XLSX.utils.book_append_sheet(wb, wsNight, '화재_야간');
+
+  const wsBms = XLSX.utils.aoa_to_sheet(membersToRows(FIRE_BMS));
+  wsBms['!cols'] = COL_W;
+  XLSX.utils.book_append_sheet(wb, wsBms, '화재_상황실');
+
+  const today = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, '트윈타워_재난대응매뉴얼_' + today + '.xlsx');
+}
+
+// ── 엑셀 가져오기 ──────────────────────────────────────
+function importFromExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!window.XLSX) {
+    alert('SheetJS 라이브러리를 불러오는 중입니다. 인터넷 연결 후 다시 시도하세요.');
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      let updated = 0;
+
+      wb.SheetNames.forEach(function(sheetName) {
+        const ws = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        if (rows.length < 2) return;
+
+        // Parse members (skip header row[0])
+        const members = [];
+        let cur = null;
+        rows.slice(1).forEach(function(row) {
+          const group   = String(row[0] || '').trim();
+          const role    = String(row[1] || '').trim();
+          const badge   = String(row[2] || '').trim();
+          const bc      = String(row[3] || '').trim();
+          const task    = String(row[5] || '').trim();
+
+          if (!role) return;
+          if (!cur || cur.role !== role) {
+            cur = { group: group, role: role, badge: badge,
+                    bc: bc || '#555555', tasks: [] };
+            members.push(cur);
+          }
+          if (task) cur.tasks.push(task);
+        });
+
+        if (sheetName === '화재_야간') {
+          FIRE_NIGHT.splice(0, FIRE_NIGHT.length);
+          members.forEach(function(m) { FIRE_NIGHT.push(m); });
+          updated++;
+        } else if (sheetName === '화재_상황실') {
+          FIRE_BMS.splice(0, FIRE_BMS.length);
+          members.forEach(function(m) { FIRE_BMS.push(m); });
+          updated++;
+        } else {
+          const d = DISASTERS.find(function(x) { return x.key === sheetName; });
+          if (d) {
+            // Preserve bc from existing members where not specified
+            members.forEach(function(newM, i) {
+              if (!newM.bc || newM.bc === '#555555') {
+                var ex = d.members[i];
+                if (ex) newM.bc = ex.bc;
+              }
+            });
+            d.members.splice(0, d.members.length);
+            members.forEach(function(m) { d.members.push(m); });
+            updated++;
+          }
+        }
+      });
+
+      input.value = '';
+
+      if (updated > 0) {
+        renderIconGrid();
+        if (typeof renderProcGrid === 'function') renderProcGrid();
+        if (currentDisaster) renderMemberList();
+        alert(updated + '개 시트 데이터를 가져왔습니다.\n앱에 적용되었습니다.');
+      } else {
+        alert('가져올 수 있는 시트를 찾지 못했습니다.\n시트 이름을 확인해 주세요.');
+      }
+    } catch(err) {
+      input.value = '';
+      alert('엑셀 파일 읽기 오류: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
 
 function setShift(shift) {
   currentShift = shift;
