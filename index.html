@@ -561,10 +561,10 @@ body {
   gap: 2px;
 }
 .ec-tab {
-  flex: 1; padding: 10px 4px; font-size: 11.5px; font-weight: 700;
+  flex: 1; padding: 9px 2px; font-size: 10px; font-weight: 700;
   text-align: center; cursor: pointer; color: #94a3b8;
   border-bottom: 3px solid transparent; transition: all .18s;
-  white-space: nowrap; letter-spacing: -0.2px;
+  white-space: nowrap; letter-spacing: -0.3px;
 }
 .ec-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 800; }
 .ec-pane { display: none; background: var(--bg); }
@@ -1053,8 +1053,10 @@ body {
     </div>
 
     <div class="ec-tab-bar">
-      <div class="ec-tab active" id="ectab-gov"   onclick="switchEcTab('gov')">🏛️ 유관기관</div>
-      <div class="ec-tab"        id="ectab-partner" onclick="switchEcTab('partner')">🤝 협력업체</div>
+      <div class="ec-tab active" id="ectab-gov"    onclick="switchEcTab('gov')">🏛️ 유관기관</div>
+      <div class="ec-tab"        id="ectab-system"  onclick="switchEcTab('system')">⚙️ 시스템업체</div>
+      <div class="ec-tab"        id="ectab-tenant"  onclick="switchEcTab('tenant')">🏢 입주사</div>
+      <div class="ec-tab"        id="ectab-partner" onclick="switchEcTab('partner')">🤝 협력사</div>
     </div>
 
     <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;" id="ec-scroll">
@@ -1177,7 +1179,7 @@ body {
         </div>
       </div>
 
-      <div class="ec-pane" id="ecpane-partner">
+      <div class="ec-pane" id="ecpane-system">
 
         <div class="ec-section-header" style="background:#dc2626;">🚒 소방</div>
         <div class="ec-card" onclick="callNum('1661-8182')">
@@ -1342,7 +1344,378 @@ body {
           <div class="ec-num">010-5280-9459</div>
         </div>
 
-      </div></div></div>
+      </div>
+
+      <!-- ── 입주사 ── -->
+      <div class="ec-pane" id="ecpane-tenant">
+
+        <div class="ec-section-header" style="background:#1b4fa8;">🏢 ㈜ LG (E27F~29)</div>
+        <div class="ec-card" onclick="callNum('010-7768-2315')">
+          <div class="ec-icon" style="background:#eff6ff;">🏛️</div>
+          <div class="ec-info"><div class="ec-name">이승환 — ESG팀 총괄책임</div><div class="ec-sub">shwan@lg.com</div></div>
+          <div class="ec-num">010-7768-2315</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-3650-7898')">
+          <div class="ec-icon" style="background:#eff6ff;">🏛️</div>
+          <div class="ec-info"><div class="ec-name">김용환 — ESG팀 신임</div><div class="ec-sub">kyh@lg.com</div></div>
+          <div class="ec-num">010-3650-7898</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2344-4594')">
+          <div class="ec-icon" style="background:#eff6ff;">🏛️</div>
+          <div class="ec-info"><div class="ec-name">장정훈 — ESG팀 총괄책임</div><div class="ec-sub">rainmaker@lg.com</div></div>
+          <div class="ec-num">010-2344-4594</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-8415-8288')">
+          <div class="ec-icon" style="background:#eff6ff;">🏛️</div>
+          <div class="ec-info"><div class="ec-name">정우용 — 업무지원 책임</div><div class="ec-sub">sir80@lg.com</div></div>
+          <div class="ec-num">010-8415-8288</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2243-9143')">
+          <div class="ec-icon" style="background:#eff6ff;">🏛️</div>
+          <div class="ec-info"><div class="ec-name">박종혁 — 업무지원 신임</div><div class="ec-sub">hyeokpark@lg.com</div></div>
+          <div class="ec-num">010-2243-9143</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#dc2626;">🖥️ LG 전자 (W6F~35F)</div>
+        <div class="ec-card" onclick="callNum('010-4646-7689')">
+          <div class="ec-icon" style="background:#fff0f0;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">유일한 — 안전보건1팀 팀장</div><div class="ec-sub">ilhan.yu@lge.com</div></div>
+          <div class="ec-num">010-4646-7689</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-3258-5119')">
+          <div class="ec-icon" style="background:#fff0f0;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">강길주 — 안전보건1팀 책임</div><div class="ec-sub">kilju.kang@lge.com</div></div>
+          <div class="ec-num">010-3258-5119</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2385-4013')">
+          <div class="ec-icon" style="background:#fff0f0;">🏢</div>
+          <div class="ec-info"><div class="ec-name">김태현 — 본사총무 팀장</div><div class="ec-sub">Th4013.kim@lge.com</div></div>
+          <div class="ec-num">010-2385-4013</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-5553-5008')">
+          <div class="ec-icon" style="background:#fff0f0;">🏢</div>
+          <div class="ec-info"><div class="ec-name">오세훈 — 본사총무 책임</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-5553-5008</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#0284c7;">📺 LG 디스플레이 (E6F, 9F~11F)</div>
+        <div class="ec-card" onclick="callNum('010-5659-0723')">
+          <div class="ec-icon" style="background:#f0f9ff;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">김춘일 — CTO/Staff 안전팀 팀장</div><div class="ec-sub">sorimage@lgdisplay.com</div></div>
+          <div class="ec-num">010-5659-0723</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6449-3890')">
+          <div class="ec-icon" style="background:#f0f9ff;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">문성배 — CTO/Staff 안전팀 책임</div><div class="ec-sub">amiga@lgdisplay.com</div></div>
+          <div class="ec-num">010-6449-3890</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-7748-0980')">
+          <div class="ec-icon" style="background:#f0f9ff;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">김슬기 — CTO/Staff 안전팀 책임</div><div class="ec-sub">wisdom.k@lgdisplay.com</div></div>
+          <div class="ec-num">010-7748-0980</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-8066-5424')">
+          <div class="ec-icon" style="background:#f0f9ff;">📞</div>
+          <div class="ec-info"><div class="ec-name">LGD 상황실 — 안전보건</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-8066-5424</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6343-5162')">
+          <div class="ec-icon" style="background:#f0f9ff;">🏢</div>
+          <div class="ec-info"><div class="ec-name">한윤효 — 트윈/마곡경영지원팀 팀장</div><div class="ec-sub">malone@lgdisplay.com</div></div>
+          <div class="ec-num">010-6343-5162</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-7339-4107')">
+          <div class="ec-icon" style="background:#f0f9ff;">🏢</div>
+          <div class="ec-info"><div class="ec-name">선경주 — 트윈/마곡경영지원팀 책임</div><div class="ec-sub">at4652@lgdisplay.com</div></div>
+          <div class="ec-num">010-7339-4107</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#0891b2;">💻 LG CNS (E12F~14F)</div>
+        <div class="ec-card" onclick="callNum('010-4720-3426')">
+          <div class="ec-icon" style="background:#ecfeff;">🏢</div>
+          <div class="ec-info"><div class="ec-name">이예솔 — 업무지원 책임</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-4720-3426</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#4d7c0f;">🧪 LG 화학 (E7F~8F, 15F~26F)</div>
+        <div class="ec-card" onclick="callNum('010-3076-9268')">
+          <div class="ec-icon" style="background:#f7fee7;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">홍선호 — 환경안전기획팀 팀장</div><div class="ec-sub">sunhohong@lgchem.com</div></div>
+          <div class="ec-num">010-3076-9268</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6216-8429')">
+          <div class="ec-icon" style="background:#f7fee7;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">박재성 — 환경안전기획팀 책임</div><div class="ec-sub">lgjs1984@lgchem.com</div></div>
+          <div class="ec-num">010-6216-8429</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-3299-8570')">
+          <div class="ec-icon" style="background:#f7fee7;">🏢</div>
+          <div class="ec-info"><div class="ec-name">윤경호 — 업무지원 팀장</div><div class="ec-sub">khyoon@lgchem.com</div></div>
+          <div class="ec-num">010-3299-8570</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2232-4049')">
+          <div class="ec-icon" style="background:#f7fee7;">🏢</div>
+          <div class="ec-info"><div class="ec-name">황용석 — 업무지원 선임</div><div class="ec-sub">winwinwing@lgchem.com</div></div>
+          <div class="ec-num">010-2232-4049</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#6d28d9;">📊 경영연구원 (E15F, 33F, 35F)</div>
+        <div class="ec-card" onclick="callNum('010-5673-9973')">
+          <div class="ec-icon" style="background:#faf5ff;">🏢</div>
+          <div class="ec-info"><div class="ec-name">정수일 — 인프라팀 팀장</div><div class="ec-sub">sijeong@lgeri.com</div></div>
+          <div class="ec-num">010-5673-9973</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-7587-4603')">
+          <div class="ec-icon" style="background:#faf5ff;">🏢</div>
+          <div class="ec-info"><div class="ec-name">김동환 — 인프라팀 책임</div><div class="ec-sub">hwaniroo@lgbr.co.kr</div></div>
+          <div class="ec-num">010-7587-4603</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#374151;">🔒 디앤오 (EB3F, 30F, 32F, 34F)</div>
+        <div class="ec-card" onclick="callNum('010-8601-2698')">
+          <div class="ec-icon" style="background:#f8fafc;">🔒</div>
+          <div class="ec-info"><div class="ec-name">민상일 — VIP층 보안 책임</div><div class="ec-sub">msi777@dnocorp.com</div></div>
+          <div class="ec-num">010-8601-2698</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#b45309;">🍽️ D&O 시설 (F&B)</div>
+        <div class="ec-card" onclick="callNum('010-7532-9927')">
+          <div class="ec-icon" style="background:#fffbeb;">🎖️</div>
+          <div class="ec-info"><div class="ec-name">관대욱 — 디앤오 시설 총괄관리자</div><div class="ec-sub">총괄 신동업 팀장 보고</div></div>
+          <div class="ec-num">010-7532-9927</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-5528-6414')">
+          <div class="ec-icon" style="background:#fffbeb;">🍽️</div>
+          <div class="ec-info"><div class="ec-name">신동업 — F&B시설물 팀장 (EB1F)</div><div class="ec-sub">부총괄</div></div>
+          <div class="ec-num">010-5528-6414</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-7414-5432')">
+          <div class="ec-icon" style="background:#fffbeb;">☕</div>
+          <div class="ec-info"><div class="ec-name">전병호 — 스마일즈 책임 (E3F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-7414-5432</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-4566-3163')">
+          <div class="ec-icon" style="background:#fffbeb;">☕</div>
+          <div class="ec-info"><div class="ec-name">노종욱 — 스마일즈 주임 (E3F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-4566-3163</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-5095-4439')">
+          <div class="ec-icon" style="background:#fffbeb;">🍳</div>
+          <div class="ec-info"><div class="ec-name">이미원 — 이스트키친 점장 (EB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-5095-4439</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6201-3097')">
+          <div class="ec-icon" style="background:#fffbeb;">🍜</div>
+          <div class="ec-info"><div class="ec-name">신관수 — 투이키친 점장 (CB1F)</div><div class="ec-sub">부총괄 · 010-6201-3097</div></div>
+          <div class="ec-num">010-6201-3097</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-9924-2587')">
+          <div class="ec-icon" style="background:#fffbeb;">🍱</div>
+          <div class="ec-info"><div class="ec-name">길영태 — 소희원/트윈배럴스 점장 (CB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-9924-2587</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6449-1423')">
+          <div class="ec-icon" style="background:#fffbeb;">🍝</div>
+          <div class="ec-info"><div class="ec-name">장현봉 — 쿠차라 점장 (CB1F)</div><div class="ec-sub">26.3 변경 (김태훈→장현봉)</div></div>
+          <div class="ec-num">010-6449-1423</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-8835-8162')">
+          <div class="ec-icon" style="background:#fffbeb;">🍣</div>
+          <div class="ec-info"><div class="ec-name">이재상 — 스시다이몬 점장 (CB1F)</div><div class="ec-sub">이재상 010-8835-8162</div></div>
+          <div class="ec-num">010-8835-8162</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-3651-6640')">
+          <div class="ec-icon" style="background:#fffbeb;">🥘</div>
+          <div class="ec-info"><div class="ec-name">곽민승 — 온미 점장 (CB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-3651-6640</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6363-8859')">
+          <div class="ec-icon" style="background:#fffbeb;">🥐</div>
+          <div class="ec-info"><div class="ec-name">송선아 — 랩더스위트 점장 (CB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-6363-8859</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-8000-4727')">
+          <div class="ec-icon" style="background:#fffbeb;">🥐</div>
+          <div class="ec-info"><div class="ec-name">전시혜 — 아우어 베이커리 점장 (CB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-8000-4727</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6270-0117')">
+          <div class="ec-icon" style="background:#fffbeb;">☕</div>
+          <div class="ec-info"><div class="ec-name">장다름 — 트윈뮤제오 카페 점장 (CB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-6270-0117</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-3554-4125')">
+          <div class="ec-icon" style="background:#fffbeb;">🌸</div>
+          <div class="ec-info"><div class="ec-name">김지은 — 트윈뮤제오 플라워 점장 (CB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-3554-4125</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-3850-0449')">
+          <div class="ec-icon" style="background:#fffbeb;">🍺</div>
+          <div class="ec-info"><div class="ec-name">임재민 — 드래프트 128 점장 (CB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-3850-0449</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2708-4376')">
+          <div class="ec-icon" style="background:#fffbeb;">🖼️</div>
+          <div class="ec-info"><div class="ec-name">유아름 — 갤러리랩 점장 (WB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-2708-4376</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-3082-3479')">
+          <div class="ec-icon" style="background:#fffbeb;">🍽️</div>
+          <div class="ec-info"><div class="ec-name">하미라 — 서관 사원식당 점장 (WB1F)</div><div class="ec-sub">ha.mila@ourhome.co.kr</div></div>
+          <div class="ec-num">010-3082-3479</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2205-3880')">
+          <div class="ec-icon" style="background:#fffbeb;">🖼️</div>
+          <div class="ec-info"><div class="ec-name">김치수 — 갤러리랩 (WB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-2205-3880</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-8866-4368')">
+          <div class="ec-icon" style="background:#fffbeb;">🍱</div>
+          <div class="ec-info"><div class="ec-name">권영미 — 싱카이 지배인 (E5F)</div><div class="ec-sub">ym5867.kwon@fncpeople.co.kr</div></div>
+          <div class="ec-num">010-8866-4368</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-7114-4655')">
+          <div class="ec-icon" style="background:#fffbeb;">🍣</div>
+          <div class="ec-info"><div class="ec-name">송수진 — 키사라 지배인 (E5F)</div><div class="ec-sub">sj5488.song@fncpeople.co.kr</div></div>
+          <div class="ec-num">010-7114-4655</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#475569;">🏪 기타 입주사</div>
+        <div class="ec-card" onclick="callNum('010-3000-5204')">
+          <div class="ec-icon" style="background:#f8fafc;">✈️</div>
+          <div class="ec-info"><div class="ec-name">천준호 — ㈜레드캡투어 팀장 (WB1F)</div><div class="ec-sub">tourjune@redcap.co.kr</div></div>
+          <div class="ec-num">010-3000-5204</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-5566-4047')">
+          <div class="ec-icon" style="background:#f8fafc;">📱</div>
+          <div class="ec-info"><div class="ec-name">임재민 — LGU+ 점장 (W2F)</div><div class="ec-sub">limjaemin@lguplus.co.kr</div></div>
+          <div class="ec-num">010-5566-4047</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2272-5678')">
+          <div class="ec-icon" style="background:#f8fafc;">🛍️</div>
+          <div class="ec-info"><div class="ec-name">유국현 — 럭키통판 사장 (WB1F)</div><div class="ec-sub">carelg@hanmail.net</div></div>
+          <div class="ec-num">010-2272-5678</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-7765-4269')">
+          <div class="ec-icon" style="background:#f8fafc;">👓</div>
+          <div class="ec-info"><div class="ec-name">이상승 — 이노티안경점 사장 (WB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-7765-4269</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-9002-0487')">
+          <div class="ec-icon" style="background:#f8fafc;">🏬</div>
+          <div class="ec-info"><div class="ec-name">이숭화 — 하이프라자 (W2F)</div><div class="ec-sub">lsh0819@hiplaza.co.kr</div></div>
+          <div class="ec-num">010-9002-0487</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2336-1443')">
+          <div class="ec-icon" style="background:#f8fafc;">🏪</div>
+          <div class="ec-info"><div class="ec-name">김영빈 — GS25 점장/사장 (EB1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-2336-1443</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2561-8429')">
+          <div class="ec-icon" style="background:#f8fafc;">🍩</div>
+          <div class="ec-info"><div class="ec-name">강수지 — 던킨도너츠 (E1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-2561-8429</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6270-0117')">
+          <div class="ec-icon" style="background:#f8fafc;">☕</div>
+          <div class="ec-info"><div class="ec-name">장다름 — 카페바이랩 (W1F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-6270-0117</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-3911-3652')">
+          <div class="ec-icon" style="background:#f8fafc;">🖥️</div>
+          <div class="ec-info"><div class="ec-name">김정민 — LG전자 베스트샵 점장 (W2F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-3911-3652</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-5121-8668')">
+          <div class="ec-icon" style="background:#fef3c7;">👶</div>
+          <div class="ec-info"><div class="ec-name">김수진 — LG사랑 어린이집 원장 (W3F)</div><div class="ec-sub" style="color:#dc2626;font-weight:700;">⚠️ 재해약자 우선대피 대상</div></div>
+          <div class="ec-num" style="color:#dc2626;">010-5121-8668</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6272-9234')">
+          <div class="ec-icon" style="background:#f8fafc;">💊</div>
+          <div class="ec-info"><div class="ec-name">김현진 — 온누리약국 약사 (W2F)</div><div class="ec-sub">star9234@hanmail.net</div></div>
+          <div class="ec-num">010-6272-9234</div>
+        </div>
+        <div class="ec-card">
+          <div class="ec-icon" style="background:#f8fafc;">🏦</div>
+          <div class="ec-info"><div class="ec-name">윤승용 — 우리은행 계장 (W5F)</div><div class="ec-sub">YSY@wooribank.com</div></div>
+          <div class="ec-num">—</div>
+        </div>
+        <div class="ec-card" onclick="callNum('02-368-7822')">
+          <div class="ec-icon" style="background:#f8fafc;">🏦</div>
+          <div class="ec-info"><div class="ec-name">이지선 — 하나은행 대리 (W2F)</div><div class="ec-sub">yijeesun@hanafn.com</div></div>
+          <div class="ec-num">02-368-7822</div>
+        </div>
+
+      </div>
+
+      <!-- ── 협력사 ── -->
+      <div class="ec-pane" id="ecpane-partner">
+
+        <div class="ec-section-header" style="background:#1b4fa8;">🔒 프로에스콤 (보안·안내·주차·메일)</div>
+        <div class="ec-card" onclick="callNum('010-9706-4420')">
+          <div class="ec-icon" style="background:#eff6ff;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">길성용 — 동관 보안 실장 (EB2F)</div><div class="ec-sub">내선 27-3-2227</div></div>
+          <div class="ec-num">010-9706-4420</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6759-1116')">
+          <div class="ec-icon" style="background:#eff6ff;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">김성진 — 서관 보안 실장 (EB2F)</div><div class="ec-sub">내선 27-3-2228, 29</div></div>
+          <div class="ec-num">010-6759-1116</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-6625-2621')">
+          <div class="ec-icon" style="background:#eff6ff;">🛡️</div>
+          <div class="ec-info"><div class="ec-name">문상균 — 보안 부실장</div><div class="ec-sub">내선 27-3-2232</div></div>
+          <div class="ec-num">010-6625-2621</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-9201-0039')">
+          <div class="ec-icon" style="background:#eff6ff;">🙋</div>
+          <div class="ec-info"><div class="ec-name">김정수 — 안내 총무 (EB2F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-9201-0039</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-5618-3369')">
+          <div class="ec-icon" style="background:#eff6ff;">🅿️</div>
+          <div class="ec-info"><div class="ec-name">김재석 — 주차 실장 (WB2F 주차사무실)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-5618-3369</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-4941-3223')">
+          <div class="ec-icon" style="background:#eff6ff;">📬</div>
+          <div class="ec-info"><div class="ec-name">장경순 — 메일센터 파트장 (EB2F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-4941-3223</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#7c3aed;">🛗 승강기 · 주차기</div>
+        <div class="ec-card" onclick="callNum('010-5625-2909')">
+          <div class="ec-icon" style="background:#faf5ff;">🛗</div>
+          <div class="ec-info"><div class="ec-name">심일보 — 오티스 승강기 기사 (WB3F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-5625-2909</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2221-3724')">
+          <div class="ec-icon" style="background:#faf5ff;">🚗</div>
+          <div class="ec-info"><div class="ec-name">윤혁준 — 옷텐오티스 기계식주차기 (WB3F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-2221-3724</div>
+        </div>
+
+        <div class="ec-section-header" style="background:#059669;">🧹 미화 · 폐기물</div>
+        <div class="ec-card" onclick="callNum('010-3653-1016')">
+          <div class="ec-icon" style="background:#f0fdf4;">🧹</div>
+          <div class="ec-info"><div class="ec-name">지정은 — 백상코퍼레이션 주간미화 실장 (WB3F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-3653-1016</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-2671-5963')">
+          <div class="ec-icon" style="background:#f0fdf4;">🌙</div>
+          <div class="ec-info"><div class="ec-name">김필석 — 드림누리 야간미화 매니저 (WB2F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-2671-5963</div>
+        </div>
+        <div class="ec-card" onclick="callNum('010-8448-7600')">
+          <div class="ec-icon" style="background:#f0fdf4;">♻️</div>
+          <div class="ec-info"><div class="ec-name">전학재 — 대우이엔씨 폐기물 부장 (WB2F)</div><div class="ec-sub"></div></div>
+          <div class="ec-num">010-8448-7600</div>
+        </div>
+
+      </div>
+
+    </div></div></div>
 
   <div class="bottom-nav">
     <div class="nav-btn active" id="nav-home" onclick="goHome()">
@@ -4188,7 +4561,7 @@ function renderContactEditModal(tab) {
       <div style="background:#1b4fa8;padding:14px 16px;display:flex;align-items:center;
         gap:10px;flex-shrink:0;border-radius:20px 20px 0 0;">
         <div style="flex:1;font-size:14px;font-weight:800;color:white;">
-          ✏️ 비상연락처 수정 — ${tab==='gov'?'유관기관':'협력업체'}
+          ✏️ 비상연락처 수정 — ${tab==='gov'?'유관기관':tab==='system'?'시스템업체':tab==='tenant'?'입주사':'협력사'}
         </div>
         <button onclick="closeContactEdit()"
           style="background:rgba(255,255,255,0.2);border:none;color:white;
