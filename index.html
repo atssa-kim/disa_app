@@ -2657,11 +2657,11 @@ function renderIconGrid() {
       const chipBg = isGen ? 'rgba(220,38,38,0.10)' : '#dc2626';
       const chipCo = isGen ? '#dc2626' : 'white';
       return `
-        <div class="disaster-btn" id="fire-card-btn" onclick="openDisaster('화재')" style="position:relative;overflow:visible;">
+        <div class="disaster-btn" id="fire-card-btn" onclick="openDisaster('화재')" style="position:relative;overflow:visible;padding-top:38px;">
           <div onclick="event.stopPropagation();toggleScenarioInline()"
             style="position:absolute;top:0;left:0;right:0;
             background:${chipBg};color:${chipCo};
-            font-size:11px;font-weight:900;padding:5px 6px;
+            font-size:16px;font-weight:900;padding:8px 9px;
             border-radius:12px 12px 0 0;text-align:center;
             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
             cursor:pointer;letter-spacing:-0.3px;line-height:1.2;">${chip}</div>
