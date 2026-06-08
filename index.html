@@ -796,26 +796,8 @@ body {
   <div class="content" id="main-content">
     <div class="tab-pane active" id="pane-0" style="overflow-y:auto;">
       <div class="icons-grid" id="icons-grid"></div>
-      <div style="padding:12px 14px 20px;border-top:1px solid #e2e8f0;background:#f8fafc;">
-        <div style="font-size:11px;font-weight:800;color:#64748b;margin-bottom:8px;letter-spacing:0.2px;">📊 임무 데이터 관리</div>
-        <div style="display:flex;gap:8px;">
-          <button onclick="exportToExcel()"
-            style="flex:1;background:#1d4ed8;color:white;border:none;border-radius:10px;
-            padding:11px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
-            📥 엑셀 내보내기
-          </button>
-          <button onclick="document.getElementById('excel-import-input').click()"
-            style="flex:1;background:#0f766e;color:white;border:none;border-radius:10px;
-            padding:11px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
-            📤 엑셀 가져오기
-          </button>
-        </div>
-        <input type="file" id="excel-import-input" accept=".xlsx,.xls" style="display:none;"
-          onchange="importFromExcel(this)">
-        <div style="font-size:10px;color:#94a3b8;margin-top:7px;line-height:1.6;text-align:center;">
-          엑셀로 임무 수정 후 가져오기하면 앱에 즉시 반영됩니다
-        </div>
-      </div>
+      <input type="file" id="excel-import-input" accept=".xlsx,.xls" style="display:none;"
+        onchange="importFromExcel(this)">
     </div>
 
   <div class="panel" id="detail-panel">
