@@ -1723,10 +1723,59 @@ body {
 
     </div></div>
 
+  <!-- ── 엑셀 임무수정 팝업 시트 ── -->
+  <div id="excel-sheet-overlay"
+    onclick="closeExcelMenu()"
+    style="position:absolute;inset:0;background:rgba(0,0,0,0.45);
+    z-index:60;display:none;opacity:0;transition:opacity 0.25s;"></div>
+  <div id="excel-sheet"
+    style="position:absolute;bottom:0;left:0;right:0;
+    background:white;border-radius:22px 22px 0 0;z-index:61;
+    box-shadow:0 -4px 24px rgba(0,0,0,0.18);
+    transform:translateY(100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1);
+    padding-bottom:calc(env(safe-area-inset-bottom,0px));">
+    <!-- 핸들 바 -->
+    <div style="display:flex;justify-content:center;padding:10px 0 4px;">
+      <div style="width:40px;height:4px;background:#e2e8f0;border-radius:2px;"></div>
+    </div>
+    <div style="padding:8px 18px 22px;">
+      <!-- 타이틀 -->
+      <div style="display:flex;align-items:center;margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:800;color:#1e293b;flex:1;">📊 임무 데이터 관리</div>
+        <button onclick="closeExcelMenu()"
+          style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:50%;
+          font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+          color:#64748b;">✕</button>
+      </div>
+      <!-- 버튼 두 개 -->
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <button onclick="exportToExcel();closeExcelMenu()"
+          style="flex:1;background:#1d4ed8;color:white;border:none;border-radius:12px;
+          padding:14px 8px;font-size:13px;font-weight:700;cursor:pointer;
+          font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;">
+          <span style="font-size:22px;">📥</span>엑셀 내보내기
+        </button>
+        <button onclick="document.getElementById('excel-import-input').click()"
+          style="flex:1;background:#0f766e;color:white;border:none;border-radius:12px;
+          padding:14px 8px;font-size:13px;font-weight:700;cursor:pointer;
+          font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;">
+          <span style="font-size:22px;">📤</span>엑셀 가져오기
+        </button>
+      </div>
+      <div style="font-size:10.5px;color:#94a3b8;text-align:center;line-height:1.6;">
+        엑셀로 임무 수정 후 가져오기하면 앱에 즉시 반영됩니다
+      </div>
+    </div>
+  </div>
+
   <div class="bottom-nav">
     <div class="nav-btn active" id="nav-home" onclick="goHome()">
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       <span>홈</span>
+    </div>
+    <div class="nav-btn" id="nav-excel" onclick="openExcelMenu()">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zm-5 8v-1.5h2V17H8zm0-3v-1.5h8V14H8zm0-3v-1.5h8V11H8z"/></svg>
+      <span>임무수정</span>
     </div>
     <div class="nav-btn" id="nav-news" onclick="openNews(this)">
       <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
@@ -2324,6 +2373,7 @@ function exportToExcel() {
 
 // ── 엑셀 가져오기 ──────────────────────────────────────
 function importFromExcel(input) {
+  closeExcelMenu();
   const file = input.files[0];
   if (!file) return;
   if (!window.XLSX) {
@@ -4254,7 +4304,25 @@ function goToProc(disasterKey) {
   }
 }
 
+function openExcelMenu() {
+  const overlay = document.getElementById('excel-sheet-overlay');
+  const sheet   = document.getElementById('excel-sheet');
+  overlay.style.display = 'block';
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+    sheet.style.transform = 'translateY(0)';
+  });
+}
+function closeExcelMenu() {
+  const overlay = document.getElementById('excel-sheet-overlay');
+  const sheet   = document.getElementById('excel-sheet');
+  overlay.style.opacity = '0';
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(() => { overlay.style.display = 'none'; }, 280);
+}
+
 function goHome() {
+  closeExcelMenu();
   // 모든 패널 닫기
   ['task-panel','detail-panel','weather-panel','emergency-panel','news-panel','equip-panel'].forEach(id => {
     const el = document.getElementById(id);
