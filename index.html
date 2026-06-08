@@ -3390,16 +3390,12 @@ function renderBmsList() {
     const isComplete = pct === 100;
 
     html += `
-    <div style="border-top:${mi > 0 ? '1px solid rgba(0,0,0,0.06)' : 'none'};">
-      <!-- 멤버 헤더 -->
-      <div onclick="openTask(${globalIdx},'화재_상황실')"
-        style="padding:12px 14px;display:flex;align-items:center;gap:10px;
-        cursor:pointer;background:${isComplete ? 'rgba(34,197,94,0.08)' : 'transparent'};
-        transition:background .15s;"
-        onmouseenter="this.style.background='rgba(0,0,0,0.04)'"
-        onmouseleave="this.style.background='${isComplete ? 'rgba(34,197,94,0.08)' : 'transparent'}'">
-        <!-- 뱃지 -->
-        <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;
+    <div style="border-top:${mi > 0 ? '1px solid rgba(0,0,0,0.06)' : 'none'};
+      display:flex;align-items:stretch;">
+      <!-- 배지 컬럼: 카드 전체 높이 기준 중앙 -->
+      <div style="width:68px;flex-shrink:0;display:flex;align-items:center;
+        justify-content:center;padding:12px 0 10px;">
+        <div style="width:44px;height:44px;border-radius:12px;
           background:${isComplete ? '#dcfce7' : 'white'};
           border:2px solid ${isComplete ? '#22c55e' : cat.border};
           display:flex;flex-direction:column;align-items:center;
@@ -3408,60 +3404,68 @@ function renderBmsList() {
             color:${isComplete ? '#16a34a' : cat.accent};
             line-height:1.2;text-align:center;">${m.badge}</div>
         </div>
-        <!-- 정보 -->
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:800;color:#0f172a;
-            letter-spacing:-0.2px;margin-bottom:5px;
-            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            ${m.role}
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="flex:1;height:5px;background:rgba(0,0,0,0.1);
-              border-radius:3px;overflow:hidden;">
-              <div style="width:${pct}%;height:100%;
-                background:${isComplete ? '#22c55e' : cat.accent};
-                border-radius:3px;transition:width .4s;"></div>
-            </div>
-            <span style="font-size:11px;font-weight:800;flex-shrink:0;
-              color:${isComplete ? '#16a34a' : cat.tc};">${done}/${total}</span>
-          </div>
-        </div>
-        <!-- 완료/화살표 -->
-        <div style="flex-shrink:0;">
-          ${isComplete
-            ? `<div style="width:30px;height:30px;border-radius:50%;
-                background:#dcfce7;display:flex;align-items:center;
-                justify-content:center;font-size:16px;">✅</div>`
-            : `<div style="width:30px;height:30px;border-radius:50%;
-                background:white;border:2px solid ${cat.border};
-                display:flex;align-items:center;justify-content:center;
-                color:${cat.accent};font-size:18px;font-weight:300;">›</div>`}
-        </div>
       </div>
-      <!-- 임무 체크리스트 (인라인 표시) -->
-      <div style="padding:0 14px 10px 70px;">
-        ${m.tasks.map((task, ti) => {
-          const tkey = `화재_상황실-${globalIdx}-${ti}`;
-          const ok = !!tasksDone[tkey];
-          return `<div onclick="event.stopPropagation();toggleBmsTask('${tkey}')"
-            style="display:flex;align-items:flex-start;gap:8px;
-            padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.05);
-            cursor:pointer;transition:opacity .15s;"
-            onmouseenter="this.style.opacity='.75'"
-            onmouseleave="this.style.opacity='1'">
-            <div style="width:18px;height:18px;border-radius:5px;flex-shrink:0;
-              margin-top:1px;background:${ok ? cat.accent : 'white'};
-              border:2px solid ${ok ? cat.accent : '#cbd5e1'};
-              display:flex;align-items:center;justify-content:center;
-              box-shadow:${ok ? '0 2px 6px ' + cat.badge.shadow : 'none'};
-              transition:all .2s;">
-              ${ok ? '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+      <!-- 우측 콘텐츠 -->
+      <div style="flex:1;min-width:0;">
+        <!-- 멤버 헤더 -->
+        <div onclick="openTask(${globalIdx},'화재_상황실')"
+          style="padding:12px 14px 8px 0;display:flex;align-items:center;gap:10px;
+          cursor:pointer;transition:opacity .15s;"
+          onmouseenter="this.style.opacity='.75'"
+          onmouseleave="this.style.opacity='1'">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:800;color:#0f172a;
+              letter-spacing:-0.2px;margin-bottom:5px;
+              white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${m.role}
             </div>
-            <div style="font-size:15px;color:${ok ? '#94a3b8' : '#1e293b'};
-              line-height:1.6;text-decoration:${ok ? 'line-through' : 'none'};
-              font-weight:${ok ? '400' : '650'};">${task}</div>
-          </div>`;
-        }).join('')}
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="flex:1;height:5px;background:rgba(0,0,0,0.1);
+                border-radius:3px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;
+                  background:${isComplete ? '#22c55e' : cat.accent};
+                  border-radius:3px;transition:width .4s;"></div>
+              </div>
+              <span style="font-size:11px;font-weight:800;flex-shrink:0;
+                color:${isComplete ? '#16a34a' : cat.tc};">${done}/${total}</span>
+            </div>
+          </div>
+          <div style="flex-shrink:0;margin-right:4px;">
+            ${isComplete
+              ? `<div style="width:30px;height:30px;border-radius:50%;
+                  background:#dcfce7;display:flex;align-items:center;
+                  justify-content:center;font-size:16px;">✅</div>`
+              : `<div style="width:30px;height:30px;border-radius:50%;
+                  background:white;border:2px solid ${cat.border};
+                  display:flex;align-items:center;justify-content:center;
+                  color:${cat.accent};font-size:18px;font-weight:300;">›</div>`}
+          </div>
+        </div>
+        <!-- 임무 체크리스트 -->
+        <div style="padding:0 14px 10px 0;">
+          ${m.tasks.map((task, ti) => {
+            const tkey = `화재_상황실-${globalIdx}-${ti}`;
+            const ok = !!tasksDone[tkey];
+            return `<div onclick="event.stopPropagation();toggleBmsTask('${tkey}')"
+              style="display:flex;align-items:flex-start;gap:8px;
+              padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.05);
+              cursor:pointer;transition:opacity .15s;"
+              onmouseenter="this.style.opacity='.75'"
+              onmouseleave="this.style.opacity='1'">
+              <div style="width:18px;height:18px;border-radius:5px;flex-shrink:0;
+                margin-top:1px;background:${ok ? cat.accent : 'white'};
+                border:2px solid ${ok ? cat.accent : '#cbd5e1'};
+                display:flex;align-items:center;justify-content:center;
+                box-shadow:${ok ? '0 2px 6px ' + cat.badge.shadow : 'none'};
+                transition:all .2s;">
+                ${ok ? '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+              </div>
+              <div style="font-size:13px;color:${ok ? '#94a3b8' : '#1e293b'};
+                line-height:1.6;text-decoration:${ok ? 'line-through' : 'none'};
+                font-weight:${ok ? '400' : '600'};">${task}</div>
+            </div>`;
+          }).join('')}
+        </div>
       </div>
     </div>`;
     });  // end items.forEach
