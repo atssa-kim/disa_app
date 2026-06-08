@@ -829,6 +829,13 @@ body {
             font-family:inherit; cursor:pointer; background:rgba(255,255,255,.25); color:white;">📋 상황실</button>
         </div>
       </div>
+      <button onclick="goToProc(currentDisaster)"
+        style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.45);
+        color:white;border-radius:9px;padding:6px 10px;font-size:11px;font-weight:800;
+        cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;
+        flex-shrink:0;font-family:inherit;letter-spacing:-0.2px;">
+        📋 프로세스
+      </button>
     </div>
     <div class="panel-scroll" style="background:#f1f5f9; padding-bottom:16px;">
       <div id="member-list"></div>
@@ -2357,24 +2364,6 @@ function renderMemberList() {
 
   html += `<div style="height:6px;"></div>`;
 
-  // 대응 프로세스 이동 버튼
-  const disasterColor = (DISASTERS.find(x => x.key === currentDisaster) || {}).color || '#1a56db';
-  const rv = parseInt(disasterColor.slice(1,3),16);
-  const gv = parseInt(disasterColor.slice(3,5),16);
-  const bv = parseInt(disasterColor.slice(5,7),16);
-  const btnShadow = `rgba(${rv},${gv},${bv},0.4)`;
-
-  html += `
-  <div style="padding:12px 10px 6px;">
-    <button onclick="goToProc('${currentDisaster}')"
-      style="width:100%;padding:11px;background:transparent;
-      color:#000000;border:2px solid rgba(${rv},${gv},${bv},0.6);border-radius:4px;
-      font-size:13.5px;font-weight:800;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;gap:8px;
-      font-family:inherit;letter-spacing:-0.3px;box-shadow:0 4px 14px ${btnShadow};">
-      <span style="font-size:16px;">📋</span> 대응 프로세스 보기
-    </button>
-  </div>`;
 
   document.getElementById('member-list').innerHTML = html;
 }
