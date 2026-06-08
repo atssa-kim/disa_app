@@ -795,22 +795,6 @@ body {
 
   <div class="content" id="main-content">
     <div class="tab-pane active" id="pane-0" style="overflow-y:auto;">
-      <!-- 화재 시나리오 선택 바 -->
-      <div id="scenario-bar" onclick="openScenarioMenu()"
-        style="margin:8px 10px 4px;padding:9px 14px;
-        background:linear-gradient(135deg,#fef2f2,#fff7f7);
-        border:1.5px solid #fca5a5;border-radius:12px;
-        display:flex;align-items:center;gap:10px;cursor:pointer;
-        -webkit-tap-highlight-color:transparent;">
-        <div style="font-size:20px;line-height:1;">🔥</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:9.5px;color:#991b1b;font-weight:700;letter-spacing:0.4px;margin-bottom:1px;">화재 시나리오</div>
-          <div id="scenario-bar-label"
-            style="font-size:12.5px;font-weight:800;color:#dc2626;
-            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">일반화재</div>
-        </div>
-        <div style="color:#dc2626;font-size:20px;font-weight:300;line-height:1;flex-shrink:0;">›</div>
-      </div>
       <div class="icons-grid" id="icons-grid"></div>
       <input type="file" id="excel-import-input" accept=".xlsx,.xls" style="display:none;"
         onchange="importFromExcel(this)">
@@ -2658,12 +2642,31 @@ function positionEditModal(modal, panelEl) {
 // ── INIT: render icon grid ──────────────────────────
 function renderIconGrid() {
   const grid = document.getElementById('icons-grid');
-  grid.innerHTML = DISASTERS.map(d => `
-    <div class="disaster-btn" onclick="openDisaster('${d.key}')">
-      <div class="d-icon">${d.iconSvg}</div>
-      <div class="d-label">${d.label}</div>
-    </div>`).join('');
-  updateScenarioBar();
+  grid.innerHTML = DISASTERS.map(d => {
+    if (d.key === '화재') {
+      const isGen  = currentFireScenario === 'general';
+      const chip   = isGen ? '+화재시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
+      const chipBg = isGen ? 'rgba(220,38,38,0.08)' : '#dc2626';
+      const chipCo = isGen ? '#dc2626' : 'white';
+      return `
+        <div class="disaster-btn" onclick="openDisaster('화재')" style="position:relative;">
+          <div onclick="event.stopPropagation();openScenarioMenu()"
+            style="position:absolute;top:0;left:0;right:0;
+            background:${chipBg};color:${chipCo};
+            font-size:9.5px;font-weight:800;padding:4px 8px;
+            border-radius:12px 12px 0 0;text-align:center;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+            cursor:pointer;letter-spacing:-0.2px;">${chip}</div>
+          <div class="d-icon">${d.iconSvg}</div>
+          <div class="d-label">${d.label}</div>
+        </div>`;
+    }
+    return `
+      <div class="disaster-btn" onclick="openDisaster('${d.key}')">
+        <div class="d-icon">${d.iconSvg}</div>
+        <div class="d-label">${d.label}</div>
+      </div>`;
+  }).join('');
 }
 
 // ── INIT: 대응 프로세스 그리드 (DISASTERS 아이콘 동일 사용) ──
@@ -4518,29 +4521,11 @@ function closeScenarioMenu() {
   sheet.style.transform = 'translateY(100%)';
   setTimeout(() => { overlay.style.display = 'none'; }, 280);
 }
-function updateScenarioBar() {
-  const bar   = document.getElementById('scenario-bar');
-  const label = document.getElementById('scenario-bar-label');
-  if (!bar || !label) return;
-  const isGen = currentFireScenario === 'general';
-  const name  = isGen ? '일반화재' : FIRE_SCENARIOS[currentFireScenario].label;
-  label.textContent = name;
-  bar.style.background = isGen
-    ? 'linear-gradient(135deg,#fef2f2,#fff7f7)'
-    : 'linear-gradient(135deg,#dc2626,#b91c1c)';
-  bar.style.borderColor = isGen ? '#fca5a5' : '#b91c1c';
-  label.style.color     = isGen ? '#dc2626' : 'white';
-  bar.querySelector('div').style.filter = isGen ? '' : 'brightness(10)';
-  const arrow = bar.lastElementChild;
-  if (arrow) arrow.style.color = isGen ? '#dc2626' : 'white';
-  const subtitle = bar.querySelector('[style*="9.5px"]');
-  if (subtitle) subtitle.style.color = isGen ? '#991b1b' : 'rgba(255,255,255,0.8)';
-}
 
 function selectScenario(key) {
   currentFireScenario = key;
   closeScenarioMenu();
-  updateScenarioBar();
+  renderIconGrid();
   // 이미 화재 패널이 열려 있으면 즉시 갱신
   const panel = document.getElementById('detail-panel');
   if (panel && panel.classList.contains('open') && currentDisaster === '화재') {
