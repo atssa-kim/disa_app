@@ -2458,6 +2458,21 @@ function exportToExcel() {
   wsBms['!cols'] = COL_W;
   XLSX.utils.book_append_sheet(wb, wsBms, '화재_상황실');
 
+  // 화재 시나리오별 시트
+  const SCENARIO_SHEETS = [
+    { key:'kitchen',    name:'화재_주방K급'   },
+    { key:'electrical', name:'화재_전기실가스' },
+    { key:'ups',        name:'화재_UPS실'      },
+    { key:'parking',    name:'화재_지하주차장' },
+  ];
+  SCENARIO_SHEETS.forEach(function(sc) {
+    const members = FIRE_SCENARIOS[sc.key].members;
+    if (!members) return;
+    const ws = XLSX.utils.aoa_to_sheet(membersToRows(members));
+    ws['!cols'] = COL_W;
+    XLSX.utils.book_append_sheet(wb, ws, sc.name);
+  });
+
   const today = new Date().toISOString().slice(0, 10);
   XLSX.writeFile(wb, '트윈타워_재난대응매뉴얼_' + today + '.xlsx');
 }
@@ -2504,6 +2519,14 @@ function importFromExcel(input) {
           if (task) cur.tasks.push(task);
         });
 
+        // 시트명 → 시나리오 키 매핑
+        const SHEET_TO_SCENARIO = {
+          '화재_주방K급':   'kitchen',
+          '화재_전기실가스':'electrical',
+          '화재_UPS실':     'ups',
+          '화재_지하주차장':'parking',
+        };
+
         if (sheetName === '화재_야간') {
           FIRE_NIGHT.splice(0, FIRE_NIGHT.length);
           members.forEach(function(m) { FIRE_NIGHT.push(m); });
@@ -2512,6 +2535,14 @@ function importFromExcel(input) {
           FIRE_BMS.splice(0, FIRE_BMS.length);
           members.forEach(function(m) { FIRE_BMS.push(m); });
           updated++;
+        } else if (SHEET_TO_SCENARIO[sheetName]) {
+          const scenKey = SHEET_TO_SCENARIO[sheetName];
+          const sc = FIRE_SCENARIOS[scenKey];
+          if (sc && sc.members) {
+            sc.members.splice(0, sc.members.length);
+            members.forEach(function(m) { sc.members.push(m); });
+            updated++;
+          }
         } else {
           const d = DISASTERS.find(function(x) { return x.key === sheetName; });
           if (d) {
