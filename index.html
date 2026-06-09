@@ -4708,17 +4708,10 @@ async function pushToGitHub() {
       'Content-Type': 'application/json'
     };
 
-    const res = await fetch(apiBase + '?ref=' + GH_BRANCH, { headers });
-    if (!res.ok) {
-      if (res.status === 401) { localStorage.removeItem('gh_pat'); }
-      throw new Error('파일 조회 실패 (' + res.status + ')');
-    }
-    const fileInfo = await res.json();
-    const rawBytes = atob(fileInfo.content.replace(/\n/g, ''));
-    const uint8In = new Uint8Array(rawBytes.length);
-    for (let i = 0; i < rawBytes.length; i++) uint8In[i] = rawBytes.charCodeAt(i);
-    const currentHtml = new TextDecoder('utf-8').decode(uint8In);
-    const sha = fileInfo.sha;
+    // 로컬 파일을 직접 읽어 마커 교체 (GitHub API 디코딩 문제 우회)
+    const localRes = await fetch('index.html?t=' + Date.now());
+    if (!localRes.ok) throw new Error('로컬 파일 읽기 실패');
+    const currentHtml = await localRes.text();
 
     const newBlock = buildDataBlock();
     const newHtml = currentHtml.replace(
@@ -4729,6 +4722,14 @@ async function pushToGitHub() {
       alert('⚠️ 데이터 블록 마커를 찾지 못했습니다. GitHub 푸시 생략.');
       return;
     }
+
+    // GitHub SHA 조회 (파일 내용은 사용 안 함)
+    const shaRes = await fetch(apiBase + '?ref=' + GH_BRANCH, { headers });
+    if (!shaRes.ok) {
+      if (shaRes.status === 401) { localStorage.removeItem('gh_pat'); }
+      throw new Error('SHA 조회 실패 (' + shaRes.status + ')');
+    }
+    const { sha } = await shaRes.json();
 
     const uint8Out = new TextEncoder().encode(newHtml);
     let binary = '';
