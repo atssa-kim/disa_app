@@ -1831,17 +1831,17 @@ body {
           style="flex:1;background:#1d4ed8;color:white;border:none;border-radius:12px;
           padding:14px 8px;font-size:13px;font-weight:700;cursor:pointer;
           font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <span style="font-size:22px;">📥</span>엑셀 내보내기
+          <span style="font-size:22px;">📥</span>엑셀 download
         </button>
         <button onclick="openAdminAuth()"
           style="flex:1;background:#0f766e;color:white;border:none;border-radius:12px;
           padding:14px 8px;font-size:13px;font-weight:700;cursor:pointer;
           font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <span style="font-size:22px;">📤</span>엑셀 가져오기
+          <span style="font-size:22px;">📤</span>엑셀 upload
         </button>
       </div>
       <div style="font-size:10.5px;color:#94a3b8;text-align:center;line-height:1.6;">
-        엑셀로 임무 수정 후 가져오기하면 앱에 즉시 반영됩니다
+        엑셀로 임무 수정 후 upload하면 앱에 즉시 반영 및 GitHub 자동 저장됩니다
       </div>
     </div>
   </div>
@@ -1902,7 +1902,7 @@ body {
 </div>
 
 <script>
-// ── DATA ──────────────────────────────────────────
+// ── DATA_BLOCK_START ──
 const DISASTERS = [
   // ── 화재 (트윈타워 비상대응 매뉴얼 Ⅲ-1 화재) ──
   { key:'화재', label:'🔥 화재', color:'#dc2626',
@@ -2501,6 +2501,7 @@ const FIRE_SCENARIOS = {
     ]
   }
 };
+// ── DATA_BLOCK_END ──
 let currentFireScenario = 'general';
 
 // ── 엑셀 내보내기 ──────────────────────────────────────
@@ -2650,6 +2651,7 @@ function importFromExcel(input) {
         if (typeof renderProcGrid === 'function') renderProcGrid();
         if (currentDisaster) renderMemberList();
         alert(updated + '개 시트 데이터를 가져왔습니다.\n앱에 적용되었습니다.');
+        pushToGitHub();
       } else {
         alert('가져올 수 있는 시트를 찾지 못했습니다.\n시트 이름을 확인해 주세요.');
       }
@@ -4649,6 +4651,90 @@ function selectScenario(key) {
   const panel = document.getElementById('detail-panel');
   if (panel && panel.classList.contains('open') && currentDisaster === '화재') {
     openDisaster('화재');
+  }
+}
+
+// ── GitHub 자동 푸시 ────────────────────────────────────
+const GH_REPO   = 'atssa-kim/disa_app';
+const GH_FILE   = 'index.html';
+const GH_BRANCH = 'main';
+
+function getGhToken() {
+  let t = localStorage.getItem('gh_pat');
+  if (!t) {
+    t = prompt('GitHub Personal Access Token을 입력하세요\n(최초 1회 입력 후 브라우저에 저장됩니다)\n\n권한: repo (Contents write)');
+    if (t) localStorage.setItem('gh_pat', t.trim());
+  }
+  return t ? t.trim() : null;
+}
+
+function buildDataBlock() {
+  const scenarios = {};
+  Object.entries(FIRE_SCENARIOS).forEach(function([k, v]) {
+    scenarios[k] = { label: v.label, members: v.members };
+  });
+  return [
+    '// ── DATA_BLOCK_START ──',
+    'const DISASTERS = ' + JSON.stringify(DISASTERS, null, 2) + ';',
+    '',
+    'const FIRE_NIGHT = ' + JSON.stringify(FIRE_NIGHT, null, 2) + ';',
+    '',
+    'const FIRE_BMS = ' + JSON.stringify(FIRE_BMS, null, 2) + ';',
+    '',
+    'const FIRE_SCENARIOS = ' + JSON.stringify(scenarios, null, 2) + ';',
+    '// ── DATA_BLOCK_END ──'
+  ].join('\n');
+}
+
+async function pushToGitHub() {
+  const token = getGhToken();
+  if (!token) return;
+
+  try {
+    const apiBase = 'https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_FILE;
+    const headers = {
+      'Authorization': 'token ' + token,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
+
+    const res = await fetch(apiBase + '?ref=' + GH_BRANCH, { headers });
+    if (!res.ok) {
+      if (res.status === 401) { localStorage.removeItem('gh_pat'); }
+      throw new Error('파일 조회 실패 (' + res.status + ')');
+    }
+    const fileInfo = await res.json();
+    const currentHtml = decodeURIComponent(escape(atob(fileInfo.content.replace(/\n/g, ''))));
+    const sha = fileInfo.sha;
+
+    const newBlock = buildDataBlock();
+    const newHtml = currentHtml.replace(
+      /\/\/ ── DATA_BLOCK_START ──[\s\S]*?\/\/ ── DATA_BLOCK_END ──/,
+      newBlock
+    );
+    if (newHtml === currentHtml) {
+      alert('⚠️ 데이터 블록 마커를 찾지 못했습니다. GitHub 푸시 생략.');
+      return;
+    }
+
+    const encoded = btoa(unescape(encodeURIComponent(newHtml)));
+    const commitRes = await fetch(apiBase, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        message: '엑셀 upload — 임무 데이터 업데이트',
+        content: encoded,
+        sha,
+        branch: GH_BRANCH
+      })
+    });
+    if (!commitRes.ok) {
+      const e = await commitRes.json();
+      throw new Error(e.message || '커밋 실패 (' + commitRes.status + ')');
+    }
+    alert('✅ GitHub에 자동 저장되었습니다!');
+  } catch(err) {
+    alert('GitHub 푸시 오류: ' + err.message);
   }
 }
 
