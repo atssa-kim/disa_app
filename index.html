@@ -4714,7 +4714,10 @@ async function pushToGitHub() {
       throw new Error('파일 조회 실패 (' + res.status + ')');
     }
     const fileInfo = await res.json();
-    const currentHtml = decodeURIComponent(escape(atob(fileInfo.content.replace(/\n/g, ''))));
+    const rawBytes = atob(fileInfo.content.replace(/\n/g, ''));
+    const uint8In = new Uint8Array(rawBytes.length);
+    for (let i = 0; i < rawBytes.length; i++) uint8In[i] = rawBytes.charCodeAt(i);
+    const currentHtml = new TextDecoder('utf-8').decode(uint8In);
     const sha = fileInfo.sha;
 
     const newBlock = buildDataBlock();
@@ -4727,7 +4730,10 @@ async function pushToGitHub() {
       return;
     }
 
-    const encoded = btoa(unescape(encodeURIComponent(newHtml)));
+    const uint8Out = new TextEncoder().encode(newHtml);
+    let binary = '';
+    for (let i = 0; i < uint8Out.length; i++) binary += String.fromCharCode(uint8Out[i]);
+    const encoded = btoa(binary);
     const commitRes = await fetch(apiBase, {
       method: 'PUT',
       headers,
