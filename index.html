@@ -801,38 +801,42 @@ body {
     </div>
 
   <div class="panel" id="detail-panel" style="position:relative;">
-    <div class="panel-header" id="detail-header">
-      <button class="back-btn" onclick="closeDetail()">‹</button>
-      <div style="flex:1;min-width:0;">
-        <div class="panel-title" id="detail-title"></div>
-        <div id="fire-tabbar" style="display:none;margin-top:6px;
-          background:rgba(0,0,0,0.18);border-radius:10px;padding:3px;gap:3px;">
-          <button id="tab-scenario" onclick="toggleScenarioPanel()"
-            style="flex:1;min-width:0;border:none;border-radius:8px;padding:5px 2px;font-size:11px;
-            font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;overflow:hidden;
-            text-overflow:ellipsis;background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);
-            line-height:1.3;">+ 시나리오</button>
-          <button id="btn-day" onclick="setShift('day')"
-            style="flex:1;min-width:0;border:none;border-radius:8px;padding:5px 2px;font-size:11px;
-            font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;
-            background:white;color:#dc2626;line-height:1.3;">☀️ 주간</button>
-          <button id="btn-night" onclick="setShift('night')"
-            style="flex:1;min-width:0;border:none;border-radius:8px;padding:5px 2px;font-size:11px;
-            font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;
-            background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);line-height:1.3;">🌙 야간</button>
-          <button id="btn-bms" onclick="setShift('bms')"
-            style="flex:1;min-width:0;border:none;border-radius:8px;padding:5px 2px;font-size:11px;
-            font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;
-            background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);line-height:1.3;">📋 상황실</button>
-        </div>
+    <div class="panel-header" id="detail-header" style="flex-direction:column;gap:0;padding:0;align-items:stretch;">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;">
+        <button class="back-btn" onclick="closeDetail()">‹</button>
+        <div class="panel-title" id="detail-title" style="flex:1;min-width:0;"></div>
+        <button onclick="goToProc(currentDisaster)"
+          style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.45);
+          color:white;border-radius:9px;padding:6px 10px;font-size:11px;font-weight:800;
+          cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;
+          flex-shrink:0;font-family:inherit;letter-spacing:-0.2px;">
+          📋 프로세스
+        </button>
       </div>
-      <button onclick="goToProc(currentDisaster)"
-        style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.45);
-        color:white;border-radius:9px;padding:6px 10px;font-size:11px;font-weight:800;
-        cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;
-        flex-shrink:0;font-family:inherit;letter-spacing:-0.2px;">
-        📋 프로세스
-      </button>
+      <div id="fire-tabbar" style="display:none;border-top:1px solid rgba(255,255,255,0.2);">
+        <button id="tab-scenario" onclick="toggleScenarioPanel()"
+          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid transparent;
+          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+          background:transparent;color:rgba(255,255,255,0.6);">＋ 시나리오</button>
+        <button id="btn-day" onclick="setShift('day')"
+          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid white;
+          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;background:transparent;color:white;">☀️ 주간</button>
+        <button id="btn-night" onclick="setShift('night')"
+          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid transparent;
+          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;background:transparent;color:rgba(255,255,255,0.6);">🌙 야간</button>
+        <button id="btn-bms" onclick="setShift('bms')"
+          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid transparent;
+          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;background:transparent;color:rgba(255,255,255,0.6);">📋 상황실</button>
+        <button id="btn-evac" onclick="setShift('evac')"
+          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid transparent;
+          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+          background:transparent;color:rgba(255,255,255,0.6);">📢 대피방송</button>
+      </div>
     </div>
     <!-- 화재 시나리오 드롭다운 -->
     <div id="scenario-panel-backdrop" onclick="closeScenarioPanel()"
@@ -3615,15 +3619,17 @@ function setShift(shift) {
   const btnDay   = document.getElementById('btn-day');
   const btnNight = document.getElementById('btn-night');
   const btnBms   = document.getElementById('btn-bms');
+  const btnEvac  = document.getElementById('btn-evac');
   if (!btnDay) return;
-  // 모두 비활성
-  [btnDay, btnNight, btnBms].forEach(b => {
-    if (b) { b.style.background = 'rgba(255,255,255,0.18)'; b.style.color = 'rgba(255,255,255,0.85)'; b.style.opacity = '1'; b.style.pointerEvents = ''; }
+  // 모두 비활성 (언더라인 인디케이터 스타일)
+  [btnDay, btnNight, btnBms, btnEvac].forEach(b => {
+    if (b) { b.style.borderBottom = '2px solid transparent'; b.style.color = 'rgba(255,255,255,0.6)'; b.style.opacity = '1'; b.style.pointerEvents = ''; }
   });
   // 선택 활성
-  if (shift === 'day')   { btnDay.style.background   = 'white'; btnDay.style.color   = '#dc2626'; }
-  if (shift === 'night') { btnNight.style.background = 'white'; btnNight.style.color = '#1e3a8a'; }
-  if (shift === 'bms')   { btnBms.style.background   = 'white'; btnBms.style.color   = '#374151'; bmsOpenCatKeys = new Set([BMS_CATEGORIES[0].key]); }
+  if (shift === 'day')   { btnDay.style.borderBottom   = '2px solid white'; btnDay.style.color   = 'white'; }
+  if (shift === 'night') { btnNight.style.borderBottom = '2px solid white'; btnNight.style.color = 'white'; }
+  if (shift === 'bms')   { btnBms.style.borderBottom   = '2px solid white'; btnBms.style.color   = 'white'; bmsOpenCatKeys = new Set([BMS_CATEGORIES[0].key]); }
+  if (shift === 'evac')  { btnEvac.style.borderBottom  = '2px solid white'; btnEvac.style.color  = 'white'; }
   openGroupKeys = new Set();
   openMemberIdx = null;
   renderMemberList();
@@ -3761,18 +3767,20 @@ function openDisaster(key) {
   if (key === '화재') {
     fireTabbar.style.display = 'flex';
     const isGen = currentFireScenario === 'general';
-    tabScenario.textContent = isGen ? '+ 시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
-    tabScenario.style.background = isGen ? 'rgba(255,255,255,0.18)' : 'white';
-    tabScenario.style.color = isGen ? 'rgba(255,255,255,0.85)' : '#dc2626';
+    tabScenario.textContent = isGen ? '＋ 시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
+    tabScenario.style.background = 'transparent';
+    tabScenario.style.borderBottom = isGen ? '2px solid transparent' : '2px solid white';
+    tabScenario.style.color = isGen ? 'rgba(255,255,255,0.6)' : 'white';
     const btnDay = document.getElementById('btn-day');
     const btnNight = document.getElementById('btn-night');
     const btnBms = document.getElementById('btn-bms');
+    const btnEvac = document.getElementById('btn-evac');
     if (isGen) {
-      [btnDay, btnNight, btnBms].forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = ''; });
+      [btnDay, btnNight, btnBms, btnEvac].forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = ''; });
       setShift('day'); currentShift = 'day';
     } else {
-      [btnDay, btnNight, btnBms].forEach(b => {
-        b.style.background = 'rgba(255,255,255,0.15)'; b.style.color = 'rgba(255,255,255,0.5)';
+      [btnDay, btnNight, btnBms, btnEvac].forEach(b => {
+        b.style.borderBottom = '2px solid transparent'; b.style.color = 'rgba(255,255,255,0.4)';
         b.style.opacity = '0.5'; b.style.pointerEvents = 'none';
       });
     }
@@ -3791,6 +3799,10 @@ function renderMemberList() {
 
   if (!isScenario && currentDisaster === '화재' && currentShift === 'bms') {
     renderBmsList();
+    return;
+  }
+  if (!isScenario && currentDisaster === '화재' && currentShift === 'evac') {
+    renderEvacList();
     return;
   }
   const d = DISASTERS.find(x=>x.key===currentDisaster);
@@ -4942,6 +4954,65 @@ const BMS_CATEGORIES = [
 ];
 
 let bmsOpenCatKeys = new Set(); // 현재 열린 카테고리 keys
+
+function renderEvacList() {
+  const EVAC_STEPS = [
+    {
+      phase: '1단계', label: '화재층 · 직상 4개층', icon: '🔴',
+      bc: '#dc2626',
+      script: '안내말씀 드리겠습니다. 현재 건물 내 화재가 발생하였습니다. [해당층] 층에 계신 분들께서는 즉시 비상계단을 이용하여 안전한 장소로 대피하여 주시기 바랍니다. 엘리베이터는 절대 이용하지 마십시오.',
+      notes: ['화재 발생층 및 직상 4개층 우선 방송', '방화셔터·방화문 상태 확인 병행']
+    },
+    {
+      phase: '2단계', label: '지하층 전층', icon: '🟠',
+      bc: '#ea580c',
+      script: '안내말씀 드리겠습니다. 화재로 인해 지하층에 계신 분들께서는 즉시 지상 비상구를 통해 대피하여 주시기 바랍니다. 주차구역 내 차량은 두고 신속히 대피하십시오.',
+      notes: ['지하주차장 차량 출입 즉시 통제', '주차근무자: 차량출입 차단 및 지상 유도']
+    },
+    {
+      phase: '3단계', label: '지상층 전층', icon: '🟡',
+      bc: '#ca8a04',
+      script: '안내말씀 드리겠습니다. 화재로 인해 전층 대피를 실시합니다. 건물 내 모든 층에 계신 분들께서는 비상계단을 이용하여 즉시 건물 밖으로 대피하여 주시기 바랍니다. 재해약자(노약자·장애인)를 우선 대피시켜 주십시오.',
+      notes: ['피난계단 내 체증 시 다른 계단 안내 방송 추가', '재해약자 우선 대피 지원 확인']
+    },
+    {
+      phase: '종료', label: '대피 해제 / 상황 종료', icon: '🟢',
+      bc: '#16a34a',
+      script: '안내말씀 드리겠습니다. 화재 상황이 종료되었습니다. 대피하신 분들께서는 소방관계자의 안내에 따라 안전을 확인한 후 건물 내로 입장하여 주시기 바랍니다.',
+      notes: ['소방서 현장 지휘관 확인 후 해제 방송', '2차 피해 여부 확인 후 입장 허용']
+    }
+  ];
+
+  const el = document.getElementById('member-list');
+  let html = '<div style="padding:12px 12px 0;">';
+  html += '<div style="background:#fff3cd;border:1px solid #f59e0b;border-radius:8px;padding:9px 11px;margin-bottom:10px;font-size:11.5px;color:#78350f;line-height:1.5;">';
+  html += '📢 <b>대피방송순서</b> — 화재 발생 시 아래 단계 순서로 방송을 실시합니다.<br>';
+  html += '<span style="font-size:10.5px;">※ 소방안전관리자 또는 상황실 담당자가 방송 집행</span>';
+  html += '</div>';
+
+  EVAC_STEPS.forEach((step, i) => {
+    html += `<div style="background:white;border-radius:10px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">`;
+    html += `<div style="background:${step.bc};padding:8px 12px;display:flex;align-items:center;gap:8px;">`;
+    html += `<span style="background:rgba(0,0,0,0.2);color:white;font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;">${step.phase}</span>`;
+    html += `<span style="color:white;font-weight:800;font-size:12px;">${step.icon} ${step.label}</span>`;
+    html += `</div>`;
+    html += `<div style="padding:10px 12px;">`;
+    html += `<div style="font-size:10px;font-weight:700;color:#6b7280;margin-bottom:4px;">📣 방송 멘트</div>`;
+    html += `<div style="background:#f8fafc;border-left:3px solid ${step.bc};border-radius:0 6px 6px 0;padding:7px 10px;font-size:11px;color:#1e293b;line-height:1.6;font-style:italic;">"${step.script}"</div>`;
+    if (step.notes.length) {
+      html += `<div style="margin-top:7px;">`;
+      step.notes.forEach(n => {
+        html += `<div style="font-size:10.5px;color:#475569;padding:2px 0 2px 14px;position:relative;">`;
+        html += `<span style="position:absolute;left:0;color:${step.bc};">▸</span>${n}</div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div></div>`;
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
 
 function renderBmsList() {
   if (bmsOpenCatKeys.size === 0) bmsOpenCatKeys.add(BMS_CATEGORIES[0].key);
