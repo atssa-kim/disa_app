@@ -796,7 +796,7 @@ body {
   <div class="content" id="main-content">
     <div class="tab-pane active" id="pane-0" style="overflow-y:auto;position:relative;">
       <div class="icons-grid" id="icons-grid"></div>
-      <input type="file" id="excel-import-input" accept=".xlsx,.xls" style="display:none;"
+      <input type="file" id="excel-import-input" accept=".xlsx,.xls,.csv" style="display:none;"
         onchange="importFromExcel(this)">
     </div>
 
@@ -3521,8 +3521,9 @@ function importFromExcel(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
+      const isCsv = file.name.toLowerCase().endsWith('.csv');
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array' });
+      const wb = XLSX.read(data, { type: 'array', codepage: isCsv ? 65001 : undefined });
       let updated = 0;
 
       wb.SheetNames.forEach(function(sheetName) {
