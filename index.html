@@ -4773,10 +4773,7 @@ const BROADCAST_DATA = [
   },
 ];
 
-function openBroadcastModal() {
-  const modal = document.getElementById('broadcast-modal');
-  modal.style.display = 'flex';
-
+function buildBroadcastHTML() {
   const symbolGuide = `
     <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
       font-size:10.5px; color:#333; line-height:1.8;">
@@ -4890,7 +4887,13 @@ function openBroadcastModal() {
       </div>
     </div>`;
 
-  document.getElementById('broadcast-content').innerHTML = flowGuide + symbolGuide + tables;
+  return flowGuide + symbolGuide + tables;
+}
+
+function openBroadcastModal() {
+  const modal = document.getElementById('broadcast-modal');
+  modal.style.display = 'flex';
+  document.getElementById('broadcast-content').innerHTML = buildBroadcastHTML();
 }
 
 function closeBroadcastModal() {
@@ -4961,105 +4964,8 @@ let bmsOpenCatKeys = new Set(); // 현재 열린 카테고리 keys
 
 function renderEvacList() {
   const el = document.getElementById('member-list');
-
-  // ── 송출 흐름 데이터 ──────────────────────────
-  const DAY_FLOW = [
-    { trigger:'자동\n(발기준)', arrow:true, action:'우선경보\n(화재감지기 감지시 자동송출)', ac:'#fee2e2', tc:'#991b1b', bold:true },
-    { trigger:'이후', arrow:true, action:'화재층 방송\n(화재감지기가 작동한 층)', ac:'#fee2e2', tc:'#991b1b' },
-    { trigger:'', arrow:true, action:'직상 4개층 방송\n(화재층 위 최대 4개층)', ac:'#fecaca', tc:'#7f1d1d' },
-    { trigger:'피난계단\n정체시', arrow:true, action:'다른 층 피난유도방송\n(대피방송순서 참조)', ac:'#fde68a', tc:'#78350f' },
-    { trigger:'전층', arrow:true, action:'전층 대피 방송\n(상황 심각시 소방안전관리자 판단)', ac:'#fee2e2', tc:'#991b1b' },
-    { trigger:'종료', arrow:false, action:'비화재보 확인 후 해제방송\n또는 소방서 귀소 후 해제', ac:'#dcfce7', tc:'#166534' },
-  ];
-  const NIGHT_FLOW = [
-    { trigger:'자동\n(발기준)', arrow:true, action:'우선경보\n(화재감지기 감지시 자동송출)', ac:'#fee2e2', tc:'#991b1b', bold:true },
-    { trigger:'이후', arrow:true, action:'화재층 및 직상 4개층 방송', ac:'#fee2e2', tc:'#991b1b' },
-    { trigger:'확산시', arrow:true, action:'지하층 포함 전층 대피 방송\n(야간 축소 인원 전파 강화)', ac:'#fecaca', tc:'#7f1d1d' },
-    { trigger:'종료', arrow:false, action:'소방서 현장 지휘관 확인 후\n해제방송 실시', ac:'#dcfce7', tc:'#166534' },
-  ];
-
-  // ── 방송 스크립트 ──────────────────────────────
-  const SCRIPTS = [
-    {
-      label:'① 우선경보 (자동 발보)', bc:'#dc2626',
-      text:'안내말씀 드리겠습니다. 현재 ○○층에서 화재감지기가 작동하였습니다. 관계자는 즉시 현장을 확인하여 주시기 바랍니다.'
-    },
-    {
-      label:'② 화재층·직상 4개층 대피', bc:'#dc2626',
-      text:'안내말씀 드리겠습니다. ○○층에 화재가 발생하였습니다. 해당 층 및 인접 층에 계신 분들께서는 즉시 비상계단을 이용하여 대피하여 주시기 바랍니다. 엘리베이터는 절대 이용하지 마십시오.'
-    },
-    {
-      label:'③ 전층 대피', bc:'#b91c1c',
-      text:'안내말씀 드리겠습니다. 화재로 인해 전층 대피를 실시합니다. 모든 분들께서는 비상계단을 이용하여 즉시 건물 밖으로 대피하여 주십시오. 재해약자를 우선 대피시켜 주시기 바랍니다.'
-    },
-    {
-      label:'④ 상황 종료 해제', bc:'#16a34a',
-      text:'안내말씀 드리겠습니다. 화재 상황이 종료되었습니다. 소방관계자의 안내에 따라 안전을 확인한 후 입장하여 주시기 바랍니다.'
-    },
-  ];
-
-  function buildFlow(rows) {
-    let h = '<div style="padding:0 10px 10px;">';
-    rows.forEach((r, i) => {
-      h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">';
-      // 트리거
-      h += `<div style="width:62px;flex-shrink:0;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;
-        padding:5px 4px;text-align:center;font-size:10px;font-weight:700;color:#334155;white-space:pre-line;line-height:1.3;">${r.trigger}</div>`;
-      // 화살표
-      h += `<div style="font-size:14px;color:#dc2626;flex-shrink:0;">${r.arrow ? '→' : '✓'}</div>`;
-      // 액션
-      h += `<div style="flex:1;background:${r.ac};border-radius:6px;padding:6px 8px;
-        font-size:10.5px;font-weight:${r.bold?'800':'600'};color:${r.tc};white-space:pre-line;line-height:1.4;">${r.action}</div>`;
-      h += '</div>';
-    });
-    h += '</div>';
-    return h;
-  }
-
-  let html = '';
-  // ── 문서 제목 헤더 ─────────────────────────
-  html += '<div style="background:#dc2626;padding:12px 14px 10px;display:flex;align-items:center;gap:8px;">';
-  html += '<span style="font-size:18px;">📢</span>';
-  html += '<div><div style="color:white;font-size:13px;font-weight:800;letter-spacing:-0.2px;">피난유도방송 송출순서표</div>';
-  html += '<div style="color:rgba(255,255,255,0.8);font-size:10.5px;margin-top:1px;">화재층별 방송 기준</div></div>';
-  html += '</div>';
-
-  // ── 1. 피난유도방송 송출흐름 ──────────────
-  html += '<div style="background:#dc2626;padding:7px 14px;"><span style="color:white;font-size:11.5px;font-weight:800;">1. 피난유도방송 송출흐름</span></div>';
-
-  // 1) 주간
-  html += '<div style="background:white;margin-bottom:2px;">';
-  html += '<div style="padding:8px 14px 2px;font-size:11px;font-weight:800;color:#1e293b;">1) 주간 화재발생시</div>';
-  html += buildFlow(DAY_FLOW);
-  html += '</div>';
-
-  // 2) 야간
-  html += '<div style="background:white;margin-bottom:8px;">';
-  html += '<div style="padding:8px 14px 2px;font-size:11px;font-weight:800;color:#1e293b;">2) 야간 화재발생시</div>';
-  html += buildFlow(NIGHT_FLOW);
-  html += '</div>';
-
-  // ── 2. 방송 스크립트 ──────────────────────
-  html += '<div style="background:#dc2626;padding:7px 14px;"><span style="color:white;font-size:11.5px;font-weight:800;">2. 방송 멘트 (단계별)</span></div>';
-  html += '<div style="background:white;padding:10px 12px 14px;">';
-  SCRIPTS.forEach(s => {
-    html += `<div style="margin-bottom:9px;">`;
-    html += `<div style="background:${s.bc};color:white;font-size:10px;font-weight:800;padding:3px 9px;border-radius:4px;display:inline-block;margin-bottom:4px;">${s.label}</div>`;
-    html += `<div style="background:#fef2f2;border-left:3px solid ${s.bc};border-radius:0 5px 5px 0;padding:7px 10px;font-size:10.5px;color:#1e293b;line-height:1.6;font-style:italic;">"${s.text}"</div>`;
-    html += `</div>`;
-  });
-  html += '</div>';
-
-  // ── 주의사항 ──────────────────────────────
-  html += '<div style="background:#fef9c3;border-top:1px solid #fde68a;padding:9px 14px 14px;">';
-  html += '<div style="font-size:10.5px;font-weight:800;color:#78350f;margin-bottom:4px;">⚠️ 주의사항</div>';
-  ['엘리베이터 사용 절대 금지 — 비상계단 이용','비화재보 확인 전 해제방송 금지','피난계단 정체 시 타 계단 방송 즉시 실시','재해약자(노약자·임산부·장애인) 우선 대피 유도'].forEach(n => {
-    html += `<div style="font-size:10.5px;color:#92400e;padding:1px 0 1px 12px;position:relative;">`;
-    html += `<span style="position:absolute;left:0;color:#dc2626;">▸</span>${n}</div>`;
-  });
-  html += '</div>';
-
-  el.innerHTML = html;
+  el.style.padding = '0';
+  el.innerHTML = '<div style="padding:10px 8px; background:#f9fafb;">' + buildBroadcastHTML() + '</div>';
 }
 
 function renderBmsList() {
