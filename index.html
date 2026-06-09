@@ -802,40 +802,42 @@ body {
 
   <div class="panel" id="detail-panel" style="position:relative;">
     <div class="panel-header" id="detail-header" style="flex-direction:column;gap:0;padding:0;align-items:stretch;">
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px 10px 10px;">
         <button class="back-btn" onclick="closeDetail()">‹</button>
-        <div class="panel-title" id="detail-title" style="flex:1;min-width:0;"></div>
+        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;">
+          <div class="panel-title" id="detail-title" style="min-width:0;font-size:14px;"></div>
+          <button id="tab-scenario" onclick="toggleScenarioPanel()"
+            style="display:none;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.5);border-radius:14px;
+            padding:3px 10px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;
+            white-space:nowrap;background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.95);
+            letter-spacing:0.2px;">＋ 시나리오</button>
+        </div>
         <button onclick="goToProc(currentDisaster)"
           style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.45);
-          color:white;border-radius:9px;padding:6px 10px;font-size:11px;font-weight:800;
+          color:white;border-radius:9px;padding:5px 9px;font-size:11px;font-weight:800;
           cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;
           flex-shrink:0;font-family:inherit;letter-spacing:-0.2px;">
           📋 프로세스
         </button>
       </div>
-      <div id="fire-tabbar" style="display:none;border-top:1px solid rgba(255,255,255,0.2);">
-        <button id="tab-scenario" onclick="toggleScenarioPanel()"
-          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid transparent;
-          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-          background:transparent;color:rgba(255,255,255,0.6);">＋ 시나리오</button>
+      <div id="fire-tabbar" style="display:none;background:rgba(0,0,0,0.22);padding:5px 6px 0;gap:3px;">
         <button id="btn-day" onclick="setShift('day')"
-          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid white;
-          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
-          white-space:nowrap;background:transparent;color:white;">☀️ 주간</button>
+          style="flex:1;min-width:0;border:none;border-radius:7px 7px 0 0;
+          padding:7px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;background:white;color:#dc2626;">☀️ 주간</button>
         <button id="btn-night" onclick="setShift('night')"
-          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid transparent;
-          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
-          white-space:nowrap;background:transparent;color:rgba(255,255,255,0.6);">🌙 야간</button>
+          style="flex:1;min-width:0;border:none;border-radius:7px 7px 0 0;
+          padding:7px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">🌙 야간</button>
         <button id="btn-bms" onclick="setShift('bms')"
-          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid transparent;
-          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
-          white-space:nowrap;background:transparent;color:rgba(255,255,255,0.6);">📋 상황실</button>
+          style="flex:1;min-width:0;border:none;border-radius:7px 7px 0 0;
+          padding:7px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">📋 상황실</button>
         <button id="btn-evac" onclick="setShift('evac')"
-          style="flex:1;min-width:0;border:none;border-top:none;border-bottom:2px solid transparent;
-          padding:8px 2px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+          style="flex:1;min-width:0;border:none;border-radius:7px 7px 0 0;
+          padding:7px 2px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-          background:transparent;color:rgba(255,255,255,0.6);">📢 대피방송</button>
+          background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">📢 대피방송순서</button>
       </div>
     </div>
     <!-- 화재 시나리오 드롭다운 -->
@@ -3621,15 +3623,15 @@ function setShift(shift) {
   const btnBms   = document.getElementById('btn-bms');
   const btnEvac  = document.getElementById('btn-evac');
   if (!btnDay) return;
-  // 모두 비활성 (언더라인 인디케이터 스타일)
+  // 모두 비활성 (lifted-tab 스타일)
   [btnDay, btnNight, btnBms, btnEvac].forEach(b => {
-    if (b) { b.style.borderBottom = '2px solid transparent'; b.style.color = 'rgba(255,255,255,0.6)'; b.style.opacity = '1'; b.style.pointerEvents = ''; }
+    if (b) { b.style.background = 'rgba(255,255,255,0.1)'; b.style.color = 'rgba(255,255,255,0.7)'; b.style.opacity = '1'; b.style.pointerEvents = ''; }
   });
-  // 선택 활성
-  if (shift === 'day')   { btnDay.style.borderBottom   = '2px solid white'; btnDay.style.color   = 'white'; }
-  if (shift === 'night') { btnNight.style.borderBottom = '2px solid white'; btnNight.style.color = 'white'; }
-  if (shift === 'bms')   { btnBms.style.borderBottom   = '2px solid white'; btnBms.style.color   = 'white'; bmsOpenCatKeys = new Set([BMS_CATEGORIES[0].key]); }
-  if (shift === 'evac')  { btnEvac.style.borderBottom  = '2px solid white'; btnEvac.style.color  = 'white'; }
+  // 선택 활성 (white 탭)
+  if (shift === 'day')   { btnDay.style.background   = 'white'; btnDay.style.color   = '#dc2626'; }
+  if (shift === 'night') { btnNight.style.background = 'white'; btnNight.style.color = '#1e3a8a'; }
+  if (shift === 'bms')   { btnBms.style.background   = 'white'; btnBms.style.color   = '#374151'; bmsOpenCatKeys = new Set([BMS_CATEGORIES[0].key]); }
+  if (shift === 'evac')  { btnEvac.style.background  = 'white'; btnEvac.style.color  = '#b91c1c'; }
   openGroupKeys = new Set();
   openMemberIdx = null;
   renderMemberList();
@@ -3766,11 +3768,12 @@ function openDisaster(key) {
   document.getElementById('detail-title').textContent = d.label + ' 대응';
   if (key === '화재') {
     fireTabbar.style.display = 'flex';
+    tabScenario.style.display = '';
     const isGen = currentFireScenario === 'general';
-    tabScenario.textContent = isGen ? '＋ 시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
-    tabScenario.style.background = 'transparent';
-    tabScenario.style.borderBottom = isGen ? '2px solid transparent' : '2px solid white';
-    tabScenario.style.color = isGen ? 'rgba(255,255,255,0.6)' : 'white';
+    tabScenario.textContent = isGen ? '＋ 시나리오' : (FIRE_SCENARIOS[currentFireScenario]?.label || '시나리오');
+    tabScenario.style.background = isGen ? 'rgba(255,255,255,0.18)' : 'white';
+    tabScenario.style.color = isGen ? 'rgba(255,255,255,0.95)' : '#dc2626';
+    tabScenario.style.borderColor = isGen ? 'rgba(255,255,255,0.5)' : 'white';
     const btnDay = document.getElementById('btn-day');
     const btnNight = document.getElementById('btn-night');
     const btnBms = document.getElementById('btn-bms');
@@ -3780,12 +3783,13 @@ function openDisaster(key) {
       setShift('day'); currentShift = 'day';
     } else {
       [btnDay, btnNight, btnBms, btnEvac].forEach(b => {
-        b.style.borderBottom = '2px solid transparent'; b.style.color = 'rgba(255,255,255,0.4)';
+        b.style.background = 'rgba(255,255,255,0.06)'; b.style.color = 'rgba(255,255,255,0.35)';
         b.style.opacity = '0.5'; b.style.pointerEvents = 'none';
       });
     }
   } else {
     fireTabbar.style.display = 'none';
+    tabScenario.style.display = 'none';
   }
 
   renderMemberList();
@@ -4956,61 +4960,105 @@ const BMS_CATEGORIES = [
 let bmsOpenCatKeys = new Set(); // 현재 열린 카테고리 keys
 
 function renderEvacList() {
-  const EVAC_STEPS = [
-    {
-      phase: '1단계', label: '화재층 · 직상 4개층', icon: '🔴',
-      bc: '#dc2626',
-      script: '안내말씀 드리겠습니다. 현재 건물 내 화재가 발생하였습니다. [해당층] 층에 계신 분들께서는 즉시 비상계단을 이용하여 안전한 장소로 대피하여 주시기 바랍니다. 엘리베이터는 절대 이용하지 마십시오.',
-      notes: ['화재 발생층 및 직상 4개층 우선 방송', '방화셔터·방화문 상태 확인 병행']
-    },
-    {
-      phase: '2단계', label: '지하층 전층', icon: '🟠',
-      bc: '#ea580c',
-      script: '안내말씀 드리겠습니다. 화재로 인해 지하층에 계신 분들께서는 즉시 지상 비상구를 통해 대피하여 주시기 바랍니다. 주차구역 내 차량은 두고 신속히 대피하십시오.',
-      notes: ['지하주차장 차량 출입 즉시 통제', '주차근무자: 차량출입 차단 및 지상 유도']
-    },
-    {
-      phase: '3단계', label: '지상층 전층', icon: '🟡',
-      bc: '#ca8a04',
-      script: '안내말씀 드리겠습니다. 화재로 인해 전층 대피를 실시합니다. 건물 내 모든 층에 계신 분들께서는 비상계단을 이용하여 즉시 건물 밖으로 대피하여 주시기 바랍니다. 재해약자(노약자·장애인)를 우선 대피시켜 주십시오.',
-      notes: ['피난계단 내 체증 시 다른 계단 안내 방송 추가', '재해약자 우선 대피 지원 확인']
-    },
-    {
-      phase: '종료', label: '대피 해제 / 상황 종료', icon: '🟢',
-      bc: '#16a34a',
-      script: '안내말씀 드리겠습니다. 화재 상황이 종료되었습니다. 대피하신 분들께서는 소방관계자의 안내에 따라 안전을 확인한 후 건물 내로 입장하여 주시기 바랍니다.',
-      notes: ['소방서 현장 지휘관 확인 후 해제 방송', '2차 피해 여부 확인 후 입장 허용']
-    }
+  const el = document.getElementById('member-list');
+
+  // ── 송출 흐름 데이터 ──────────────────────────
+  const DAY_FLOW = [
+    { trigger:'자동\n(발기준)', arrow:true, action:'우선경보\n(화재감지기 감지시 자동송출)', ac:'#fee2e2', tc:'#991b1b', bold:true },
+    { trigger:'이후', arrow:true, action:'화재층 방송\n(화재감지기가 작동한 층)', ac:'#fee2e2', tc:'#991b1b' },
+    { trigger:'', arrow:true, action:'직상 4개층 방송\n(화재층 위 최대 4개층)', ac:'#fecaca', tc:'#7f1d1d' },
+    { trigger:'피난계단\n정체시', arrow:true, action:'다른 층 피난유도방송\n(대피방송순서 참조)', ac:'#fde68a', tc:'#78350f' },
+    { trigger:'전층', arrow:true, action:'전층 대피 방송\n(상황 심각시 소방안전관리자 판단)', ac:'#fee2e2', tc:'#991b1b' },
+    { trigger:'종료', arrow:false, action:'비화재보 확인 후 해제방송\n또는 소방서 귀소 후 해제', ac:'#dcfce7', tc:'#166534' },
+  ];
+  const NIGHT_FLOW = [
+    { trigger:'자동\n(발기준)', arrow:true, action:'우선경보\n(화재감지기 감지시 자동송출)', ac:'#fee2e2', tc:'#991b1b', bold:true },
+    { trigger:'이후', arrow:true, action:'화재층 및 직상 4개층 방송', ac:'#fee2e2', tc:'#991b1b' },
+    { trigger:'확산시', arrow:true, action:'지하층 포함 전층 대피 방송\n(야간 축소 인원 전파 강화)', ac:'#fecaca', tc:'#7f1d1d' },
+    { trigger:'종료', arrow:false, action:'소방서 현장 지휘관 확인 후\n해제방송 실시', ac:'#dcfce7', tc:'#166534' },
   ];
 
-  const el = document.getElementById('member-list');
-  let html = '<div style="padding:12px 12px 0;">';
-  html += '<div style="background:#fff3cd;border:1px solid #f59e0b;border-radius:8px;padding:9px 11px;margin-bottom:10px;font-size:11.5px;color:#78350f;line-height:1.5;">';
-  html += '📢 <b>대피방송순서</b> — 화재 발생 시 아래 단계 순서로 방송을 실시합니다.<br>';
-  html += '<span style="font-size:10.5px;">※ 소방안전관리자 또는 상황실 담당자가 방송 집행</span>';
+  // ── 방송 스크립트 ──────────────────────────────
+  const SCRIPTS = [
+    {
+      label:'① 우선경보 (자동 발보)', bc:'#dc2626',
+      text:'안내말씀 드리겠습니다. 현재 ○○층에서 화재감지기가 작동하였습니다. 관계자는 즉시 현장을 확인하여 주시기 바랍니다.'
+    },
+    {
+      label:'② 화재층·직상 4개층 대피', bc:'#dc2626',
+      text:'안내말씀 드리겠습니다. ○○층에 화재가 발생하였습니다. 해당 층 및 인접 층에 계신 분들께서는 즉시 비상계단을 이용하여 대피하여 주시기 바랍니다. 엘리베이터는 절대 이용하지 마십시오.'
+    },
+    {
+      label:'③ 전층 대피', bc:'#b91c1c',
+      text:'안내말씀 드리겠습니다. 화재로 인해 전층 대피를 실시합니다. 모든 분들께서는 비상계단을 이용하여 즉시 건물 밖으로 대피하여 주십시오. 재해약자를 우선 대피시켜 주시기 바랍니다.'
+    },
+    {
+      label:'④ 상황 종료 해제', bc:'#16a34a',
+      text:'안내말씀 드리겠습니다. 화재 상황이 종료되었습니다. 소방관계자의 안내에 따라 안전을 확인한 후 입장하여 주시기 바랍니다.'
+    },
+  ];
+
+  function buildFlow(rows) {
+    let h = '<div style="padding:0 10px 10px;">';
+    rows.forEach((r, i) => {
+      h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">';
+      // 트리거
+      h += `<div style="width:62px;flex-shrink:0;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;
+        padding:5px 4px;text-align:center;font-size:10px;font-weight:700;color:#334155;white-space:pre-line;line-height:1.3;">${r.trigger}</div>`;
+      // 화살표
+      h += `<div style="font-size:14px;color:#dc2626;flex-shrink:0;">${r.arrow ? '→' : '✓'}</div>`;
+      // 액션
+      h += `<div style="flex:1;background:${r.ac};border-radius:6px;padding:6px 8px;
+        font-size:10.5px;font-weight:${r.bold?'800':'600'};color:${r.tc};white-space:pre-line;line-height:1.4;">${r.action}</div>`;
+      h += '</div>';
+    });
+    h += '</div>';
+    return h;
+  }
+
+  let html = '';
+  // ── 문서 제목 헤더 ─────────────────────────
+  html += '<div style="background:#dc2626;padding:12px 14px 10px;display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-size:18px;">📢</span>';
+  html += '<div><div style="color:white;font-size:13px;font-weight:800;letter-spacing:-0.2px;">피난유도방송 송출순서표</div>';
+  html += '<div style="color:rgba(255,255,255,0.8);font-size:10.5px;margin-top:1px;">화재층별 방송 기준</div></div>';
   html += '</div>';
 
-  EVAC_STEPS.forEach((step, i) => {
-    html += `<div style="background:white;border-radius:10px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">`;
-    html += `<div style="background:${step.bc};padding:8px 12px;display:flex;align-items:center;gap:8px;">`;
-    html += `<span style="background:rgba(0,0,0,0.2);color:white;font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;">${step.phase}</span>`;
-    html += `<span style="color:white;font-weight:800;font-size:12px;">${step.icon} ${step.label}</span>`;
+  // ── 1. 피난유도방송 송출흐름 ──────────────
+  html += '<div style="background:#dc2626;padding:7px 14px;"><span style="color:white;font-size:11.5px;font-weight:800;">1. 피난유도방송 송출흐름</span></div>';
+
+  // 1) 주간
+  html += '<div style="background:white;margin-bottom:2px;">';
+  html += '<div style="padding:8px 14px 2px;font-size:11px;font-weight:800;color:#1e293b;">1) 주간 화재발생시</div>';
+  html += buildFlow(DAY_FLOW);
+  html += '</div>';
+
+  // 2) 야간
+  html += '<div style="background:white;margin-bottom:8px;">';
+  html += '<div style="padding:8px 14px 2px;font-size:11px;font-weight:800;color:#1e293b;">2) 야간 화재발생시</div>';
+  html += buildFlow(NIGHT_FLOW);
+  html += '</div>';
+
+  // ── 2. 방송 스크립트 ──────────────────────
+  html += '<div style="background:#dc2626;padding:7px 14px;"><span style="color:white;font-size:11.5px;font-weight:800;">2. 방송 멘트 (단계별)</span></div>';
+  html += '<div style="background:white;padding:10px 12px 14px;">';
+  SCRIPTS.forEach(s => {
+    html += `<div style="margin-bottom:9px;">`;
+    html += `<div style="background:${s.bc};color:white;font-size:10px;font-weight:800;padding:3px 9px;border-radius:4px;display:inline-block;margin-bottom:4px;">${s.label}</div>`;
+    html += `<div style="background:#fef2f2;border-left:3px solid ${s.bc};border-radius:0 5px 5px 0;padding:7px 10px;font-size:10.5px;color:#1e293b;line-height:1.6;font-style:italic;">"${s.text}"</div>`;
     html += `</div>`;
-    html += `<div style="padding:10px 12px;">`;
-    html += `<div style="font-size:10px;font-weight:700;color:#6b7280;margin-bottom:4px;">📣 방송 멘트</div>`;
-    html += `<div style="background:#f8fafc;border-left:3px solid ${step.bc};border-radius:0 6px 6px 0;padding:7px 10px;font-size:11px;color:#1e293b;line-height:1.6;font-style:italic;">"${step.script}"</div>`;
-    if (step.notes.length) {
-      html += `<div style="margin-top:7px;">`;
-      step.notes.forEach(n => {
-        html += `<div style="font-size:10.5px;color:#475569;padding:2px 0 2px 14px;position:relative;">`;
-        html += `<span style="position:absolute;left:0;color:${step.bc};">▸</span>${n}</div>`;
-      });
-      html += `</div>`;
-    }
-    html += `</div></div>`;
   });
-
   html += '</div>';
+
+  // ── 주의사항 ──────────────────────────────
+  html += '<div style="background:#fef9c3;border-top:1px solid #fde68a;padding:9px 14px 14px;">';
+  html += '<div style="font-size:10.5px;font-weight:800;color:#78350f;margin-bottom:4px;">⚠️ 주의사항</div>';
+  ['엘리베이터 사용 절대 금지 — 비상계단 이용','비화재보 확인 전 해제방송 금지','피난계단 정체 시 타 계단 방송 즉시 실시','재해약자(노약자·임산부·장애인) 우선 대피 유도'].forEach(n => {
+    html += `<div style="font-size:10.5px;color:#92400e;padding:1px 0 1px 12px;position:relative;">`;
+    html += `<span style="position:absolute;left:0;color:#dc2626;">▸</span>${n}</div>`;
+  });
+  html += '</div>';
+
   el.innerHTML = html;
 }
 
