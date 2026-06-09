@@ -1902,7 +1902,7 @@ body {
 </div>
 
 <script>
-// ── DATA_BLOCK_START ──
+// [[DATA_BLOCK_START]]
 const DISASTERS = [
   // ── 화재 (트윈타워 비상대응 매뉴얼 Ⅲ-1 화재) ──
   { key:'화재', label:'🔥 화재', color:'#dc2626',
@@ -2501,7 +2501,7 @@ const FIRE_SCENARIOS = {
     ]
   }
 };
-// ── DATA_BLOCK_END ──
+// [[DATA_BLOCK_END]]
 let currentFireScenario = 'general';
 
 // ── 엑셀 내보내기 ──────────────────────────────────────
@@ -4684,7 +4684,7 @@ function buildDataBlock() {
     scenarios[k] = { label: v.label, members: v.members };
   });
   return [
-    '// ── DATA_BLOCK_START ──',
+    '// [[DATA_BLOCK_START]]',
     'const DISASTERS = ' + JSON.stringify(DISASTERS, null, 2) + ';',
     '',
     'const FIRE_NIGHT = ' + JSON.stringify(FIRE_NIGHT, null, 2) + ';',
@@ -4692,7 +4692,7 @@ function buildDataBlock() {
     'const FIRE_BMS = ' + JSON.stringify(FIRE_BMS, null, 2) + ';',
     '',
     'const FIRE_SCENARIOS = ' + JSON.stringify(scenarios, null, 2) + ';',
-    '// ── DATA_BLOCK_END ──'
+    '// [[DATA_BLOCK_END]]'
   ].join('\n');
 }
 
@@ -4722,7 +4722,7 @@ async function pushToGitHub() {
 
     const newBlock = buildDataBlock();
     const newHtml = currentHtml.replace(
-      /\/\/ ── DATA_BLOCK_START ──[\s\S]*?\/\/ ── DATA_BLOCK_END ──/,
+      /\/\/ \[\[DATA_BLOCK_START\]\][\s\S]*?\/\/ \[\[DATA_BLOCK_END\]\]/,
       newBlock
     );
     if (newHtml === currentHtml) {
