@@ -804,26 +804,26 @@ body {
     <div class="panel-header" id="detail-header">
       <button class="back-btn" onclick="closeDetail()">‹</button>
       <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:7px;min-width:0;">
-          <div class="panel-title" id="detail-title" style="flex-shrink:0;"></div>
-          <button id="scenario-hdr-btn" onclick="toggleScenarioPanel()"
-            style="display:none;background:rgba(255,255,255,0.92);border:none;
-            color:#dc2626;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:800;
-            cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;
-            letter-spacing:-0.3px;line-height:1.4;">
-            + 화재시나리오
-          </button>
-        </div>
-        <div id="shift-toggle" style="display:none; margin-top:4px; gap:5px;">
+        <div class="panel-title" id="detail-title"></div>
+        <div id="fire-tabbar" style="display:none;margin-top:6px;
+          background:rgba(0,0,0,0.18);border-radius:10px;padding:3px;gap:3px;">
+          <button id="tab-scenario" onclick="toggleScenarioPanel()"
+            style="flex:1;min-width:0;border:none;border-radius:8px;padding:5px 2px;font-size:11px;
+            font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;overflow:hidden;
+            text-overflow:ellipsis;background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);
+            line-height:1.3;">+ 시나리오</button>
           <button id="btn-day" onclick="setShift('day')"
-            style="padding:3px 11px; border-radius:8px; border:none; font-size:13px; font-weight:700;
-            font-family:inherit; cursor:pointer; background:white; color:#dc2626;">☀️ 주간</button>
+            style="flex:1;min-width:0;border:none;border-radius:8px;padding:5px 2px;font-size:11px;
+            font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;
+            background:white;color:#dc2626;line-height:1.3;">☀️ 주간</button>
           <button id="btn-night" onclick="setShift('night')"
-            style="padding:3px 11px; border-radius:8px; border:none; font-size:13px; font-weight:700;
-            font-family:inherit; cursor:pointer; background:rgba(255,255,255,.25); color:white;">🌙 야간</button>
+            style="flex:1;min-width:0;border:none;border-radius:8px;padding:5px 2px;font-size:11px;
+            font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;
+            background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);line-height:1.3;">🌙 야간</button>
           <button id="btn-bms" onclick="setShift('bms')"
-            style="padding:3px 11px; border-radius:8px; border:none; font-size:13px; font-weight:700;
-            font-family:inherit; cursor:pointer; background:rgba(255,255,255,.25); color:white;">📋 상황실</button>
+            style="flex:1;min-width:0;border:none;border-radius:8px;padding:5px 2px;font-size:11px;
+            font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;
+            background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);line-height:1.3;">📋 상황실</button>
         </div>
       </div>
       <button onclick="goToProc(currentDisaster)"
@@ -2671,7 +2671,7 @@ function setShift(shift) {
   if (!btnDay) return;
   // 모두 비활성
   [btnDay, btnNight, btnBms].forEach(b => {
-    if (b) { b.style.background = 'rgba(255,255,255,.25)'; b.style.color = 'white'; }
+    if (b) { b.style.background = 'rgba(255,255,255,0.18)'; b.style.color = 'rgba(255,255,255,0.85)'; b.style.opacity = '1'; b.style.pointerEvents = ''; }
   });
   // 선택 활성
   if (shift === 'day')   { btnDay.style.background   = 'white'; btnDay.style.color   = '#dc2626'; }
@@ -2807,20 +2807,30 @@ function openDisaster(key) {
   const d = DISASTERS.find(x=>x.key===key);
   document.getElementById('detail-header').style.background = d.color;
 
-  // 화재: 시나리오 여부에 따라 토글·제목 처리
-  const toggle      = document.getElementById('shift-toggle');
-  const scBtn       = document.getElementById('scenario-hdr-btn');
+  // 화재: 탭바 표시 및 상태 업데이트
+  const fireTabbar  = document.getElementById('fire-tabbar');
+  const tabScenario = document.getElementById('tab-scenario');
+  document.getElementById('detail-title').textContent = d.label + ' 대응';
   if (key === '화재') {
-    document.getElementById('detail-title').textContent = d.label + ' 대응';
+    fireTabbar.style.display = 'flex';
     const isGen = currentFireScenario === 'general';
-    toggle.style.display = isGen ? 'flex' : 'none';
-    if (isGen) { setShift('day'); currentShift = 'day'; }
-    scBtn.style.display = 'inline-flex';
-    scBtn.textContent = isGen ? '+ 화재시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
+    tabScenario.textContent = isGen ? '+ 시나리오' : FIRE_SCENARIOS[currentFireScenario].label;
+    tabScenario.style.background = isGen ? 'rgba(255,255,255,0.18)' : 'white';
+    tabScenario.style.color = isGen ? 'rgba(255,255,255,0.85)' : '#dc2626';
+    const btnDay = document.getElementById('btn-day');
+    const btnNight = document.getElementById('btn-night');
+    const btnBms = document.getElementById('btn-bms');
+    if (isGen) {
+      [btnDay, btnNight, btnBms].forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = ''; });
+      setShift('day'); currentShift = 'day';
+    } else {
+      [btnDay, btnNight, btnBms].forEach(b => {
+        b.style.background = 'rgba(255,255,255,0.15)'; b.style.color = 'rgba(255,255,255,0.5)';
+        b.style.opacity = '0.5'; b.style.pointerEvents = 'none';
+      });
+    }
   } else {
-    document.getElementById('detail-title').textContent = d.label + ' 대응';
-    toggle.style.display = 'none';
-    scBtn.style.display  = 'none';
+    fireTabbar.style.display = 'none';
   }
 
   renderMemberList();
