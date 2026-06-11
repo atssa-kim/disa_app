@@ -6,6 +6,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>트윈타워 재난대응 메뉴얼</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1849,6 +1852,15 @@ body {
       <div style="font-size:10.5px;color:#94a3b8;text-align:center;line-height:1.6;">
         엑셀로 임무 수정 후 upload하면 앱에 즉시 반영 및 GitHub 자동 저장됩니다
       </div>
+      <button onclick="forceRefreshTasks()"
+        style="width:100%;margin-top:12px;background:#e2e8f0;color:#475569;border:none;
+        border-radius:12px;padding:13px 8px;font-size:12.5px;font-weight:700;cursor:pointer;
+        font-family:inherit;">
+        🔄 최신 임무 불러오기 (폰·PC 내용이 다를 때)
+      </button>
+      <div style="font-size:10px;color:#cbd5e1;text-align:center;line-height:1.6;margin-top:6px;">
+        저장된 옛날 임무를 지우고 최신본을 다시 불러옵니다
+      </div>
     </div>
   </div>
 
@@ -3658,11 +3670,33 @@ function setShift(shift) {
 
 
 // ── localStorage 연동 ──────────────────────────────
+// ★ 임무 데이터 버전 ★
+//   index.html(코드)의 임무를 새로 고칠 때마다 이 숫자(날짜)를 올리세요.
+//   버전이 올라가면 폰/PC에 저장된 옛날 임무 캐시를 자동으로 폐기하고
+//   코드에 박힌 최신 임무를 그대로 표시합니다. (PC·폰 불일치 방지)
+const DATA_VERSION = '2026-06-11';
+const LS_DATA_VERSION = 'twintower_data_version';
+
 const LS_TASKS_DONE = 'twintower_tasks_done';
 const LS_CUSTOM_TASKS = 'twintower_custom_tasks';
 
-// 체크 완료 상태
 function _lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+
+// ★ 버전이 바뀌었으면 옛날 임무 캐시 폐기 ★
+(function syncDataVersion(){
+  try {
+    const saved = localStorage.getItem(LS_DATA_VERSION);
+    if (saved !== DATA_VERSION) {
+      // 코드가 업데이트됨 → 폰에 남은 옛날 임무 수정본/완료상태 제거
+      localStorage.removeItem(LS_CUSTOM_TASKS);
+      localStorage.removeItem(LS_TASKS_DONE);
+      localStorage.setItem(LS_DATA_VERSION, DATA_VERSION);
+      console.log('[TwinTower] 데이터 버전 갱신 → 옛날 임무 캐시 폐기:', DATA_VERSION);
+    }
+  } catch(e) {}
+})();
+
+// 체크 완료 상태
 const tasksDone = JSON.parse(_lsGet(LS_TASKS_DONE) || '{}');
 
 // 수정된 임무 데이터 (key: "재난키-멤버인덱스", value: tasks[])
@@ -3673,6 +3707,20 @@ function saveTasksDone() {
 }
 function saveCustomTasks() {
   try { localStorage.setItem(LS_CUSTOM_TASKS, JSON.stringify(customTasks)); } catch(e) {}
+}
+
+// ★ 폰·PC 임무 불일치 강제 복구 ★
+//   옛날 임무 캐시를 전부 지우고 코드의 최신 임무로 새로고침
+function forceRefreshTasks() {
+  if (!confirm('저장된 옛날 임무를 지우고\n최신 임무를 다시 불러올까요?\n\n(체크 표시도 초기화됩니다)')) return;
+  try {
+    localStorage.removeItem(LS_CUSTOM_TASKS);
+    localStorage.removeItem(LS_TASKS_DONE);
+    localStorage.removeItem(LS_DATA_VERSION);
+  } catch(e) {}
+  // 캐시 무력화를 위해 쿼리스트링 갱신 후 강제 새로고침
+  const url = location.origin + location.pathname + '?v=' + Date.now();
+  location.replace(url);
 }
 let currentDisaster = null;
 let currentMemberIdx = null;
