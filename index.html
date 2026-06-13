@@ -965,6 +965,13 @@ body {
     </div>
     <!-- 문자작성 탭 -->
     <div id="msgpane-compose" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 100px; display:block;">
+      <button onclick="openMsgWizard(currentMsgType)"
+        style="width:100%; padding:13px; margin-bottom:10px; background:linear-gradient(135deg,#0ea5e9,#0284c7);
+        color:white; border:none; border-radius:12px; font-size:13.5px; font-weight:900; cursor:pointer;
+        font-family:inherit; letter-spacing:-.3px; box-shadow:0 2px 8px rgba(14,165,233,.35);
+        display:flex; align-items:center; justify-content:center; gap:6px;">
+        📲 한 칸씩 입력하기 <span style="font-weight:600;opacity:.9;">(키보드 편하게)</span>
+      </button>
       <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
         box-shadow:0 1px 4px rgba(0,0,0,.08);">
         <div style="font-size:11px; font-weight:800; color:#374151; margin-bottom:8px;">📌 보고 유형 선택</div>
@@ -1015,6 +1022,27 @@ body {
     <div id="msgpane-example" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 40px; display:none;"></div>
 
   </div><!-- /msg-modal -->
+
+  <!-- ── 비상문자 단계별 입력 마법사 (키보드 가림 방지: 입력칸을 화면 상단에 고정) ── -->
+  <div id="msg-wizard" style="display:none; position:absolute; inset:0; z-index:450;
+    background:#0f172a; flex-direction:column;">
+    <div style="background:#0284c7; color:white; padding:10px 14px; flex-shrink:0;
+      display:flex; align-items:center; gap:10px;">
+      <button onclick="closeMsgWizard()"
+        style="background:rgba(255,255,255,.22); border:none; color:white; font-size:18px;
+        width:30px; height:30px; border-radius:50%; cursor:pointer; line-height:1;
+        display:flex; align-items:center; justify-content:center;">✕</button>
+      <div style="flex:1;">
+        <div style="font-size:14px; font-weight:900;" id="wiz-type-title">비상문자 단계별 입력</div>
+        <div style="font-size:10.5px; opacity:.85;" id="wiz-step-label">1 / 7</div>
+      </div>
+    </div>
+    <div style="height:4px; background:#1e293b; flex-shrink:0;">
+      <div id="wiz-bar" style="height:100%; width:0%; background:#38bdf8; transition:width .25s;"></div>
+    </div>
+    <div id="wiz-body" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+      padding:22px 18px 30px;"></div>
+  </div>
 
   <div id="equip-panel" class="panel" style="z-index:300; background:#f4f6fb; flex-direction:column;">
     <div style="background:#1b4fa8; color:white; padding:6px 12px; flex-shrink:0;
@@ -4767,8 +4795,9 @@ function selectMsgType(type) {
         <textarea id="mf-detail" rows="4"
           oninput="buildPreview()"
           placeholder="내용 입력..."
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           style="${BASE} resize:vertical; min-height:80px; line-height:1.6;"
-          onfocus="this.style.borderColor='${tpl.color}'"
+          onfocus="this.style.borderColor='${tpl.color}'; setTimeout(()=>this.scrollIntoView({block:'center',behavior:'smooth'}),250)"
           onblur="this.style.borderColor='#e5e7eb'">${f.val}</textarea>`;
 
     } else {
@@ -4776,8 +4805,10 @@ function selectMsgType(type) {
         <input id="mf-${f.key}" type="text" value="${f.val}"
           oninput="buildPreview()"
           placeholder="${f.label} 입력..."
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          name="mf-${f.key}-${Date.now()}"
           style="${BASE}"
-          onfocus="this.style.borderColor='${tpl.color}'"
+          onfocus="this.style.borderColor='${tpl.color}'; setTimeout(()=>this.scrollIntoView({block:'center',behavior:'smooth'}),250)"
           onblur="this.style.borderColor='#e5e7eb'">`;
     }
 
@@ -4839,6 +4870,212 @@ function sendSms() {
   });
   const encoded = encodeURIComponent(text);
   window.location.href = 'sms:?body=' + encoded;
+}
+
+// ── 비상문자 단계별 입력 마법사 ─────────────────────
+let wizardType = 'initial';
+let wizardStep = 0;
+let wizardValues = {};
+
+function wizEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function openMsgWizard(type) {
+  wizardType = type || currentMsgType || 'initial';
+  wizardStep = 0;
+  wizardValues = {};
+  const tpl = MSG_TEMPLATES[wizardType];
+  tpl.fields.forEach(f => { wizardValues[f.key] = f.val || ''; });
+  // 일시 기본값 = 오늘/지금
+  const now = new Date();
+  const p = n => String(n).padStart(2,'0');
+  wizardValues.date = `${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())}`;
+  wizardValues.time = `${p(now.getHours())}:${p(now.getMinutes())}`;
+  document.getElementById('wiz-type-title').textContent = '📨 ' + tpl.label + ' 단계별 입력';
+  document.getElementById('msg-wizard').style.display = 'flex';
+  renderWizardStep();
+}
+
+function closeMsgWizard() {
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  document.getElementById('msg-wizard').style.display = 'none';
+}
+
+function setWiz(key, val) {
+  wizardValues[key] = val;
+  // 하단 실시간 전체 문자 미리보기 갱신 (재렌더 없이 → 포커스 유지)
+  const lv = document.getElementById('wiz-live');
+  if (lv) lv.textContent = buildWizardText();
+}
+
+function goToWizStep(i) { wizardStep = i; renderWizardStep(); }
+
+// 미리보기 화면에서 각 항목 값 표시용
+function wizFieldDisplay(f) {
+  if (f.key === 'type') return wizardValues.type || '(미선택)';
+  if (f.key === 'date') return ((wizardValues.date || '').replace(/-/g,'/') + ' ' + (wizardValues.time || '')).trim();
+  return wizardValues[f.key] || '(비어있음)';
+}
+
+function setWizType(d) {
+  wizardValues.type = (wizardValues.type === d) ? '' : d;
+  renderWizardStep();
+  if (wizardValues.type) setTimeout(nextWizStep, 200);
+}
+
+function nextWizStep() {
+  const total = MSG_TEMPLATES[wizardType].fields.length;
+  wizardStep = Math.min(wizardStep + 1, total);
+  renderWizardStep();
+}
+function prevWizStep() {
+  wizardStep = Math.max(0, wizardStep - 1);
+  renderWizardStep();
+}
+
+// 여러 줄 값의 둘째 줄부터를 ': ' 뒤 위치(값 시작 칸)에 맞춰 들여쓰기
+function wizIndentLines(label, value) {
+  const prefix = '- ' + label + ' : ';
+  let width = 0;
+  for (const ch of prefix) {
+    // 한글·전각 문자는 2칸으로 계산
+    width += /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦]/.test(ch) ? 2 : 1;
+  }
+  const indent = ' '.repeat(width);
+  return String(value).replace(/\n/g, '\n' + indent);
+}
+
+function buildWizardText() {
+  const tpl = MSG_TEMPLATES[wizardType];
+  const typeVal = wizardValues.type || '';
+  let text = typeVal ? tpl.title + '[' + typeVal + ']' : tpl.title;
+  text += '\n\n';
+  tpl.fields.forEach(f => {
+    if (f.key === 'type') return;
+    if (f.key === 'date') {
+      const dv = (wizardValues.date || '').replace(/-/g,'/');
+      const tv = wizardValues.time || '';
+      text += '- 일시 : ' + dv + ' ' + tv + '\n';
+      return;
+    }
+    text += '- ' + f.label + ' : ' + wizIndentLines(f.label, wizardValues[f.key] || '') + '\n';
+  });
+  return text;
+}
+
+function sendWizardSms() {
+  window.location.href = 'sms:?body=' + encodeURIComponent(buildWizardText());
+}
+
+function renderWizardStep() {
+  const tpl   = MSG_TEMPLATES[wizardType];
+  const total = tpl.fields.length;
+  const body  = document.getElementById('wiz-body');
+  const isReview = wizardStep >= total;
+
+  // 진행 표시
+  document.getElementById('wiz-bar').style.width =
+    (isReview ? 100 : Math.round(wizardStep / total * 100)) + '%';
+  document.getElementById('wiz-step-label').textContent =
+    isReview ? '미리보기 · 발송' : ((wizardStep + 1) + ' / ' + total);
+
+  const BTN_NEXT = 'flex:1; padding:15px; background:#0284c7; color:white; border:none; ' +
+    'border-radius:12px; font-size:16px; font-weight:900; cursor:pointer; font-family:inherit;';
+  const BTN_PREV = 'flex:0 0 90px; padding:15px; background:#334155; color:#e2e8f0; border:none; ' +
+    'border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;';
+  const INP = 'width:100%; border:2px solid #334155; border-radius:12px; font-size:18px; ' +
+    'font-family:inherit; color:#f8fafc; background:#1e293b; outline:none; padding:14px;';
+
+  // ── 미리보기/발송 단계 ──
+  if (isReview) {
+    // 완성된 전체 문자 + 항목별 수정(탭) 리스트
+    const rows = tpl.fields.map((f, i) =>
+      '<div onclick="goToWizStep(' + i + ')" style="display:flex; align-items:center; gap:10px; ' +
+      'padding:11px 12px; border-bottom:1px solid #1e293b; cursor:pointer; background:#1e293b; ' +
+      'border-radius:9px; margin-bottom:6px;">' +
+      '<div style="font-size:12px; font-weight:800; color:#7dd3fc; width:58px; flex-shrink:0;">' + f.label + '</div>' +
+      '<div style="flex:1; min-width:0; font-size:14px; color:#f8fafc; font-weight:500; ' +
+      'white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + wizEsc(wizFieldDisplay(f)) + '</div>' +
+      '<div style="flex-shrink:0; font-size:14px;">✏️</div></div>'
+    ).join('');
+
+    body.innerHTML =
+      '<div style="font-size:13px; color:#94a3b8; font-weight:700; margin-bottom:10px;">📄 완성된 문자 내용</div>' +
+      '<pre id="wiz-preview" style="background:#0b1220; border:2px solid #334155; border-radius:12px; ' +
+      'padding:16px; color:#f8fafc; font-size:14px; line-height:1.9; white-space:pre-wrap; ' +
+      'font-family:inherit; margin:0 0 18px; max-height:34vh; overflow-y:auto;"></pre>' +
+      '<div style="font-size:12px; color:#38bdf8; font-weight:700; margin-bottom:8px;">✏️ 항목을 탭하면 수정할 수 있어요</div>' +
+      rows +
+      '<div style="display:flex; gap:10px; margin-top:18px;">' +
+      '<button onclick="prevWizStep()" style="' + BTN_PREV + '">‹ 이전</button>' +
+      '<button onclick="sendWizardSms()" style="' + BTN_NEXT + ' background:#16a34a;">📨 문자 발송</button>' +
+      '</div>';
+    document.getElementById('wiz-preview').textContent = buildWizardText();
+    return;
+  }
+
+  const f = tpl.fields[wizardStep];
+  let inputHtml = '';
+
+  if (f.key === 'type') {
+    inputHtml = '<div style="display:flex; flex-wrap:wrap; gap:8px;">' +
+      DISASTER_TYPES.map(d => {
+        const on = wizardValues.type === d;
+        return '<button onclick="setWizType(\'' + d + '\')" style="padding:11px 14px; ' +
+          'border-radius:11px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit; ' +
+          'border:2px solid ' + (on ? '#38bdf8' : '#334155') + '; ' +
+          'background:' + (on ? '#0284c7' : '#1e293b') + '; color:' + (on ? 'white' : '#cbd5e1') + ';">' +
+          d + '</button>';
+      }).join('') + '</div>';
+  } else if (f.key === 'date') {
+    inputHtml = '<div style="display:flex; gap:8px;">' +
+      '<input id="wiz-input" type="date" value="' + wizEsc(wizardValues.date) + '" ' +
+      'oninput="setWiz(\'date\',this.value)" style="' + INP + ' flex:1.4;">' +
+      '<input type="time" value="' + wizEsc(wizardValues.time) + '" ' +
+      'oninput="setWiz(\'time\',this.value)" style="' + INP + ' flex:1;"></div>';
+  } else if (f.key === 'detail') {
+    inputHtml = '<textarea id="wiz-input" rows="5" oninput="setWiz(\'detail\',this.value)" ' +
+      'placeholder="내용 입력..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ' +
+      'style="' + INP + ' resize:none; min-height:130px; line-height:1.5;">' +
+      wizEsc(wizardValues.detail) + '</textarea>';
+  } else {
+    inputHtml = '<input id="wiz-input" type="text" value="' + wizEsc(wizardValues[f.key]) + '" ' +
+      'oninput="setWiz(\'' + f.key + '\',this.value)" placeholder="' + f.label + ' 입력..." ' +
+      'autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ' +
+      'name="wiz-' + f.key + '-' + Date.now() + '" style="' + INP + '">';
+  }
+
+  const isLast = wizardStep === total - 1;
+  body.innerHTML =
+    '<div style="font-size:13px; color:#94a3b8; font-weight:700; margin-bottom:8px;">' +
+    '항목 ' + (wizardStep + 1) + ' / ' + total + '</div>' +
+    '<div style="font-size:26px; font-weight:900; color:#f8fafc; margin-bottom:18px;">' +
+    f.label + '</div>' +
+    inputHtml +
+    '<div style="display:flex; gap:10px; margin-top:20px;">' +
+    (wizardStep > 0 ? '<button onclick="prevWizStep()" style="' + BTN_PREV + '">‹ 이전</button>' : '') +
+    '<button onclick="nextWizStep()" style="' + BTN_NEXT + '">' +
+    (isLast ? '미리보기 ›' : '다음 ›') + '</button>' +
+    '</div>' +
+    // ── 하단: 전체 문자 내용 실시간 미리보기 (탭하면 발송화면) ──
+    '<div style="margin-top:26px;">' +
+    '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">' +
+    '<span style="font-size:12px; color:#94a3b8; font-weight:700;">📄 전체 문자 내용 (실시간)</span>' +
+    '<span style="font-size:12px; color:#38bdf8; font-weight:700;">탭하면 발송화면 ›</span>' +
+    '</div>' +
+    '<pre id="wiz-live" onclick="goToWizStep(' + total + ')" ' +
+    'style="background:#0b1220; border:2px solid #334155; border-radius:12px; padding:14px; ' +
+    'color:#cbd5e1; font-size:13px; line-height:1.85; white-space:pre-wrap; font-family:inherit; ' +
+    'margin:0; max-height:30vh; overflow-y:auto; cursor:pointer;"></pre>' +
+    '</div>';
+  document.getElementById('wiz-live').textContent = buildWizardText();
+
+  // 입력칸 자동 포커스 (텍스트류만)
+  if (f.key !== 'type') {
+    setTimeout(() => { const el = document.getElementById('wiz-input'); if (el) el.focus(); }, 150);
+  }
 }
 
 // ── 피난유도방송 송출순서표 ────────────────────────
@@ -6646,7 +6883,7 @@ renderProcGrid();
       🔥 화재 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img01.jpg"
+  <img src="images/img_01주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🔥 화재 대응 프로세스 — 주간">
@@ -6659,7 +6896,7 @@ renderProcGrid();
       🔥 화재 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img02.jpg"
+  <img src="images/img_02야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🔥 화재 대응 프로세스 — 야간·휴일">
@@ -6672,11 +6909,11 @@ renderProcGrid();
       ⚡ 정전 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img03.jpg"
+  <img src="images/img_03주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="⚡ 정전 대응 프로세스 — 주간">
-  <img src="images/img04.jpg"
+  <img src="images/img_04주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="⚡ 정전 대응 프로세스 — 주간">
@@ -6960,7 +7197,7 @@ renderProcGrid();
       ⚡ 정전 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img05.jpg"
+  <img src="images/img_05야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="⚡ 정전 대응 프로세스 — 야간·휴일">
@@ -6973,11 +7210,11 @@ renderProcGrid();
       💧 누수·침수 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img06.jpg"
+  <img src="images/img_06주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="💧 누수·침수 대응 프로세스 — 주간">
-  <img src="images/img07.jpg"
+  <img src="images/img_07주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="💧 누수·침수 대응 프로세스 — 주간">
@@ -6990,11 +7227,11 @@ renderProcGrid();
       💧 누수·침수 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img08.jpg"
+  <img src="images/img_08야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="💧 누수·침수 대응 프로세스 — 야간·휴일">
-  <img src="images/img09.jpg"
+  <img src="images/img_09야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="💧 누수·침수 대응 프로세스 — 야간·휴일">
@@ -7007,11 +7244,11 @@ renderProcGrid();
       🌊 풍수해 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img06.jpg"
+  <img src="images/img_06주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🌊 풍수해 대응 프로세스 — 주간">
-  <img src="images/img07.jpg"
+  <img src="images/img_07주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🌊 풍수해 대응 프로세스 — 주간">
@@ -7024,11 +7261,11 @@ renderProcGrid();
       🌊 풍수해 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img08.jpg"
+  <img src="images/img_08야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🌊 풍수해 대응 프로세스 — 야간·휴일">
-  <img src="images/img09.jpg"
+  <img src="images/img_09야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🌊 풍수해 대응 프로세스 — 야간·휴일">
@@ -7041,7 +7278,7 @@ renderProcGrid();
       ❄️ 폭설 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <img src="images/img10.jpg"
+      <img src="images/img_10주간_process.jpg"
         style="width:100%;height:auto;display:block;border-radius:10px;
         box-shadow:0 2px 12px rgba(0,0,0,0.12);" alt="폭설 주간 대응 프로세스">
     </div>
@@ -7056,7 +7293,7 @@ renderProcGrid();
     📌 별첨1. 제설작업구역 및 대응인원 배치
   </div>
   <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px;">
-    <img src="images/img11.jpg"
+    <img src="images/img_11주간_별첨.jpg"
       style="width:100%;height:auto;display:block;border-radius:10px;
       box-shadow:0 2px 12px rgba(0,0,0,0.12);cursor:zoom-in;"
       alt="제설작업구역 및 대응인원 배치"
@@ -7069,7 +7306,7 @@ renderProcGrid();
     📌 별첨3. 제설장비 현황 및 상세보관 장소
   </div>
   <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:8px;">
-    <img src="images/img12.jpg"
+    <img src="images/img_12주간_별첨.jpg"
       style="width:100%;height:auto;display:block;border-radius:10px;
       box-shadow:0 2px 12px rgba(0,0,0,0.12);cursor:zoom-in;"
       alt="제설장비 현황 및 상세보관 장소"
@@ -7085,7 +7322,7 @@ renderProcGrid();
       ❄️ 폭설 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <img src="images/img13.jpg"
+      <img src="images/img_13야간_process.jpg"
         style="width:100%;height:auto;display:block;border-radius:10px;
         box-shadow:0 2px 12px rgba(0,0,0,0.12);" alt="폭설 야간 대응 프로세스">
     </div>
@@ -7098,7 +7335,7 @@ renderProcGrid();
       🏔️ 지진 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img14.jpg"
+  <img src="images/img_14주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🏔️ 지진 대응 프로세스 — 주간">
@@ -7111,7 +7348,7 @@ renderProcGrid();
       🏔️ 지진 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img15.jpg"
+  <img src="images/img_15야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🏔️ 지진 대응 프로세스 — 야간·휴일">
@@ -7124,7 +7361,7 @@ renderProcGrid();
       ☁️ 가스누출 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img16.jpg"
+  <img src="images/img_16주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="☁️ 가스누출 대응 프로세스 — 주간">
@@ -7137,7 +7374,7 @@ renderProcGrid();
       ☁️ 가스누출 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img17.jpg"
+  <img src="images/img_17야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="☁️ 가스누출 대응 프로세스 — 야간·휴일">
@@ -7150,7 +7387,7 @@ renderProcGrid();
       🛗 승강기갇힘 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img18.jpg"
+  <img src="images/img_18주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🛗 승강기갇힘 대응 프로세스 — 주간">
@@ -7239,7 +7476,7 @@ renderProcGrid();
       🛗 승강기갇힘 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img19.jpg"
+  <img src="images/img_19야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🛗 승강기갇힘 대응 프로세스 — 야간·휴일">
@@ -7328,7 +7565,7 @@ renderProcGrid();
       🚨 테러·침입 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img20.jpg"
+  <img src="images/img_20주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🚨 테러·침입 대응 프로세스 — 주간">
@@ -7341,7 +7578,7 @@ renderProcGrid();
       🚨 테러·침입 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-  <img src="images/img20.jpg"
+  <img src="images/img_20주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
     alt="🚨 테러·침입 대응 프로세스 — 야간·휴일">
