@@ -311,11 +311,7 @@ body {
   transform: translateY(0);
   pointer-events: auto;
 }
-/* 비상장비 탭바 강제 가로 */
-#equip-tabbar {
-  display: flex !important;
-  flex-direction: row !important;
-}
+/* 비상장비 탭바 — 비상연락처와 동일한 좌측 세로형 (.ec-tab-bar 사용) */
 
 .panel-header {
   display: flex; align-items: center; gap: 10px;
@@ -555,20 +551,37 @@ body {
   letter-spacing: .3px;
 }
 .ec-tab-bar {
-  display: flex; background: #f8fafc;
-  border-bottom: 2px solid var(--border); flex-shrink: 0;
-  padding: 0 8px;
-  gap: 2px;
+  display: flex; flex-direction: column; background: #f8fafc;
+  border-right: 2px solid var(--border); flex-shrink: 0;
+  width: 78px; padding: 6px 5px; gap: 5px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
 .ec-tab {
-  flex: 1; padding: 9px 2px; font-size: 10px; font-weight: 700;
+  padding: 10px 3px; font-size: 11px; font-weight: 700;
   text-align: center; cursor: pointer; color: #94a3b8;
-  border-bottom: 3px solid transparent; transition: all .18s;
-  white-space: nowrap; letter-spacing: -0.3px;
+  border-radius: 9px; border-left: 3px solid transparent;
+  transition: all .18s; letter-spacing: -0.3px; line-height: 1.35;
 }
-.ec-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 800; }
+.ec-tab.active { color: var(--blue); background: #eff6ff; border-left-color: var(--blue); font-weight: 800; }
 .ec-pane { display: none; background: var(--bg); }
 .ec-pane.active { display: block; }
+
+/* ── 비상연락처 아코디언 — 엑셀 표 스타일 (차분한 블루) ── */
+.ec-acc-group { margin: 0 10px 8px; border: 1px solid #d3e0ee; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(30,64,120,0.06); }
+.ec-acc-head {
+  display: flex; align-items: center; cursor: pointer;
+  padding: 10px 12px; font-size: 12.5px; font-weight: 800; color: #243447;
+  background: #dde7f3; border-left: 4px solid #64748b; letter-spacing: -0.2px;
+}
+.ec-acc-head:active { background: #cfdcec; }
+.ec-acc-head .ec-acc-title { flex: 1; min-width: 0; }
+.ec-acc-head .ec-acc-count { font-size: 10.5px; font-weight: 700; color: #5b6b80; margin-right: 8px; flex-shrink: 0; }
+.ec-acc-head .ec-acc-arrow { font-size: 11px; color: #5b6b80; transition: transform .2s; flex-shrink: 0; }
+.ec-acc-body .ec-card { margin: 0; border-bottom: 1px solid #e6eef7; }
+.ec-acc-body .ec-card:nth-child(odd)  { background: #f3f8fd; }
+.ec-acc-body .ec-card:nth-child(even) { background: #ffffff; }
+.ec-acc-body .ec-card:last-child { border-bottom: none; }
+.ec-acc-body .ec-card:active { background: #e3eefb; }
 
 /* ── 대응 프로세스 패널 내부 스타일 ── */
 /* 배경: 흰색 기반, 카드 배경 투명도 50%, 텍스트 가독성 최우선 */
@@ -1054,21 +1067,10 @@ body {
         color:white;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;
         cursor:pointer;white-space:nowrap;">✏️ 수정</button>
     </div>
-    <div id="equip-tabbar" style="display:flex !important; flex-direction:row !important;
-      background:white; border-bottom:2px solid #e5e7eb; flex-shrink:0; width:100%;">
-      <div id="etab-fire" onclick="switchEquipTab('fire')"
-        style="flex:1; padding:11px 0; font-size:13px; font-weight:800; cursor:pointer;
-        text-align:center; color:#dc2626; border-bottom:3px solid #dc2626;
-        border-right:1px solid #e5e7eb;">🔥 화재</div>
-      <div id="etab-flood" onclick="switchEquipTab('flood')"
-        style="flex:1; padding:11px 0; font-size:13px; font-weight:800; cursor:pointer;
-        text-align:center; color:#9ca3af; border-bottom:3px solid transparent;
-        border-right:1px solid #e5e7eb;">💧 풍수해</div>
-      <div id="etab-elec" onclick="switchEquipTab('elec')"
-        style="flex:1; padding:11px 0; font-size:13px; font-weight:800; cursor:pointer;
-        text-align:center; color:#9ca3af; border-bottom:3px solid transparent;">⚡ 전기</div>
+    <div style="flex:1; display:flex; min-height:0;">
+      <div class="ec-tab-bar" id="equip-tabbar"></div>
+      <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-width:0;" id="equip-list-body"></div>
     </div>
-    <div style="flex:1; overflow-y:auto;" id="equip-list-body"></div>
   </div>
 
   <div id="emergency-panel" class="panel" style="z-index:20; background:#f0f4ff; flex-direction:column;">
@@ -1088,14 +1090,16 @@ body {
         cursor:pointer;white-space:nowrap;">✏️ 수정</button>
     </div>
 
+    <div style="flex:1; display:flex; min-height:0;">
     <div class="ec-tab-bar">
-      <div class="ec-tab active" id="ectab-gov"    onclick="switchEcTab('gov')">🏛️ 유관기관</div>
-      <div class="ec-tab"        id="ectab-system"  onclick="switchEcTab('system')">⚙️ 시스템업체</div>
-      <div class="ec-tab"        id="ectab-tenant"  onclick="switchEcTab('tenant')">🏢 입주사</div>
-      <div class="ec-tab"        id="ectab-partner" onclick="switchEcTab('partner')">🤝 협력사</div>
+      <div class="ec-tab active" id="ectab-gov"    onclick="switchEcTab('gov')">🏛️<br>유관기관</div>
+      <div class="ec-tab"        id="ectab-system"  onclick="switchEcTab('system')">⚙️<br>시스템<br>업체</div>
+      <div class="ec-tab"        id="ectab-tenant"  onclick="switchEcTab('tenant')">🏢<br>입주사</div>
+      <div class="ec-tab"        id="ectab-partner" onclick="switchEcTab('partner')">🤝<br>협력사</div>
+      <div class="ec-tab"        id="ectab-sni"     onclick="switchEcTab('sni')">📡<br>SNI</div>
     </div>
 
-    <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;" id="ec-scroll">
+    <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-width:0;" id="ec-scroll">
 
       <div class="ec-pane active" id="ecpane-gov">
 
@@ -1217,17 +1221,7 @@ body {
 
       <div class="ec-pane" id="ecpane-system">
 
-        <div class="ec-section-header" style="background:#dc2626;">🚒 소방</div>
-        <div class="ec-card" onclick="callNum('1661-8182')">
-          <div class="ec-icon" style="background:#fff0f0;">🏢</div>
-          <div class="ec-info"><div class="ec-name">마포통합운영센터 (사고접수·정보공유)</div><div class="ec-sub">이화성 센터장</div></div>
-          <div class="ec-num">1661-8182</div>
-        </div>
-        <div class="ec-card" onclick="callNum('1661-8110')">
-          <div class="ec-icon" style="background:#fff0f0;">🏢</div>
-          <div class="ec-info"><div class="ec-name">마포통합운영센터 (원격감시 일반문의)</div><div class="ec-sub">일반문의</div></div>
-          <div class="ec-num">1661-8110</div>
-        </div>
+        <div class="ec-section-header" style="background:#dc2626;">🚁 항공·관제·보안</div>
         <div class="ec-card" onclick="callNum('010-6611-2132')">
           <div class="ec-icon" style="background:#fff0f0;">🚁</div>
           <div class="ec-info"><div class="ec-name">헬기장 · LG전자 항공운영팀</div><div class="ec-sub">이광준 책임</div></div>
@@ -1380,6 +1374,21 @@ body {
           <div class="ec-num">010-5280-9459</div>
         </div>
 
+      </div>
+
+      <!-- ── SNI ── -->
+      <div class="ec-pane" id="ecpane-sni">
+        <div class="ec-section-header" style="background:#0284c7;">📡 마포통합운영센터 (SNI)</div>
+        <div class="ec-card" onclick="callNum('1661-8182')">
+          <div class="ec-icon" style="background:#e0f2fe;">🏢</div>
+          <div class="ec-info"><div class="ec-name">마포통합운영센터 (사고접수·정보공유)</div><div class="ec-sub">이화성 센터장</div></div>
+          <div class="ec-num">1661-8182</div>
+        </div>
+        <div class="ec-card" onclick="callNum('1661-8110')">
+          <div class="ec-icon" style="background:#e0f2fe;">🏢</div>
+          <div class="ec-info"><div class="ec-name">마포통합운영센터 (원격감시 일반문의)</div><div class="ec-sub">일반문의</div></div>
+          <div class="ec-num">1661-8110</div>
+        </div>
       </div>
 
       <!-- ── 입주사 ── -->
@@ -1751,7 +1760,7 @@ body {
 
       </div>
 
-    </div></div>
+    </div></div></div>
 
   <!-- ── 화재 시나리오 선택 시트 ── -->
   <div id="scenario-sheet-overlay"
@@ -3742,13 +3751,15 @@ function positionEditModal(modal) {
   modal.style.flexDirection = 'column';
   modal.style.alignItems = 'stretch';
   modal.style.justifyContent = 'flex-start';
-  syncEditModalViewport();
-  // 키보드 열림/닫힘(visualViewport 변화)에 맞춰 모달 높이 동기화
+  syncEditModalViewport(modal);
+  // 키보드 열림/닫힘(visualViewport 변화)에 맞춰 모달 높이 동기화 (임무·연락처 편집 공용)
   if (window.visualViewport && !_editVVBound) {
     _editVVBound = true;
     const handler = () => {
-      const m = document.getElementById('task-edit-modal');
-      if (m && m.style.display !== 'none') syncEditModalViewport();
+      ['task-edit-modal','contact-edit-modal'].forEach(function(id){
+        const m = document.getElementById(id);
+        if (m && m.style.display !== 'none' && m.style.position === 'fixed') syncEditModalViewport(m);
+      });
     };
     window.visualViewport.addEventListener('resize', handler);
     window.visualViewport.addEventListener('scroll', handler);
@@ -3756,8 +3767,7 @@ function positionEditModal(modal) {
 }
 
 // 모달을 '키보드에 가려지지 않은 실제 보이는 영역'에 정확히 맞춤
-function syncEditModalViewport() {
-  const modal = document.getElementById('task-edit-modal');
+function syncEditModalViewport(modal) {
   if (!modal) return;
   const vv = window.visualViewport;
   modal.style.top    = (vv ? vv.offsetTop : 0) + 'px';
@@ -4251,6 +4261,11 @@ function openActionPanel() {
 const EQUIP_DATA = {
   // ── 화재 : 사업부기준 O 항목만 ──────────────────────
   fire: [
+    { cat:'🔥 화재 — 비상출동 휴대장비', items:[
+      { name:'비상키 (마스터키·비상잠금해제)', qty:'세트', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 중앙B1 종합상황실' },
+      { name:'무전기 (디지털·ch2 비상채널)', qty:'다수', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 중앙B1 종합상황실 · 동관B2 보안사무실' },
+      { name:'호르라기 (피난유도용 호루라기)', qty:'다수', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 각 층 방재함' },
+    ]},
     { cat:'🔥 화재 — 안전장비', items:[
       { name:'방독면', qty:'42', loc:'서관B3 빌딩운영센터(10) · 동관B3 빌딩운영센터(20) · 중앙B1 종합상황실(9) · 동관B2 보안사무실(3)' },
       { name:'와이어절단기', qty:'1', loc:'중앙B1 종합상황실' },
@@ -4279,11 +4294,6 @@ const EQUIP_DATA = {
       { name:'방열장갑', qty:'3', loc:'중앙B1 종합상황실' },
       { name:'방열신발', qty:'3', loc:'중앙B1 종합상황실' },
       { name:'스마트에어백 C3', qty:'4', loc:'건축·기계·전기·소방' },
-    ]},
-    { cat:'🔥 화재 — 비상출동 휴대장비', items:[
-      { name:'비상키 (마스터키·비상잠금해제)', qty:'세트', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 중앙B1 종합상황실' },
-      { name:'무전기 (디지털·ch2 비상채널)', qty:'다수', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 중앙B1 종합상황실 · 동관B2 보안사무실' },
-      { name:'호르라기 (피난유도용 호루라기)', qty:'다수', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 각 층 방재함' },
     ]},
   ],
   // ── 전기 : 사업부기준 O 항목만 ──────────────────────
@@ -4336,18 +4346,34 @@ const EQUIP_DATA = {
 
 let currentEquipTab = 'fire';
 
+// 00대응별 비상장비 탭 (좌측 세로탭 — 비상연락처와 동일 구성)
+const EQUIP_TABS = [
+  { key:'fire',  label:'🔥<br>화재',   color:'#dc2626' },
+  { key:'elec',  label:'⚡<br>정전',   color:'#b45309' },
+  { key:'flood', label:'💧<br>풍수해', color:'#0891b2' },
+];
+const EQUIP_TAB_COLOR = { fire:'#dc2626', elec:'#b45309', flood:'#0891b2' };
+
+function renderEquipTabs() {
+  const bar = document.getElementById('equip-tabbar');
+  if (!bar) return;
+  bar.innerHTML = EQUIP_TABS.map(function(t) {
+    return '<div class="ec-tab' + (t.key === currentEquipTab ? ' active' : '') + '" ' +
+      'id="etab-' + t.key + '" onclick="switchEquipTab(\'' + t.key + '\')">' + t.label + '</div>';
+  }).join('');
+}
+
 function switchEquipTab(tab) {
   currentEquipTab = tab;
-  window.equipOpenCat = null; // 탭 바꾸면 첫 카테고리 자동 선택
-  const tabs = { fire:'#dc2626', flood:'#1d4ed8', elec:'#78350f' };
-  ['fire','flood','elec'].forEach(t => {
-    const el = document.getElementById('etab-' + t);
-    if (!el) return;
-    const active = t === tab;
-    el.style.color       = active ? tabs[t] : '#9ca3af';
-    el.style.borderBottom= active ? `3px solid ${tabs[t]}` : '3px solid transparent';
-    el.style.background  = 'white';
-  });
+  window.equipOpenCats = new Set([0]);   // 탭 전환 시 첫 카테고리 펼침
+  renderEquipTabs();
+  renderEquipList();
+}
+
+function toggleEquipCat(gi) {
+  if (!window.equipOpenCats) window.equipOpenCats = new Set();
+  if (window.equipOpenCats.has(gi)) window.equipOpenCats.delete(gi);
+  else window.equipOpenCats.add(gi);
   renderEquipList();
 }
 
@@ -4356,57 +4382,53 @@ const equipChecked = {};
 
 function renderEquipList() {
   const data = EQUIP_DATA[currentEquipTab] || [];
-  const colors = { fire:'#dc2626', flood:'#1d4ed8', elec:'#78350f' };
-  const c = colors[currentEquipTab];
+  const c = EQUIP_TAB_COLOR[currentEquipTab] || '#dc2626';
+  if (!window.equipOpenCats) window.equipOpenCats = new Set([0]);
 
   let html = '';
   let globalIdx = 0;
 
-  data.forEach(group => {
+  data.forEach(function(group, gi) {
     if (group.items.length === 0) return;
+    const open = window.equipOpenCats.has(gi);
 
-    // 카테고리 헤더 띠
-    html += `<div style="background:${c}; color:white; font-size:12px; font-weight:800;
-      padding:7px 12px; letter-spacing:-.2px;">${group.cat}</div>`;
-
-    group.items.forEach((item, i) => {
+    let rows = '';
+    group.items.forEach(function(item, i) {
       const key = currentEquipTab + '-' + globalIdx;
       const ok = !!equipChecked[key];
+      const bg = ok ? '#ecfdf3' : hexTint(c, i % 2 === 0 ? 0.86 : 0.94);
       const qtyTag = item.qty && item.qty !== '-'
-        ? `<span style="background:${c}22; color:${c}; font-size:10.5px; font-weight:800;
-            padding:1px 6px; border-radius:6px; margin-left:6px; flex-shrink:0;">×${item.qty}</span>` : '';
-
-      html += `<div onclick="equipChecked['${key}']=!equipChecked['${key}']; renderEquipList();"
-        style="background:${ok ? '#f0fdf4' : i%2===0 ? 'white' : '#fafafa'};
-        padding:8px 12px; border-bottom:1px solid #f0f0f0;
-        cursor:pointer;">
+        ? `<span style="background:${c}; color:white; font-size:10.5px; font-weight:800;
+            padding:1px 7px; border-radius:6px; margin-left:6px; flex-shrink:0;">×${item.qty}</span>` : '';
+      rows += `<div onclick="equipChecked['${key}']=!equipChecked['${key}']; renderEquipList();"
+        style="background:${bg}; padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer;">
         <div style="display:flex; align-items:flex-start; gap:10px;">
           <div style="flex-shrink:0; margin-top:2px; width:18px; height:18px; border-radius:5px;
-            border:2px solid ${ok ? c : '#d1d5db'};
-            background:${ok ? c : 'white'};
+            border:2px solid ${ok ? c : '#cbd5e1'}; background:${ok ? c : 'white'};
             display:flex; align-items:center; justify-content:center;">
-            ${ok ? `<svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-              <path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>` : ''}
+            ${ok ? `<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
           </div>
           <div style="flex:1; min-width:0;">
             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:2px;">
               <span style="font-size:12.5px; font-weight:${ok ? '500' : '700'};
                 color:${ok ? '#9ca3af' : '#111'};
-                text-decoration:${ok ? 'line-through' : 'none'}; word-break:keep-all;">
-                ${item.name}
-              </span>${qtyTag}
+                text-decoration:${ok ? 'line-through' : 'none'}; word-break:keep-all;">${item.name}</span>${qtyTag}
             </div>
-            ${item.loc && item.loc !== '-' ? `
-            <div style="font-size:10px; color:#6b7280; margin-top:3px; line-height:1.5;
-              word-break:keep-all;">
-              📍 ${item.loc}
-            </div>` : ''}
+            ${item.loc && item.loc !== '-' ? `<div style="font-size:10px; color:#6b7280; margin-top:3px; line-height:1.5; word-break:keep-all;">📍 ${item.loc}</div>` : ''}
           </div>
         </div>
       </div>`;
       globalIdx++;
     });
+
+    html += '<div class="ec-acc-group" style="margin:8px 10px;">' +
+      '<div class="ec-acc-head" style="background:' + c + ';color:#fff;border-left:none;" onclick="toggleEquipCat(' + gi + ')">' +
+        '<span class="ec-acc-title">' + group.cat + '</span>' +
+        '<span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">' + group.items.length + '</span>' +
+        '<span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(' + (open ? '180deg' : '0deg') + ')">▾</span>' +
+      '</div>' +
+      '<div class="ec-acc-body" style="' + (open ? '' : 'display:none;') + '">' + rows + '</div>' +
+    '</div>';
   });
 
   document.getElementById('equip-list-body').innerHTML = html ||
@@ -4493,9 +4515,6 @@ function openEquipPanel() {
       style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.4);
       color:white;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;
       cursor:pointer;white-space:nowrap;">✏️ 수정</button>`;
-  // 탭바 표시
-  const tabBar = panel.querySelector(':scope > div:nth-child(2)');
-  if (tabBar) tabBar.style.display = '';
   const app       = document.getElementById('app');
   const bottomNav = document.querySelector('.bottom-nav');
   const appHeader = document.querySelector('.header');
@@ -5895,6 +5914,83 @@ function openEmergencyPanel(el) {
   ep.style.height = height + 'px';
   ep.style.width  = '100%';
   ep.classList.add('open');
+  buildContactAccordions();
+}
+
+// ── 비상연락처 섹션을 아코디언으로 변환 (제목 탭하면 전화번호 펼침/접힘) ──
+function buildContactAccordions() {
+  document.querySelectorAll('.ec-pane').forEach(function(pane) {
+    const kids = Array.prototype.slice.call(pane.children);
+    if (!kids.length) return;
+    if (pane.querySelector('.ec-acc-group')) return;   // 이미 변환됨
+    const groups = [];
+    let cur = null;
+    kids.forEach(function(k) {
+      if (k.classList && k.classList.contains('ec-section-header')) {
+        cur = { style: k.getAttribute('style') || '', label: k.innerHTML, items: [] };
+        groups.push(cur);
+      } else {
+        if (!cur) { cur = { style: null, label: null, items: [] }; groups.push(cur); }
+        cur.items.push(k.outerHTML);
+      }
+    });
+    let html = '';
+    groups.forEach(function(g) {
+      if (g.label === null) { html += g.items.join(''); return; }   // 헤더 없는 항목은 그대로
+      const _m = (g.style || '').match(/background:\s*([^;]+)/);
+      const accent = _m ? _m[1].trim() : '#64748b';
+      html +=
+        '<div class="ec-acc-group" data-accent="' + accent + '">' +
+          '<div class="ec-acc-head" onclick="toggleEcAcc(this)">' +
+            '<span class="ec-acc-title">' + g.label + '</span>' +
+            '<span class="ec-acc-count">' + g.items.length + '</span>' +
+            '<span class="ec-acc-arrow">▾</span>' +
+          '</div>' +
+          '<div class="ec-acc-body" style="display:none;">' + g.items.join('') + '</div>' +
+        '</div>';
+    });
+    pane.innerHTML = html;
+    // 섹션별: 헤더 = 해당 색, 우측 전화번호 행 = 같은 색 교번(zebra)
+    pane.querySelectorAll('.ec-acc-group').forEach(function(grp) {
+      const accent = grp.getAttribute('data-accent') || '#64748b';
+      const head = grp.querySelector('.ec-acc-head');
+      if (head) {
+        head.style.background = accent;
+        head.style.color = '#ffffff';
+        head.style.borderLeft = 'none';
+        const cnt = head.querySelector('.ec-acc-count'); if (cnt) cnt.style.color = 'rgba(255,255,255,0.85)';
+        const arr = head.querySelector('.ec-acc-arrow'); if (arr) arr.style.color = 'rgba(255,255,255,0.9)';
+      }
+      grp.querySelectorAll('.ec-acc-body .ec-card').forEach(function(card, idx) {
+        card.style.background = (idx % 2 === 0) ? hexTint(accent, 0.86) : hexTint(accent, 0.94);
+      });
+    });
+  });
+}
+
+// 색(hex/rgb)을 흰색과 섞어 옅은 틴트 생성 (교번 행 배경용)
+function hexTint(color, whiteRatio) {
+  color = String(color).trim();
+  let r = 100, g = 116, b = 139;
+  const hm = color.match(/^#?([0-9a-fA-F]{6})$/);
+  if (hm) {
+    const n = parseInt(hm[1], 16);
+    r = (n >> 16) & 255; g = (n >> 8) & 255; b = n & 255;
+  } else {
+    const rm = color.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+    if (rm) { r = +rm[1]; g = +rm[2]; b = +rm[3]; }
+  }
+  const mix = c => Math.round(c * (1 - whiteRatio) + 255 * whiteRatio);
+  return 'rgb(' + mix(r) + ',' + mix(g) + ',' + mix(b) + ')';
+}
+
+function toggleEcAcc(head) {
+  const body = head.nextElementSibling;
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : '';
+  const arr = head.querySelector('.ec-acc-arrow');
+  if (arr) arr.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 
 function closeEmergencyPanel() {
@@ -6461,6 +6557,8 @@ function closeWeather() {
 // ── 비상연락처 추가/삭제 ──────────────────────────────
 // ════════════════════════════════════════════════════
 const LS_CONTACTS = 'twintower_contacts';
+const CONTACTS_VERSION = '2026-06-13';
+const LS_CONTACTS_VERSION = 'twintower_contacts_version';
 
 // 기본 연락처 데이터 수집 (HTML에서 파싱)
 function getContactsData() {
@@ -6472,8 +6570,9 @@ function getContactsData() {
     var _pane = card.closest('.ec-pane');
     const tab  = (_pane && _pane.id) ? _pane.id.replace('ecpane-','') : 'gov';
     var _sib = card.previousElementSibling;
-    const sect = (_sib && _sib.classList && _sib.classList.contains('ec-section-header'))
-               ? _sib.textContent.trim() : null;
+    const _isHdr = _sib && _sib.classList && _sib.classList.contains('ec-section-header');
+    const sect   = _isHdr ? _sib.textContent.trim() : null;
+    const sectBg = (_isHdr && _sib.style && _sib.style.background) ? _sib.style.background : null;
     var _nm = card.querySelector('.ec-name');
     const name = (_nm && _nm.textContent) ? _nm.textContent.trim() : '';
     var _sb = card.querySelector('.ec-sub');
@@ -6483,7 +6582,7 @@ function getContactsData() {
     var _ic = card.querySelector('.ec-icon');
     const icon = (_ic && _ic.textContent) ? _ic.textContent.trim() : '📞';
     const bg   = (_ic && _ic.style && _ic.style.background) ? _ic.style.background : '#f0f4ff';
-    cards.push({ tab, sect, name, sub, num, icon, bg });
+    cards.push({ tab, sect, sectBg, name, sub, num, icon, bg });
   });
   return cards;
 }
@@ -6502,14 +6601,13 @@ function openContactEdit() {
 }
 
 function renderContactEditModal(tab) {
-  const emergPanel = document.getElementById('emergency-panel');
   let modal = document.getElementById('contact-edit-modal');
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'contact-edit-modal';
-    emergPanel.appendChild(modal);
+    document.getElementById('app').appendChild(modal);
   }
-  positionEditModal(modal, emergPanel);
+  positionEditModal(modal);
 
   const items = contactsData.filter(c => c.tab === tab);
   const rows  = items.map((c, i) => {
@@ -6543,7 +6641,7 @@ function renderContactEditModal(tab) {
       <div style="background:#1b4fa8;padding:14px 16px;display:flex;align-items:center;
         gap:10px;flex-shrink:0;border-radius:20px 20px 0 0;">
         <div style="flex:1;font-size:14px;font-weight:800;color:white;">
-          ✏️ 비상연락처 수정 — ${tab==='gov'?'유관기관':tab==='system'?'시스템업체':tab==='tenant'?'입주사':'협력사'}
+          ✏️ 비상연락처 수정 — ${tab==='gov'?'유관기관':tab==='system'?'시스템업체':tab==='tenant'?'입주사':tab==='sni'?'SNI':'협력사'}
         </div>
         <button onclick="closeContactEdit()"
           style="background:rgba(255,255,255,0.2);border:none;color:white;
@@ -6605,7 +6703,7 @@ function closeContactEdit() {
 
 function renderEmergencyFromData() {
   if (!contactsData) return;
-  ['gov','partner'].forEach(tab => {
+  ['gov','system','tenant','partner','sni'].forEach(tab => {
     const pane = document.getElementById('ecpane-' + tab);
     if (!pane) return;
     const items = contactsData.filter(c => c.tab === tab);
@@ -6613,7 +6711,8 @@ function renderEmergencyFromData() {
     let lastSect = null;
     items.forEach(c => {
       if (c.sect && c.sect !== lastSect) {
-        html += `<div class="ec-section-header">${c.sect}</div>`;
+        const bgStyle = c.sectBg ? ` style="background:${c.sectBg}"` : '';
+        html += `<div class="ec-section-header"${bgStyle}>${c.sect}</div>`;
         lastSect = c.sect;
       }
       html += `<div class="ec-card" onclick="callNum('${c.num}')">
@@ -6624,6 +6723,7 @@ function renderEmergencyFromData() {
     });
     pane.innerHTML = html;
   });
+  buildContactAccordions();
 }
 
 // ════════════════════════════════════════════════════
@@ -6890,10 +6990,20 @@ renderProcGrid();
 
 // 비상연락처 localStorage 복원
 (function restoreContacts() {
+  try {
+    if (_lsGet(LS_CONTACTS_VERSION) !== CONTACTS_VERSION) {
+      // 코드의 연락처 구조가 바뀜(SNI 탭 추가·마포 이동) → 옛 캐시 폐기 후 새 HTML로 재구성
+      localStorage.removeItem(LS_CONTACTS);
+      localStorage.setItem(LS_CONTACTS_VERSION, CONTACTS_VERSION);
+    }
+  } catch(e) {}
   const saved = _lsGet(LS_CONTACTS);
   if (saved) {
     contactsData = JSON.parse(saved);
     setTimeout(renderEmergencyFromData, 100);
+  } else {
+    // 신규 사용자: 아코디언 변환 전(플랫 HTML)에 미리 데이터 시드 → 섹션 정보 보존
+    try { contactsData = getContactsData(); } catch(e) {}
   }
 })();
 
