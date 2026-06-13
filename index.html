@@ -805,20 +805,20 @@ body {
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px 10px 10px;">
         <button class="back-btn" onclick="closeDetail()">‹</button>
         <div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;">
-          <div class="panel-title" id="detail-title" style="min-width:0;font-size:14px;"></div>
+          <div class="panel-title" id="detail-title" style="min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+          <button onclick="goToProc(currentDisaster)"
+            style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.45);
+            color:white;border-radius:9px;padding:5px 9px;font-size:11px;font-weight:800;
+            cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;
+            flex-shrink:0;font-family:inherit;letter-spacing:-0.2px;">
+            📋 프로세스
+          </button>
           <button id="tab-scenario" onclick="toggleScenarioPanel()"
             style="display:none;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.5);border-radius:14px;
             padding:3px 10px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;
             white-space:nowrap;background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.95);
             letter-spacing:0.2px;">＋ 시나리오</button>
         </div>
-        <button onclick="goToProc(currentDisaster)"
-          style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.45);
-          color:white;border-radius:9px;padding:5px 9px;font-size:11px;font-weight:800;
-          cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;
-          flex-shrink:0;font-family:inherit;letter-spacing:-0.2px;">
-          📋 프로세스
-        </button>
       </div>
       <div id="fire-tabbar" style="display:none;background:rgba(0,0,0,0.22);padding:5px 6px 0;gap:3px;">
         <button id="btn-day" onclick="setShift('day')"
@@ -885,12 +885,10 @@ body {
       <button class="back-btn" onclick="closeNews()">‹</button>
       <div>
         <div class="panel-title">📰 재난·안전뉴스</div>
-        <div class="panel-sub">국민재난안전포털 제공</div>
+        <div class="panel-sub">원하는 소식을 선택하세요</div>
       </div>
     </div>
-    <div class="panel-scroll" style="background:#f0f4ff; padding:0; overflow:hidden;">
-      <iframe src="https://m.safekorea.go.kr" style="width:100%; height:100%; border:none;"></iframe>
-    </div>
+    <div class="panel-scroll" style="background:#f0f4ff; padding:14px; overflow-y:auto; -webkit-overflow-scrolling:touch;" id="news-content"></div>
   </div>
 
 
@@ -2697,43 +2695,19 @@ const DISASTERS = [
     "members": [
       {
         "group": "지휘",
-        "role": "🏢 상황실(소방)",
-        "badge": "응대",
+        "role": "🏢 상황실 (소방·BMS)",
+        "badge": "상황",
         "bc": "#4c1d95",
         "tasks": [
-          "갇힘 사고 접수 후 OTIS 출동 요청 (예상소요시간 파악)"
-        ]
-      },
-      {
-        "group": "지휘",
-        "role": "🏢 상황실(BMS)",
-        "badge": "응대",
-        "bc": "#4c1d95",
-        "tasks": [
+          "갇힘 사고 접수 후 OTIS 출동 요청 (예상소요시간 파악)",
           "구출자격자 : 장현철, 오티스: 심일보,허재훈 연락",
-          "전기파트장,승강기안전관리자,센터장 보고"
-        ]
-      },
-      {
-        "group": "지휘",
-        "role": "🏢 상황실(소방)",
-        "badge": "응대",
-        "bc": "#4c1d95",
-        "tasks": [
+          "전기파트장,승강기안전관리자,센터장 보고",
           "갇힘 승객 인터폰 심리케어 //프로세서 참조",
           "고객님 불편을 드려 대단히 죄송합니다. 관련 업체 연락하였고 약 00분이내 구출예상됩니다.",
           "승강기내에서 잠시 대기해주시기 바랍니다.",
           "승강기 번호와 현재 정지층을 알려주시겠습니까?(키폰·감시반·CCTV 확인)",
           "구출 완료 시까지 인터폰 통화 계속 유지됩니다. 특이사항 있으면 말씀해 주십시오",
-          "응급시 119에 추가신고"
-        ]
-      },
-      {
-        "group": "지휘",
-        "role": "🏢 상황실(BMS)",
-        "badge": "응대",
-        "bc": "#4c1d95",
-        "tasks": [
+          "응급시 119에 추가신고",
           "종합상황실에 현황을 보고"
         ]
       },
@@ -2766,7 +2740,7 @@ const DISASTERS = [
         ]
       }
     ],
-    "iconSvg": "<svg viewBox=\"0 0 38 38\" fill=\"none\">\n      <rect x=\"8\" y=\"5\" width=\"22\" height=\"28\" rx=\"2\" stroke=\"white\" stroke-width=\"2\"/>\n      <path d=\"M19 5v28M8 33h22\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\"/>\n      <path d=\"M14 12l-3-3-3 3M11 9v8\" stroke=\"white\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n      <path d=\"M24 26l3 3 3-3M27 29v-8\" stroke=\"white\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n    </svg>"
+    "iconSvg": "<svg viewBox=\"0 0 38 38\" fill=\"none\"><rect x=\"9\" y=\"4\" width=\"20\" height=\"30\" rx=\"2\" stroke=\"white\" stroke-width=\"2\"/><path d=\"M19 4v30\" stroke=\"white\" stroke-width=\"1.5\"/><path d=\"M14 15.5l-2.5 3.5h5z\" fill=\"white\"/><path d=\"M24 23l-2.5-3.5h5z\" fill=\"white\"/></svg>"
   },
   {
     "key": "테러",
@@ -3702,7 +3676,7 @@ function setShift(shift) {
 //   index.html(코드)의 임무를 새로 고칠 때마다 이 숫자(날짜)를 올리세요.
 //   버전이 올라가면 폰/PC에 저장된 옛날 임무 캐시를 자동으로 폐기하고
 //   코드에 박힌 최신 임무를 그대로 표시합니다. (PC·폰 불일치 방지)
-const DATA_VERSION = '2026-06-11';
+const DATA_VERSION = '2026-06-13';
 const LS_DATA_VERSION = 'twintower_data_version';
 
 const LS_TASKS_DONE = 'twintower_tasks_done';
@@ -6272,6 +6246,46 @@ function openNews(el) {
   np.style.width    = '100%';
   np.style.left     = '0';
   np.classList.add('open');
+  renderNewsSources();
+}
+
+// 재난·안전 소식 출처 (탭하면 브라우저로 바로 열림 — iframe보다 빠르고 안정적)
+const NEWS_SOURCES = [
+  { icon:'🛡️', title:'국민재난안전포털',  desc:'재난문자·행동요령·풍수해보험 (행정안전부)', url:'https://www.safekorea.go.kr' },
+  { icon:'📡', title:'재난문자 조회',       desc:'최근 발송된 긴급재난문자 실시간 확인',       url:'https://www.safekorea.go.kr/idsiSFK/neo/sfk/cs/sfc/dis/disasterMsgList.jsp?menuSeq=679' },
+  { icon:'⚠️', title:'기상청 특보',         desc:'호우·강풍·대설·폭염 등 기상특보 현황',       url:'https://www.weather.go.kr/w/weather/warning/normal.do' },
+  { icon:'🌧️', title:'기상청 날씨누리',     desc:'레이더·위성·동네예보 상세 기상정보',         url:'https://www.weather.go.kr/w/index.do' },
+  { icon:'📰', title:'연합뉴스 재난·안전',  desc:'재난·사건사고 속보 기사',                    url:'https://www.yna.co.kr/safe/index' },
+  { icon:'🚒', title:'소방청',              desc:'화재·구조·구급 안전정보',                    url:'https://www.nfa.go.kr' },
+  { icon:'🌊', title:'한강홍수통제소',      desc:'하천 수위·홍수특보 현황',                    url:'https://www.hrfco.go.kr' },
+  { icon:'🌎', title:'기상청 지진·화산',    desc:'국내외 지진 발생 통보',                      url:'https://www.weather.go.kr/w/eqk-vol/search/korea.do' },
+];
+
+function renderNewsSources() {
+  const box = document.getElementById('news-content');
+  if (!box) return;
+  box.innerHTML =
+    '<div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:10px;padding:10px 12px;' +
+    'margin-bottom:12px;font-size:11.5px;color:#1e40af;font-weight:600;line-height:1.6;">' +
+    '💡 항목을 누르면 브라우저로 바로 열립니다 (앱 안 iframe보다 빠르고 안정적)</div>' +
+    NEWS_SOURCES.map(function(s) {
+      return '<div onclick="openExternalLink(\'' + s.url + '\')" ' +
+        'style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;' +
+        'padding:14px;margin-bottom:9px;box-shadow:0 2px 8px rgba(0,0,0,0.07);cursor:pointer;' +
+        'border:1px solid #e2e8f0;transition:background .12s;" ' +
+        'onmouseenter="this.style.background=\'#f8fafc\'" onmouseleave="this.style.background=\'white\'">' +
+        '<div style="font-size:26px;width:40px;text-align:center;flex-shrink:0;">' + s.icon + '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:2px;">' + s.title + '</div>' +
+        '<div style="font-size:11px;color:#64748b;line-height:1.4;">' + s.desc + '</div>' +
+        '</div>' +
+        '<div style="flex-shrink:0;color:#94a3b8;font-size:18px;">↗</div>' +
+        '</div>';
+    }).join('');
+}
+
+function openExternalLink(url) {
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function closeNews() {
