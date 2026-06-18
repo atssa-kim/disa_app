@@ -3724,7 +3724,7 @@ function importFromExcel(input) {
         if (typeof renderProcGrid === 'function') renderProcGrid();
         if (currentDisaster) renderMemberList();
         alert(updated + '개 시트 데이터를 가져왔습니다.\n앱에 적용되었습니다.');
-        pushToGitHub();
+        saveData();
       } else {
         alert('가져올 수 있는 시트를 찾지 못했습니다.\n시트 이름을 확인해 주세요.');
       }
@@ -6355,10 +6355,69 @@ function selectScenario(key) {
   }
 }
 
-// ── GitHub 자동 푸시 ────────────────────────────────────
+// ── 저장 환경 감지 ────────────────────────────────────────
 const GH_REPO   = 'atssa-kim/disa_app';
 const GH_FILE   = 'index.html';
 const GH_BRANCH = 'main';
+
+function isLocalEnv() {
+  const h = window.location.hostname;
+  return h === 'localhost' || h === '127.0.0.1' || h === '';
+}
+
+// ── 로컬 파일 저장 (File System Access API) ──────────────
+let _localFileHandle = null;
+
+async function saveToLocalFile() {
+  try {
+    // 핸들이 없거나 권한이 없으면 파일 선택 요청
+    if (!_localFileHandle) {
+      const picks = await window.showOpenFilePicker({
+        types: [{ description: 'HTML 파일', accept: { 'text/html': ['.html'] } }],
+        multiple: false
+      });
+      _localFileHandle = picks[0];
+    }
+
+    // 쓰기 권한 확인
+    const perm = await _localFileHandle.queryPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      const req = await _localFileHandle.requestPermission({ mode: 'readwrite' });
+      if (req !== 'granted') { alert('⛔ 파일 쓰기 권한이 거부되었습니다.'); return; }
+    }
+
+    // 현재 파일 읽기 → DATA_BLOCK 교체 → 다시 쓰기
+    const file        = await _localFileHandle.getFile();
+    const currentHtml = await file.text();
+    const newBlock    = buildDataBlock();
+    const blockRe     = /\/\/ \[\[DATA_BLOCK_START\]\][\s\S]*?\/\/ \[\[DATA_BLOCK_END\]\]/;
+
+    if (!blockRe.test(currentHtml)) {
+      alert('⚠️ 로컬 파일에 DATA_BLOCK 마커가 없습니다.\n올바른 index.html 파일을 선택했는지 확인하세요.');
+      _localFileHandle = null;
+      return;
+    }
+
+    const newHtml  = currentHtml.replace(blockRe, newBlock);
+    const writable = await _localFileHandle.createWritable();
+    await writable.write(newHtml);
+    await writable.close();
+    alert('✅ 로컬 파일에 저장되었습니다!\n(' + _localFileHandle.name + ')');
+  } catch(err) {
+    if (err.name === 'AbortError') return; // 사용자가 취소
+    alert('❌ 로컬 저장 오류\n\n' + err.message);
+    _localFileHandle = null;
+  }
+}
+
+// ── 저장 라우터: 환경에 따라 로컬 또는 GitHub ────────────
+function saveData() {
+  if (isLocalEnv()) {
+    saveToLocalFile();
+  } else {
+    pushToGitHub();
+  }
+}
 
 function getGhToken(forceNew) {
   if (forceNew) localStorage.removeItem('gh_pat');
