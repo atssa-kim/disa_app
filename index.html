@@ -1998,6 +1998,16 @@ const DISASTERS = [
         "tasks": [
           "비상장구_대피용마스크,무전기(ch2)-화재층 출동",
           "화재 상황파악 & 자위소방대 출동 상황",
+          "◇음식점 주방 식용류 화재시",
+          "┖ K급소화기 사용 지시 / 물사용 절대금지 지시",
+          "┖ 상업용주방소화장치 수동기동 지시",
+          "┖ 가스차단, 전기(분전반-전열) 차단 지시",
+          "┖ 필요시(상황판단) 주방배기 지시",
+          "◇가스방호구역 화재시 (#발전기,변전실,상황실등 현황도면 참조)",
+          "┖ 방호구역 약제방출상태 확인",
+          "┖ 미방출시 현장진입 > 화재여부 확인 > 화재시 소화기 초기소화",
+          "┖ 방출시 진입금지 > 상황실 방출시간 확인 > 10분 후 진입",
+          "┖ 환기 및 소화조 방화복 및 공기호흡기 착용 후 진입지시",
           "현장확인 : 경보,출입통제등 소방시설 동작상태 확인 및 누락시 추가 지시",
           "초기진압 실패시 상황실 119신고 지시",
           "비상연락 확인&지시_VIP 및 어린이집등",
@@ -2041,7 +2051,17 @@ const DISASTERS = [
           "비상장비 갖춰 신속히 비상용승강기등을 이용해 출동(무전기ch2으로 비상용E/V 요청)",
           "현장 도착 후 화재 위치·상황 파악하여 상황실 보고",
           "초기 소화 : 주변 소화기를 이용하여 소화 ·소화전 초기 진압",
-          "차단 : EPS실 전열기 차단, 가스차단",
+          "◇음식점 주방 식용류 화재시",
+          "┖ K급소화기 사용 지시 / 물사용 절대금지 지시",
+          "┖ 상업용주방소화장치 수동기동 지시",
+          "┖ 가스차단, 전기(분전반-전열) 차단 지시",
+          "┖ 필요시(상황판단) 주방배기 지시",
+          "◇가스방호구역 화재시 (#발전기,변전실,상황실등 현황도면 참조)",
+          "┖ 방호구역 약제방출상태 확인",
+          "┖ 미방출시 현장진입 > 화재여부 확인 > 화재시 소화기 초기소화",
+          "┖ 방출시 진입금지 > 상황실 방출시간 확인 > 10분 후 진입",
+          "┖ 환기 및 소화조 방화복 및 공기호흡기 착용 후 진입",
+          "┖ 소방관도착시 소방관 진입",
           "피난유도 : 화재실·화재 주변실 및 화재층 우선 피난유도",
           "화재확대방지 : 화재주변 가연물 제거 및 방화문 방화셔터 동작",
           "대피용마스크 유효시간 5분~10분(최대)이후 즉시 계단 or 부속실 대피",
@@ -5296,100 +5316,61 @@ const BROADCAST_DATA = [
   },
 ];
 
-// 대피방송 아코디언 상태 변수
-let broadcastOpenIdx = null;
-let broadcastFlowOpen = false;
+// ── 대피방송 – 층별 방송 단계 ────────────────────────────
+const EVAC_FLOORS = [
+  'B3','B2','B1',
+  '1','2','3','4','5','6','7','8','9','10',
+  '11','12','13','14','15','16','17','18','19','20',
+  '21','22','23','24','25','26','27','28','29','30',
+  '31','32','33','34','35'
+];
+
+let broadcastSelectedFloor = null;
+let broadcastFlowOpen      = false;
+
+function calcBroadcastStages(fireFloor) {
+  const fi = EVAC_FLOORS.indexOf(fireFloor);
+  const auto=[], s1=[], s2=[], s3=[];
+  EVAC_FLOORS.forEach(function(f, i) {
+    var stage;
+    if (fi <= 2) {
+      // 지하층 화재: B3~1F 전층 우선경보, 이후 1F 기준 거리
+      if (i <= 3) stage = 'auto';
+      else {
+        var d2 = i - 3;
+        if (d2 <= 4) stage = 's1';
+        else if (d2 <= 9) stage = 's2';
+        else stage = 's3';
+      }
+    } else {
+      var dist = Math.abs(i - fi);
+      if      (dist <= 2)  stage = 'auto';
+      else if (dist <= 7)  stage = 's1';
+      else if (dist <= 12) stage = 's2';
+      else                 stage = 's3';
+    }
+    if      (stage==='auto') auto.push(f);
+    else if (stage==='s1')   s1.push(f);
+    else if (stage==='s2')   s2.push(f);
+    else                     s3.push(f);
+  });
+  return { auto, s1, s2, s3 };
+}
+
+function selectFireFloor(floor) {
+  broadcastSelectedFloor = (broadcastSelectedFloor === floor) ? null : floor;
+  var el = document.getElementById('broadcast-content');
+  if (el) el.innerHTML = buildBroadcastHTML();
+}
 
 function toggleBroadcastFlow() {
   broadcastFlowOpen = !broadcastFlowOpen;
-  const modal = document.getElementById('broadcast-modal');
-  if (modal && modal.style.display !== 'none') {
-    document.getElementById('broadcast-content').innerHTML = buildBroadcastHTML();
-  }
-  if (currentDisaster === '화재' && currentShift === 'evac'
-      && document.getElementById('member-list')) {
-    renderEvacList();
-  }
-}
-
-function toggleBroadcastAccordion(idx) {
-  broadcastOpenIdx = broadcastOpenIdx === idx ? null : idx;
-  const modal = document.getElementById('broadcast-modal');
-  if (modal && modal.style.display !== 'none') {
-    document.getElementById('broadcast-content').innerHTML = buildBroadcastHTML();
-  }
-  if (currentDisaster === '화재' && currentShift === 'evac'
-      && document.getElementById('member-list')) {
-    renderEvacList();
-  }
+  var el = document.getElementById('broadcast-content');
+  if (el) el.innerHTML = buildBroadcastHTML();
 }
 
 function buildBroadcastHTML() {
-  const symbolGuide = `
-    <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
-      font-size:12px; color:#333; line-height:1.8;">
-      <div style="font-weight:800; font-size:12.5px; margin-bottom:4px; color:#dc2626;">🔣 기호 범례</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px 12px;">
-        <div><b>♠</b> 화재층 (즉시대피)</div>
-        <div><b>▼</b> 직상 우선경보</div>
-        <div><b>■</b> 1단계 경보</div>
-        <div><b>●↓</b> 순차 대피유도</div>
-        <div><b>●</b> 경보</div>
-        <div><b>▲</b> 하향 대피</div>
-      </div>
-    </div>`;
-
-  const tableCards = BROADCAST_DATA.map((d, idx) => {
-    const isOpen = broadcastOpenIdx === idx;
-    const rows = d.floors.map((f, i) => {
-      const cells = [d.auto[i], d.s1[i], d.s2[i], d.s3[i]];
-      const isFireFloor = d.auto[i] === '♠';
-      return `<tr style="background:${isFireFloor ? '#fee2e2' : i%2===0 ? 'white' : '#f9fafb'};">
-        <td style="padding:4px 5px; font-size:11.5px; font-weight:600; text-align:center;
-          border:1px solid #e5e7eb; color:${isFireFloor?'#dc2626':'#333'};">${f}</td>
-        ${cells.map(c => `<td style="padding:4px 3px; font-size:12.5px; text-align:center;
-          border:1px solid #e5e7eb; color:${c==='♠'?'#dc2626':c==='▼'?'#1d4ed8':'#333'};
-          font-weight:${c?'800':'400'};">${c||''}</td>`).join('')}
-      </tr>`;
-    }).join('');
-
-    const notes = d.notes.map((n,i) => `<div style="font-size:11px; color:#555;">·${n}</div>`).join('');
-
-    const body = isOpen ? `
-      <table style="width:100%; border-collapse:collapse;">
-        <thead>
-          <tr style="background:#f3f4f6;">
-            <th style="padding:5px 3px; font-size:11px; border:1px solid #e5e7eb; width:20%;">층</th>
-            <th style="padding:5px 3px; font-size:11px; border:1px solid #e5e7eb; width:20%;">자동</th>
-            <th style="padding:5px 3px; font-size:11px; border:1px solid #e5e7eb; width:20%;">1단계</th>
-            <th style="padding:5px 3px; font-size:11px; border:1px solid #e5e7eb; width:20%;">2단계</th>
-            <th style="padding:5px 3px; font-size:11px; border:1px solid #e5e7eb; width:20%;">3단계</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <div style="padding:8px 12px; background:#f9fafb; border-top:1px solid #f0f0f0;">${notes}</div>` : '';
-
-    return `<div style="background:white; border-radius:10px; overflow:hidden;
-      margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,.08);
-      border-left:5px solid ${d.color};">
-      <div onclick="toggleBroadcastAccordion(${idx})"
-        style="background:white; color:${d.color}; padding:9px 12px;
-        font-size:13.5px; font-weight:800; cursor:pointer;
-        display:flex; align-items:center; justify-content:space-between;">
-        <span>${d.title}</span>
-        <span style="font-size:16px; font-weight:300; line-height:1;
-          transition:transform .2s; transform:rotate(${isOpen ? '90deg' : '0'});">›</span>
-      </div>
-      ${body}
-    </div>`;
-  }).join('');
-
-  const tables = `
-    <div style="font-size:12px; color:#6b7280; font-weight:700;
-      margin:2px 2px 6px; padding-left:2px;">▸ 화재층을 선택하면 송출순서표가 펼쳐집니다</div>
-    ${tableCards}`;
-
+  // ── 1. 송출흐름 아코디언 ──────────────────────────────
   const flowBody = broadcastFlowOpen ? `
     <div style="padding:10px 12px;">
       <div style="font-size:12.5px; font-weight:800; color:#dc2626; margin-bottom:8px;">1) 주간 화재발생시</div>
@@ -5463,7 +5444,98 @@ function buildBroadcastHTML() {
       ${flowBody}
     </div>`;
 
-  return flowGuide + symbolGuide + tables;
+  // ── 2. 화재층 선택 버튼 ────────────────────────────────
+  const sf = broadcastSelectedFloor;
+  const baseBtns = ['B3','B2','B1'].map(f => {
+    const sel = sf === f;
+    return `<button onclick="selectFireFloor('${f}')"
+      style="padding:7px 10px; border-radius:8px; font-size:13px; font-weight:800;
+      cursor:pointer; font-family:inherit;
+      background:${sel ? '#1d4ed8' : '#eff6ff'};
+      color:${sel ? 'white' : '#1d4ed8'};
+      border:2px solid ${sel ? '#1d4ed8' : '#93c5fd'};">${f}</button>`;
+  }).join('');
+
+  const aboveBtns = Array.from({length:35}, (_,i) => String(i+1)).map(f => {
+    const sel = sf === f;
+    return `<button onclick="selectFireFloor('${f}')"
+      style="padding:6px 2px; border-radius:8px; font-size:13px; font-weight:700;
+      cursor:pointer; font-family:inherit; width:100%;
+      background:${sel ? '#dc2626' : 'white'};
+      color:${sel ? 'white' : '#374151'};
+      border:2px solid ${sel ? '#dc2626' : '#e5e7eb'};">${f}</button>`;
+  }).join('');
+
+  const floorSelector = `
+    <div style="background:white; border-radius:10px; padding:12px 10px 10px;
+      margin-bottom:10px; box-shadow:0 2px 6px rgba(0,0,0,.08);">
+      <div style="font-size:12px; font-weight:800; color:#dc2626; margin-bottom:8px;">
+        🔥 화재층 선택 (터치하면 방송순서 표시)
+      </div>
+      <div style="display:flex; align-items:center; gap:4px; margin-bottom:6px;">
+        <span style="font-size:11px; color:#1d4ed8; font-weight:800; white-space:nowrap;">지하</span>
+        ${baseBtns}
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px;">
+        ${aboveBtns}
+      </div>
+    </div>`;
+
+  // ── 3. 단계별 방송 결과 ──────────────────────────────
+  let stageDisplay = '';
+  if (sf) {
+    const stages = calcBroadcastStages(sf);
+    const fLabel = (f) => (f==='B3'||f==='B2'||f==='B1') ? f+'F' : f+'층';
+    const isFF   = (f) => f === sf;
+
+    const makeCard = (badge, label, timeTip, bdrColor, bgLight, floors) => {
+      const items = floors.map(f =>
+        `<div style="padding:3px 6px; font-size:13px;
+          font-weight:${isFF(f)?'900':'600'};
+          color:${isFF(f) ? bdrColor : '#374151'};
+          background:${isFF(f) ? bdrColor+'18' : 'transparent'};
+          border-radius:5px;">
+          ${isFF(f)?'🔥 ':''}${fLabel(f)}
+        </div>`
+      ).join('');
+      return `<div style="background:white; border-radius:10px; overflow:hidden;
+        box-shadow:0 2px 6px rgba(0,0,0,.08); border-left:5px solid ${bdrColor};">
+        <div style="background:${bgLight}; padding:7px 10px;">
+          <div style="font-size:13.5px; font-weight:900; color:${bdrColor};">${badge} ${label}</div>
+          <div style="font-size:11px; color:${bdrColor}; opacity:.75; margin-top:1px;">
+            ${timeTip} · ${floors.length}개 층
+          </div>
+        </div>
+        <div style="padding:4px 6px 8px;">${items}</div>
+      </div>`;
+    };
+
+    stageDisplay = `
+      <div style="margin-bottom:8px;">
+        <div style="font-size:13px; font-weight:900; color:#dc2626; margin-bottom:8px;
+          background:#fee2e2; border-radius:8px; padding:7px 10px;">
+          📢 ${fLabel(sf)} 화재시 방송 순서
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          ${makeCard('●','우선경보','자동송출','#dc2626','#fee2e2', stages.auto)}
+          ${makeCard('①','1단계','약 5분후','#ea580c','#fff7ed', stages.s1)}
+          ${makeCard('②','2단계','약 10분후','#d97706','#fefce8', stages.s2)}
+          ${makeCard('③','3단계','약 15분후','#2563eb','#eff6ff', stages.s3)}
+        </div>
+        <div style="font-size:11px; color:#6b7280; margin-top:8px; text-align:center;">
+          ▸ 각 단계별 간격: 약 5분 기준 (계단 상황 고려하여 단계별 대피유도)
+        </div>
+      </div>`;
+  } else {
+    stageDisplay = `
+      <div style="font-size:12px; color:#6b7280; font-weight:700; text-align:center;
+        padding:16px 12px; background:white; border-radius:10px; margin-bottom:10px;
+        box-shadow:0 1px 4px rgba(0,0,0,.06);">
+        위에서 화재층을 선택하면<br>단계별 방송순서가 표시됩니다
+      </div>`;
+  }
+
+  return flowGuide + floorSelector + stageDisplay;
 }
 
 function openBroadcastModal() {
