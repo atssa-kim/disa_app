@@ -5359,14 +5359,21 @@ function calcBroadcastStages(fireFloor) {
 
 function selectFireFloor(floor) {
   broadcastSelectedFloor = (broadcastSelectedFloor === floor) ? null : floor;
-  var el = document.getElementById('broadcast-content');
-  if (el) el.innerHTML = buildBroadcastHTML();
+  // 모달(broadcast-content) 또는 대피방송탭(member-list) 중 표시 중인 곳 업데이트
+  var bca = document.getElementById('broadcast-content');
+  if (bca) bca.innerHTML = buildBroadcastHTML();
+  if (typeof currentShift !== 'undefined' && currentShift === 'evac') {
+    renderEvacList();
+  }
 }
 
 function toggleBroadcastFlow() {
   broadcastFlowOpen = !broadcastFlowOpen;
-  var el = document.getElementById('broadcast-content');
-  if (el) el.innerHTML = buildBroadcastHTML();
+  var bca = document.getElementById('broadcast-content');
+  if (bca) bca.innerHTML = buildBroadcastHTML();
+  if (typeof currentShift !== 'undefined' && currentShift === 'evac') {
+    renderEvacList();
+  }
 }
 
 function buildBroadcastHTML() {
