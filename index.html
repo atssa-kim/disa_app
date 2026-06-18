@@ -5492,42 +5492,107 @@ function buildBroadcastHTML() {
   let stageDisplay = '';
   if (sf) {
     const stages = calcBroadcastStages(sf);
-    const fLabel = (f) => (f==='B3'||f==='B2'||f==='B1') ? f+'F' : f+'층';
-    const isFF   = (f) => f === sf;
+    const fLabel = (f) => (['B3','B2','B1'].includes(f)) ? f+'F' : f+'층';
 
+    // 연속층 → 범위 압축 (예: 13,14,15,16,17 → "13~17층")
+    const compressFloors = (floors) => {
+      if (!floors.length) return [];
+      const lines = [];
+      let i = 0;
+      while (i < floors.length) {
+        const fi0 = EVAC_FLOORS.indexOf(floors[i]);
+        const isBase0 = fi0 <= 2;
+        let j = i;
+        while (j + 1 < floors.length) {
+          const cur = EVAC_FLOORS.indexOf(floors[j]);
+          const nxt = EVAC_FLOORS.indexOf(floors[j+1]);
+          if (nxt === cur + 1 && (nxt <= 2) === isBase0) j++;
+          else break;
+        }
+        const count = j - i + 1;
+        if (count <= 1) {
+          lines.push(fLabel(floors[i]));
+        } else {
+          const s = floors[i], e = floors[j];
+          lines.push(isBase0 ? (s+'~'+e+'F') : (s+'~'+e+'층'));
+        }
+        i = j + 1;
+      }
+      return lines;
+    };
+
+    // 우선경보·1단계·2단계 카드 (범위 압축 표시)
     const makeCard = (badge, label, timeTip, bdrColor, bgLight, floors) => {
-      const items = floors.map(f =>
-        `<div style="padding:3px 6px; font-size:13px;
-          font-weight:${isFF(f)?'900':'600'};
-          color:${isFF(f) ? bdrColor : '#374151'};
-          background:${isFF(f) ? bdrColor+'18' : 'transparent'};
-          border-radius:5px;">
-          ${isFF(f)?'🔥 ':''}${fLabel(f)}
-        </div>`
+      const lines = compressFloors(floors);
+      const body = lines.map(line =>
+        `<div style="padding:3px 8px; font-size:13px; font-weight:700;
+          color:#1f2937; line-height:1.7;">${line}</div>`
       ).join('');
       return `<div style="background:white; border-radius:10px; overflow:hidden;
         box-shadow:0 2px 6px rgba(0,0,0,.08); border-left:5px solid ${bdrColor};">
         <div style="background:${bgLight}; padding:7px 10px;">
           <div style="font-size:13.5px; font-weight:900; color:${bdrColor};">${badge} ${label}</div>
-          <div style="font-size:11px; color:${bdrColor}; opacity:.75; margin-top:1px;">
+          <div style="font-size:11px; color:${bdrColor}; opacity:.8; margin-top:1px;">
             ${timeTip} · ${floors.length}개 층
           </div>
         </div>
-        <div style="padding:4px 6px 8px;">${items}</div>
+        <div style="padding:4px 2px 8px;">${body}</div>
       </div>`;
     };
 
+    // 3단계 카드: 상부층부터 5개층씩 순차 송출
+    const makeS3Card = (floors) => {
+      if (!floors.length) return `<div style="background:white; border-radius:10px;
+        border-left:5px solid #2563eb; padding:12px; grid-column:1/-1;
+        font-size:12px; color:#6b7280;">③ 3단계 해당 없음</div>`;
+      // 높은 층(index 큰)부터 정렬 후 5층씩 묶기
+      const sorted = [...floors].sort((a,b) =>
+        EVAC_FLOORS.indexOf(b) - EVAC_FLOORS.indexOf(a));
+      const chunks = [];
+      for (let i = 0; i < sorted.length; i += 5) {
+        // 각 청크 내부는 낮은 층→높은 층 순으로 뒤집어 표시
+        chunks.push(sorted.slice(i, i+5).reverse());
+      }
+      const rows = chunks.map((chunk, idx) => {
+        const lines = compressFloors(chunk);
+        const isLast = idx === chunks.length - 1;
+        return `<div style="display:flex; align-items:center; gap:8px; padding:5px 10px;
+          border-bottom:${isLast ? 'none' : '1px dashed #e5e7eb'};">
+          <div style="background:#2563eb; color:white; border-radius:6px;
+            padding:2px 7px; font-size:11.5px; font-weight:900; min-width:32px;
+            text-align:center; flex-shrink:0;">${idx+1}차</div>
+          <div style="font-size:13px; font-weight:700; color:#1f2937;">
+            ${lines.join(' · ')}
+          </div>
+        </div>`;
+      }).join('');
+      return `<div style="background:white; border-radius:10px; overflow:hidden;
+        box-shadow:0 2px 6px rgba(0,0,0,.08); border-left:5px solid #2563eb; grid-column:1/-1;">
+        <div style="background:#eff6ff; padding:7px 10px;">
+          <div style="font-size:13.5px; font-weight:900; color:#2563eb;">③ 3단계</div>
+          <div style="font-size:11px; color:#2563eb; opacity:.8; margin-top:1px;">
+            상부층부터 5개층씩 순차 송출 · 총 ${floors.length}개 층
+          </div>
+        </div>
+        <div style="padding:4px 0 4px;">${rows}</div>
+        <div style="padding:4px 10px 8px; font-size:11px; color:#6b7280;">
+          ▸ 차수별 약 5분 간격 · 계단 상황 확인 후 다음 차수 송출
+        </div>
+      </div>`;
+    };
+
+    const sfLabel = fLabel(sf);
     stageDisplay = `
       <div style="margin-bottom:8px;">
         <div style="font-size:13px; font-weight:900; color:#dc2626; margin-bottom:8px;
           background:#fee2e2; border-radius:8px; padding:7px 10px;">
-          📢 ${fLabel(sf)} 화재시 방송 순서
+          📢 ${sfLabel} 화재시 방송 순서
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
           ${makeCard('●','우선경보','자동송출','#dc2626','#fee2e2', stages.auto)}
           ${makeCard('①','1단계','약 5분후','#ea580c','#fff7ed', stages.s1)}
           ${makeCard('②','2단계','약 10분후','#d97706','#fefce8', stages.s2)}
-          ${makeCard('③','3단계','약 15분후','#2563eb','#eff6ff', stages.s3)}
+          ${makeS3Card(stages.s3)}
         </div>
         <div style="font-size:11px; color:#6b7280; margin-top:8px; text-align:center;">
           ▸ 각 단계별 간격: 약 5분 기준 (계단 상황 고려하여 단계별 대피유도)
