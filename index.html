@@ -4535,22 +4535,67 @@ function closeEquipPanel() {
 }
 
 // ── 비상문자 모달 ─────────────────────────────────
-function openMsgModal(type) {
-  closeAllQuickPanels();
-  const panel  = document.getElementById('msg-modal');
-  const header = document.getElementById('msg-header');
-  const title  = document.getElementById('msg-title');
-  const content= document.getElementById('msgpane-example');  // 보고예시 탭
+// ── 비상문자 보고예시 (아코디언) ──────────────────
+const MSG_EXAMPLES = [
+  {
+    key: 'initial',
+    headerColor: '#1d4ed8', badgeText: '최초보고', badgeBg: '#1e3a8a',
+    titleStr: '[트윈타워 운영센터-사고 최초 보고]<br>[사고종류]',
+    items: [
+      ['일시', '1/25 11:35'],
+      ['장소', '동관 지하3층 운영센터'],
+      ['내용', 'OO 공사 중 OO설비 가동정지 됨'],
+      ['원인', '상세원인 파악 중('],
+      ['피해', '파악 중'],
+      ['이슈', 'MCC판넬 누수 침투로 전원 차단'],
+    ],
+  },
+  {
+    key: 'middle',
+    headerColor: '#d97706', badgeText: '중간보고', badgeBg: '#92400e',
+    titleStr: '[트윈타워 운영센터-사고 중간 보고]<br>[사고종류]',
+    items: [
+      ['일시', '1/25 11:35'],
+      ['장소', '지하2층 9번 행름'],
+      ['내용', '천정 누수 발생'],
+      ['원인', '배관 결합상태 불량'],
+      ['피해', '파악중에 있으며 현재까지 ~'],
+    ],
+  },
+  {
+    key: 'final',
+    headerColor: '#dc2626', badgeText: '종료보고', badgeBg: '#7f1d1d',
+    titleStr: '[트윈타워 운영센터-사고 종료 보고]<br>[사고종류]',
+    items: [
+      ['일시', '1/25 11:35'],
+      ['장소', '지하2층 9번 행름'],
+      ['내용', '천정 누수 발생'],
+      ['원인', '배관 결합상태 불량'],
+      ['피해', '파악 중에 있으며 현재까지 직하단층 미화창고 페이퍼 타월 3박스 손상, OO공조기 정지'],
+      ['이슈', 'MCC판넬 건조 중으로 건조 시까지는 해당설비 정지 필요'],
+    ],
+  },
+];
 
-  const bg = type === 'initial' ? '#1d4ed8' : '#dc2626';
-  const titleText = type === 'initial' ? '📨 비상문자 보고' : '📨 비상문자 보고 예시 (화재발생시)';
-  header.style.background = bg;
-  title.textContent = titleText;
+let msgExampleOpenKey = 'initial';
+let msgGuideOpen = false;
 
-  // 공통 안내문구
-  const guide = `
-    <div style="background:#fef3c7; border-radius:8px; padding:10px 12px; margin-bottom:10px; font-size:10px; color:#78350f; line-height:1.8;">
-      <b>📌 발송 안내</b><br>
+function toggleMsgGuide() {
+  msgGuideOpen = !msgGuideOpen;
+  renderMsgExamplePane();
+}
+
+function toggleMsgExample(key) {
+  msgExampleOpenKey = msgExampleOpenKey === key ? null : key;
+  renderMsgExamplePane();
+}
+
+function renderMsgExamplePane() {
+  const exPane = document.getElementById('msgpane-example');
+  if (!exPane) return;
+
+  const guideBody = msgGuideOpen ? `
+    <div style="padding:10px 12px; font-size:10px; color:#78350f; line-height:1.8;">
       1. 사고 발생 시 마포 종합상황실 사고보고를 통해 ㈜LG에 문자 보고<br>
       &nbsp;&nbsp;&nbsp;(㈜LG 외 입주사는 초동 대처 완료 후 트윈타워 상황실에서 문자 발송)<br>
       2. 화재 경보 비상방송 송출 시 해당 층의 입주사에 문자 보고<br>
@@ -4558,71 +4603,68 @@ function openMsgModal(type) {
       &nbsp;&nbsp;&nbsp;→ <b style="color:#dc2626;">비화재 시: 종료보고</b>(비화재 원인에 대한 내용)<br><br>
       <b>📌 추적관리:</b> 최종보고 실시하며 최초보고 후 중간·최종보고 시까지 4시간 이상 턴이 생길 경우 보고 내용에 사고 일자와 내용을 추가하여 보고의 연속성이 이루어지도록 사고보고 전파<br>
       <b>📌 운영센터 직원에게만 문자보고 시:</b> 문자 하단에 보고 대상 — 운영센터 임직원 표기
+    </div>` : '';
+
+  const guide = `
+    <div style="background:white; border-radius:10px; overflow:hidden; margin-bottom:10px;
+      box-shadow:0 2px 8px rgba(0,0,0,.10); border:1.5px solid #fde68a;">
+      <div onclick="toggleMsgGuide()"
+        style="background:#fef3c7; padding:9px 12px;
+        display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+        <span style="font-size:11px; font-weight:800; color:#92400e;">📌 발송 안내</span>
+        <span style="font-size:16px; font-weight:300; color:#92400e; line-height:1;
+          transition:transform .2s; transform:rotate(${msgGuideOpen ? '90deg' : '0'});">›</span>
+      </div>
+      ${guideBody}
     </div>`;
 
-  // 문자 카드 생성 함수
-  function msgCard(headerColor, badgeText, badgeBg, titleStr, items) {
-    const rows = items.map(([label, val]) =>
+  const hint = `<div style="font-size:10.5px; color:#6b7280; font-weight:700;
+    margin:2px 2px 8px; padding-left:2px;">▸ 보고 유형을 선택하면 예시가 펼쳐집니다</div>`;
+
+  const cards = MSG_EXAMPLES.map(ex => {
+    const isOpen = msgExampleOpenKey === ex.key;
+    const rows = ex.items.map(([label, val]) =>
       `<div style="display:flex; padding:5px 0; border-bottom:1px solid #f0f4ff; font-size:11.5px; line-height:1.7;">
         <div style="color:#1e3a8a; font-weight:800; width:38px; flex-shrink:0;">- ${label}</div>
         <div style="color:#111827; flex:1; font-weight:500;">: ${val}</div>
       </div>`
     ).join('');
 
+    const body = isOpen
+      ? `<div style="padding:10px 14px;">${rows}</div>` : '';
+
     return `
-      <div style="background:white; border-radius:10px; overflow:hidden; margin-bottom:12px;
+      <div style="background:white; border-radius:10px; overflow:hidden; margin-bottom:10px;
         box-shadow:0 2px 8px rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.06);">
-        <div style="background:${headerColor}; padding:8px 12px; display:flex; align-items:center; gap:10px;">
-          <div style="background:${badgeBg}; color:white; font-size:10px; font-weight:900;
+        <div onclick="toggleMsgExample('${ex.key}')"
+          style="background:${ex.headerColor}; padding:8px 12px; display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <div style="background:${ex.badgeBg}; color:white; font-size:10px; font-weight:900;
             padding:4px 8px; border-radius:14px; flex-shrink:0; writing-mode:vertical-rl;
-            text-orientation:upright; letter-spacing:2px; line-height:1.4;">${badgeText}</div>
-          <div style="color:white; font-size:11.5px; font-weight:800; line-height:1.5; letter-spacing:-.2px;">${titleStr}</div>
+            text-orientation:upright; letter-spacing:2px; line-height:1.4;">${ex.badgeText}</div>
+          <div style="color:white; font-size:11.5px; font-weight:800; line-height:1.5; letter-spacing:-.2px; flex:1;">${ex.titleStr}</div>
+          <div style="color:white; font-size:18px; font-weight:300; line-height:1; flex-shrink:0;
+            transition:transform .2s; transform:rotate(${isOpen ? '90deg' : '0'});">›</div>
         </div>
-        <div style="padding:10px 14px;">${rows}</div>
+        ${body}
       </div>`;
-  }
+  }).join('');
 
-  const initial = msgCard(
-    '#1d4ed8', '최초보고', '#1e3a8a',
-    '[트윈타워 운영센터-사고 최초 보고]<br>[사고종류]',
-    [
-      ['일시', '1/25 11:35'],
-      ['장소', '동관 지하3층 운영센터'],
-      ['내용', 'OO 공사 중 OO설비 가동정지 됨'],
-      ['원인', '상세원인 파악 중('],
-      ['피해', '파악 중'],
-      ['이슈', 'MCC판넬 누수 침투로 전원 차단'],
-    ]
-  );
+  exPane.innerHTML = guide + hint + cards;
+}
 
-  const middle = msgCard(
-    '#d97706', '중간보고', '#92400e',
-    '[트윈타워 운영센터-사고 중간 보고]<br>[사고종류]',
-    [
-      ['일시', '1/25 11:35'],
-      ['장소', '지하2층 9번 행름'],
-      ['내용', '천정 누수 발생'],
-      ['원인', '배관 결합상태 불량'],
-      ['피해', '파악중에 있으며 현재까지 ~'],
-    ]
-  );
+function openMsgModal(type) {
+  closeAllQuickPanels();
+  const panel  = document.getElementById('msg-modal');
+  const header = document.getElementById('msg-header');
+  const title  = document.getElementById('msg-title');
 
-  const final = msgCard(
-    '#dc2626', '종료보고', '#7f1d1d',
-    '[트윈타워 운영센터-사고 종료 보고]<br>[사고종류]',
-    [
-      ['일시', '1/25 11:35'],
-      ['장소', '지하2층 9번 행름'],
-      ['내용', '천정 누수 발생'],
-      ['원인', '배관 결합상태 불량'],
-      ['피해', '파악 중에 있으며 현재까지 직하단층 미화창고 페이퍼 타월 3박스 손상, OO공조기 정지'],
-      ['이슈', 'MCC판넬 건조 중으로 건조 시까지는 해당설비 정지 필요'],
-    ]
-  );
+  const bg = type === 'initial' ? '#1d4ed8' : '#dc2626';
+  const titleText = type === 'initial' ? '📨 비상문자 보고' : '📨 비상문자 보고 예시 (화재발생시)';
+  header.style.background = bg;
+  title.textContent = titleText;
 
-  // 보고예시 탭 콘텐츠 업데이트
-  const exPane = document.getElementById('msgpane-example');
-  if (exPane) exPane.innerHTML = guide + initial + middle + final;
+  // 보고예시 탭 콘텐츠 업데이트 (아코디언 방식)
+  renderMsgExamplePane();
 
   // #app 전체 덮기 — 키보드 열릴 때도 bottom-nav에 가리지 않도록
   panel.style.position = 'absolute';
@@ -4634,10 +4676,13 @@ function openMsgModal(type) {
   panel.style.height = '';   // top+bottom으로 결정
   panel.style.zIndex = '400';
   panel.classList.add('open');
-  // 탭 초기화 — 항상 보고예시 탭 먼저
-  switchMsgTab('compose');
-  // 비상문자작성 탭 초기 상태
-  selectMsgType('initial');
+  // 헤더 비상문자 버튼(initial)은 보고예시 탭 먼저, 임무 내 📨 버튼(fire)은 문자작성 탭
+  if (type === 'initial') {
+    switchMsgTab('example');
+  } else {
+    switchMsgTab('compose');
+    selectMsgType('initial');
+  }
 }
 
 function closeMsgModal() {
@@ -5173,6 +5218,34 @@ const BROADCAST_DATA = [
   },
 ];
 
+// 대피방송 아코디언 상태 변수
+let broadcastOpenIdx = null;
+let broadcastFlowOpen = false;
+
+function toggleBroadcastFlow() {
+  broadcastFlowOpen = !broadcastFlowOpen;
+  const modal = document.getElementById('broadcast-modal');
+  if (modal && modal.style.display !== 'none') {
+    document.getElementById('broadcast-content').innerHTML = buildBroadcastHTML();
+  }
+  if (currentDisaster === '화재' && currentShift === 'evac'
+      && document.getElementById('member-list')) {
+    renderEvacList();
+  }
+}
+
+function toggleBroadcastAccordion(idx) {
+  broadcastOpenIdx = broadcastOpenIdx === idx ? null : idx;
+  const modal = document.getElementById('broadcast-modal');
+  if (modal && modal.style.display !== 'none') {
+    document.getElementById('broadcast-content').innerHTML = buildBroadcastHTML();
+  }
+  if (currentDisaster === '화재' && currentShift === 'evac'
+      && document.getElementById('member-list')) {
+    renderEvacList();
+  }
+}
+
 function buildBroadcastHTML() {
   const symbolGuide = `
     <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
@@ -5188,7 +5261,8 @@ function buildBroadcastHTML() {
       </div>
     </div>`;
 
-  const tables = BROADCAST_DATA.map(d => {
+  const tableCards = BROADCAST_DATA.map((d, idx) => {
+    const isOpen = broadcastOpenIdx === idx;
     const rows = d.floors.map((f, i) => {
       const cells = [d.auto[i], d.s1[i], d.s2[i], d.s3[i]];
       const isFireFloor = d.auto[i] === '♠';
@@ -5203,10 +5277,7 @@ function buildBroadcastHTML() {
 
     const notes = d.notes.map((n,i) => `<div style="font-size:9.5px; color:#555;">·${n}</div>`).join('');
 
-    return `<div style="background:white; border-radius:10px; overflow:hidden;
-      margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,.08);">
-      <div style="background:${d.color}; color:white; padding:7px 12px;
-        font-size:12px; font-weight:800;">${d.title}</div>
+    const body = isOpen ? `
       <table style="width:100%; border-collapse:collapse;">
         <thead>
           <tr style="background:#f3f4f6;">
@@ -5219,72 +5290,98 @@ function buildBroadcastHTML() {
         </thead>
         <tbody>${rows}</tbody>
       </table>
-      <div style="padding:8px 12px; background:#f9fafb; border-top:1px solid #f0f0f0;">${notes}</div>
+      <div style="padding:8px 12px; background:#f9fafb; border-top:1px solid #f0f0f0;">${notes}</div>` : '';
+
+    return `<div style="background:white; border-radius:10px; overflow:hidden;
+      margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,.08);">
+      <div onclick="toggleBroadcastAccordion(${idx})"
+        style="background:${d.color}; color:white; padding:9px 12px;
+        font-size:12px; font-weight:800; cursor:pointer;
+        display:flex; align-items:center; justify-content:space-between;">
+        <span>${d.title}</span>
+        <span style="font-size:16px; font-weight:300; line-height:1;
+          transition:transform .2s; transform:rotate(${isOpen ? '90deg' : '0'});">›</span>
+      </div>
+      ${body}
     </div>`;
   }).join('');
+
+  const tables = `
+    <div style="font-size:10.5px; color:#6b7280; font-weight:700;
+      margin:2px 2px 6px; padding-left:2px;">▸ 화재층을 선택하면 송출순서표가 펼쳐집니다</div>
+    ${tableCards}`;
+
+  const flowBody = broadcastFlowOpen ? `
+    <div style="padding:10px 12px;">
+      <div style="font-size:11px; font-weight:800; color:#dc2626; margin-bottom:8px;">1) 주간 화재발생시</div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+        <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px;
+          padding:6px 8px; text-align:center; flex:1; font-size:9.5px;">
+          <div style="font-weight:700; color:#374151;">자동</div>
+          <div style="color:#6b7280; margin-top:1px;">(법기준)</div>
+        </div>
+        <div style="color:#dc2626; font-size:14px; font-weight:800;">→</div>
+        <div style="background:#fee2e2; border:1.5px solid #dc2626; border-radius:8px;
+          padding:6px 8px; text-align:center; flex:1.4; font-size:9.5px;">
+          <div style="font-weight:800; color:#dc2626;">우선경보</div>
+          <div style="color:#991b1b; margin-top:1px;">(화재감지기 감지시<br>자동송출)</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:14px;">
+        <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px;
+          padding:6px 8px; text-align:center; flex:1; font-size:9.5px;">
+          <div style="font-weight:700; color:#374151;">이후</div>
+          <div style="color:#6b7280; margin-top:1px;">단계별 메뉴얼</div>
+        </div>
+        <div style="color:#dc2626; font-size:14px; font-weight:800;">→</div>
+        <div style="background:#eff6ff; border:1.5px solid #2563eb; border-radius:8px;
+          padding:6px 8px; text-align:center; flex:1.4; font-size:9.5px;">
+          <div style="font-weight:800; color:#1d4ed8;">단계별 피난방송</div>
+        </div>
+      </div>
+      <div style="border-top:1px dashed #e5e7eb; margin-bottom:12px;"></div>
+      <div style="font-size:11px; font-weight:800; color:#1e3a8a; margin-bottom:8px;">
+        2) 야간·휴일 화재발생시
+        <span style="font-size:9px; background:#1e3a8a; color:white; padding:1px 6px; border-radius:5px; margin-left:4px;">정자지</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+        <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px;
+          padding:6px 8px; text-align:center; flex:1; font-size:9.5px;">
+          <div style="font-weight:700; color:#374151;">자동</div>
+          <div style="color:#6b7280; margin-top:1px;">(법기준)</div>
+        </div>
+        <div style="color:#1e3a8a; font-size:14px; font-weight:800;">→</div>
+        <div style="background:#eff6ff; border:1.5px solid #1d4ed8; border-radius:8px;
+          padding:6px 8px; text-align:center; flex:1.4; font-size:9.5px;">
+          <div style="font-weight:800; color:#1d4ed8;">우선경보</div>
+          <div style="color:#1e40af; margin-top:1px;">(화재감지기 감지시<br>자동송출)</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px;
+          padding:6px 8px; text-align:center; flex:1; font-size:9.5px;">
+          <div style="font-weight:700; color:#374151;">이후 전층</div>
+        </div>
+        <div style="color:#1e3a8a; font-size:14px; font-weight:800;">→</div>
+        <div style="background:#f0fdf4; border:1.5px solid #16a34a; border-radius:8px;
+          padding:6px 8px; text-align:center; flex:1.4; font-size:9.5px;">
+          <div style="font-weight:800; color:#15803d;">전층 대피안내방송</div>
+        </div>
+      </div>
+    </div>` : '';
 
   const flowGuide = `
     <div style="background:white; border-radius:10px; overflow:hidden; margin-bottom:10px;
       box-shadow:0 1px 3px rgba(0,0,0,.08);">
-      <div style="background:#dc2626; color:white; padding:7px 12px;
-        font-size:12px; font-weight:800;">1. 피난유도방송 송출흐름</div>
-      <div style="padding:10px 12px;">
-        <div style="font-size:11px; font-weight:800; color:#dc2626; margin-bottom:8px;">1) 주간 화재발생시</div>
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px;
-            padding:6px 8px; text-align:center; flex:1; font-size:9.5px;">
-            <div style="font-weight:700; color:#374151;">자동</div>
-            <div style="color:#6b7280; margin-top:1px;">(법기준)</div>
-          </div>
-          <div style="color:#dc2626; font-size:14px; font-weight:800;">→</div>
-          <div style="background:#fee2e2; border:1.5px solid #dc2626; border-radius:8px;
-            padding:6px 8px; text-align:center; flex:1.4; font-size:9.5px;">
-            <div style="font-weight:800; color:#dc2626;">우선경보</div>
-            <div style="color:#991b1b; margin-top:1px;">(화재감지기 감지시<br>자동송출)</div>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:14px;">
-          <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px;
-            padding:6px 8px; text-align:center; flex:1; font-size:9.5px;">
-            <div style="font-weight:700; color:#374151;">이후</div>
-            <div style="color:#6b7280; margin-top:1px;">단계별 메뉴얼</div>
-          </div>
-          <div style="color:#dc2626; font-size:14px; font-weight:800;">→</div>
-          <div style="background:#eff6ff; border:1.5px solid #2563eb; border-radius:8px;
-            padding:6px 8px; text-align:center; flex:1.4; font-size:9.5px;">
-            <div style="font-weight:800; color:#1d4ed8;">단계별 피난방송</div>
-          </div>
-        </div>
-        <div style="border-top:1px dashed #e5e7eb; margin-bottom:12px;"></div>
-        <div style="font-size:11px; font-weight:800; color:#1e3a8a; margin-bottom:8px;">
-          2) 야간·휴일 화재발생시
-          <span style="font-size:9px; background:#1e3a8a; color:white; padding:1px 6px; border-radius:5px; margin-left:4px;">정자지</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px;
-            padding:6px 8px; text-align:center; flex:1; font-size:9.5px;">
-            <div style="font-weight:700; color:#374151;">자동</div>
-            <div style="color:#6b7280; margin-top:1px;">(법기준)</div>
-          </div>
-          <div style="color:#1e3a8a; font-size:14px; font-weight:800;">→</div>
-          <div style="background:#eff6ff; border:1.5px solid #1d4ed8; border-radius:8px;
-            padding:6px 8px; text-align:center; flex:1.4; font-size:9.5px;">
-            <div style="font-weight:800; color:#1d4ed8;">우선경보</div>
-            <div style="color:#1e40af; margin-top:1px;">(화재감지기 감지시<br>자동송출)</div>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px;
-            padding:6px 8px; text-align:center; flex:1; font-size:9.5px;">
-            <div style="font-weight:700; color:#374151;">이후 전층</div>
-          </div>
-          <div style="color:#1e3a8a; font-size:14px; font-weight:800;">→</div>
-          <div style="background:#f0fdf4; border:1.5px solid #16a34a; border-radius:8px;
-            padding:6px 8px; text-align:center; flex:1.4; font-size:9.5px;">
-            <div style="font-weight:800; color:#15803d;">전층 대피안내방송</div>
-          </div>
-        </div>
+      <div onclick="toggleBroadcastFlow()"
+        style="background:#dc2626; color:white; padding:9px 12px;
+        font-size:12px; font-weight:800; cursor:pointer;
+        display:flex; align-items:center; justify-content:space-between;">
+        <span>1. 피난유도방송 송출흐름</span>
+        <span style="font-size:16px; font-weight:300; line-height:1;
+          transition:transform .2s; transform:rotate(${broadcastFlowOpen ? '90deg' : '0'});">›</span>
       </div>
+      ${flowBody}
     </div>`;
 
   return flowGuide + symbolGuide + tables;
@@ -5472,6 +5569,36 @@ function renderBmsList() {
               color:${isComplete ? '#16a34a' : cat.tc};">${done}/${total}</span>
           </div>
         </div>
+        <!-- ⬆⬇ 순서변경 버튼 -->
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-right:4px;">
+          <div onclick="event.stopPropagation();moveBmsMember(${globalIdx},-1)"
+            title="위로 이동"
+            style="width:26px;height:26px;border-radius:6px;
+            background:${cat.accent}18;border:1.5px solid ${cat.accent}44;
+            display:flex;align-items:center;justify-content:center;
+            font-size:11px;cursor:pointer;color:${cat.accent};font-weight:700;
+            transition:background .15s;"
+            onmouseenter="this.style.background='${cat.accent}38'"
+            onmouseleave="this.style.background='${cat.accent}18'">▲</div>
+          <div onclick="event.stopPropagation();moveBmsMember(${globalIdx},1)"
+            title="아래로 이동"
+            style="width:26px;height:26px;border-radius:6px;
+            background:${cat.accent}18;border:1.5px solid ${cat.accent}44;
+            display:flex;align-items:center;justify-content:center;
+            font-size:11px;cursor:pointer;color:${cat.accent};font-weight:700;
+            transition:background .15s;"
+            onmouseenter="this.style.background='${cat.accent}38'"
+            onmouseleave="this.style.background='${cat.accent}18'">▼</div>
+        </div>
+        <!-- ✏️ 임무수정 버튼 -->
+        <div onclick="event.stopPropagation();openTaskDirect(${globalIdx},'화재_상황실')"
+          title="임무 수정"
+          style="width:30px;height:30px;border-radius:8px;flex-shrink:0;margin-right:6px;
+          background:${cat.accent}22;border:1.5px solid ${cat.accent}66;
+          display:flex;align-items:center;justify-content:center;
+          font-size:14px;cursor:pointer;transition:background .15s;"
+          onmouseenter="this.style.background='${cat.accent}44'"
+          onmouseleave="this.style.background='${cat.accent}22'">✏️</div>
         <!-- 완료/화살표 -->
         <div style="flex-shrink:0;">
           ${isComplete
@@ -5531,6 +5658,21 @@ function toggleBmsCatAccordion(key) {
   renderBmsList();
   const container = document.getElementById('member-list').parentElement;
   if (container) container.scrollTop = 0;
+}
+
+function moveBmsMember(globalIdx, direction) {
+  const m = FIRE_BMS[globalIdx];
+  const groupItems = FIRE_BMS
+    .map((item, i) => ({ item, i }))
+    .filter(({ item }) => item.group === m.group);
+  const posInGroup = groupItems.findIndex(({ i }) => i === globalIdx);
+  const targetPos = posInGroup + direction;
+  if (targetPos < 0 || targetPos >= groupItems.length) return;
+  const targetGlobalIdx = groupItems[targetPos].i;
+  const temp = FIRE_BMS[globalIdx];
+  FIRE_BMS[globalIdx] = FIRE_BMS[targetGlobalIdx];
+  FIRE_BMS[targetGlobalIdx] = temp;
+  renderBmsList();
 }
 
 function toggleBmsItem(idx) {
