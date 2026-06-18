@@ -6282,10 +6282,18 @@ const GH_REPO   = 'atssa-kim/disa_app';
 const GH_FILE   = 'index.html';
 const GH_BRANCH = 'main';
 
-function getGhToken() {
+function getGhToken(forceNew) {
+  if (forceNew) localStorage.removeItem('gh_pat');
   let t = localStorage.getItem('gh_pat');
   if (!t) {
-    t = prompt('GitHub Personal Access Token을 입력하세요\n(최초 1회 입력 후 브라우저에 저장됩니다)\n\n권한: repo (Contents write)');
+    t = prompt(
+      '🔑 GitHub Personal Access Token 입력\n' +
+      '(최초 1회 입력 후 브라우저에 저장됩니다)\n\n' +
+      '토큰 형식: ghp_xxxx... 또는 github_pat_xxxx...\n' +
+      '필요 권한: repo → Contents (Write)\n\n' +
+      '토큰 발급: GitHub → Settings → Developer settings\n' +
+      '→ Personal access tokens → Generate new token'
+    );
     if (t) localStorage.setItem('gh_pat', t.trim());
   }
   return t ? t.trim() : null;
@@ -6309,8 +6317,8 @@ function buildDataBlock() {
   ].join('\n');
 }
 
-async function pushToGitHub() {
-  const token = getGhToken();
+async function pushToGitHub(retryWithNewToken) {
+  const token = getGhToken(retryWithNewToken);
   if (!token) return;
 
   try {
@@ -6322,11 +6330,41 @@ async function pushToGitHub() {
     };
 
     // GitHub에서 파일 조회 (SHA + 내용 동시 취득)
-    const fileRes = await fetch(apiBase + '?ref=' + GH_BRANCH, { headers });
-    if (!fileRes.ok) {
-      if (fileRes.status === 401) { localStorage.removeItem('gh_pat'); }
-      throw new Error('파일 조회 실패 (' + fileRes.status + ')');
+    let fileRes;
+    try {
+      fileRes = await fetch(apiBase + '?ref=' + GH_BRANCH, { headers });
+    } catch(netErr) {
+      alert('❌ 네트워크 오류\n\n인터넷 연결 상태를 확인하고 다시 시도하세요.\n\n(' + netErr.message + ')');
+      return;
     }
+
+    if (!fileRes.ok) {
+      if (fileRes.status === 401) {
+        localStorage.removeItem('gh_pat');
+        const retry = confirm(
+          '⛔ 토큰 인증 실패 (401)\n\n' +
+          '저장된 GitHub 토큰이 만료되었거나 유효하지 않습니다.\n' +
+          '토큰을 새로 입력하고 다시 시도하시겠습니까?\n\n' +
+          '📌 토큰 재발급 경로:\n' +
+          'GitHub → Settings → Developer settings\n' +
+          '→ Personal access tokens → Generate new token\n' +
+          '→ repo 권한 체크 후 생성'
+        );
+        if (retry) pushToGitHub(true);
+        return;
+      }
+      if (fileRes.status === 403) {
+        alert('⛔ 접근 권한 없음 (403)\n\n토큰에 저장소 쓰기 권한(repo)이 없습니다.\n토큰 발급 시 repo 권한을 체크했는지 확인하세요.');
+        return;
+      }
+      if (fileRes.status === 404) {
+        alert('⛔ 저장소/파일 없음 (404)\n\n저장소: ' + GH_REPO + '\n파일: ' + GH_FILE + '\n\n위 경로가 실제 GitHub에 존재하는지 확인하세요.');
+        return;
+      }
+      alert('❌ 파일 조회 실패 (' + fileRes.status + ')\n\n잠시 후 다시 시도하세요.');
+      return;
+    }
+
     const fileData = await fileRes.json();
     const sha = fileData.sha;
 
@@ -6379,12 +6417,19 @@ async function pushToGitHub() {
       })
     });
     if (!commitRes.ok) {
-      const e = await commitRes.json();
-      throw new Error(e.message || '커밋 실패 (' + commitRes.status + ')');
+      const e = await commitRes.json().catch(() => ({}));
+      if (commitRes.status === 409) {
+        alert('⚠️ 저장 충돌 (409)\n\n다른 기기나 브라우저에서 파일이 수정되어 SHA가 맞지 않습니다.\n페이지를 새로고침한 뒤 다시 엑셀을 업로드하고 재시도하세요.');
+      } else if (commitRes.status === 422) {
+        alert('⚠️ 커밋 오류 (422)\n\n' + (e.message || 'SHA 정보가 유효하지 않습니다. 페이지를 새로고침 후 다시 시도하세요.'));
+      } else {
+        alert('❌ 커밋 실패 (' + commitRes.status + ')\n\n' + (e.message || '잠시 후 다시 시도하세요.'));
+      }
+      return;
     }
     alert('✅ GitHub에 자동 저장되었습니다!');
   } catch(err) {
-    alert('GitHub 푸시 오류: ' + err.message);
+    alert('❌ GitHub 푸시 오류\n\n' + err.message);
   }
 }
 
