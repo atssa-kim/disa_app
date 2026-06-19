@@ -252,43 +252,47 @@ body {
   display: grid;
   grid-template-columns: repeat(3,1fr);
   grid-template-rows: repeat(3,1fr);
-  gap: 8px; gap: clamp(6px, 2vw, 12px);
+  gap: 10px; gap: clamp(8px, 2.5vw, 14px);
   flex: 1;
   background: var(--bg);
-  padding: 8px; padding: clamp(6px, 2vw, 14px);
+  padding: 10px; padding: clamp(8px, 2.5vw, 16px);
 }
 .disaster-btn {
-  background: var(--white);
-  padding: 0;
+  background: white;
+  padding: 14px 6px 10px;
   text-align: center; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px; gap: clamp(4px, 1.2vw, 8px);
-  transition: all .15s;
+  gap: 7px; gap: clamp(5px, 1.5vw, 9px);
+  transition: transform .15s, box-shadow .15s;
   -webkit-tap-highlight-color: transparent;
   min-height: 0;
-  border-radius: 14px; border-radius: clamp(12px, 3vw, 18px);
-  box-shadow: var(--card-shadow);
-  border: 2px solid rgba(8, 66, 240, 0.694)
+  border-radius: 16px; border-radius: clamp(14px, 3.5vw, 20px);
+  box-shadow: 0 2px 10px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+  border: none;
 }
-.disaster-btn:active { background: #eff6ff; transform: scale(0.96); box-shadow: none; }
+.disaster-btn:active { transform: scale(0.95); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
 .d-icon {
-  width: 52px; width: clamp(48px, 14vw, 70px);
-  height: 52px; height: clamp(48px, 14vw, 70px);
-  background: #1a1f2e;
-  border-radius: 13px; border-radius: clamp(12px, 3vw, 16px);
+  width: 54px; width: clamp(46px, 13vw, 68px);
+  height: 54px; height: clamp(46px, 13vw, 68px);
+  border-radius: 14px; border-radius: clamp(12px, 3vw, 18px);
   display: flex; align-items: center; justify-content: center;
   transition: transform .12s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   flex-shrink: 0;
 }
 .disaster-btn:active .d-icon { transform: scale(0.93); }
 .d-icon svg {
-  width: 36px; width: clamp(30px, 9vw, 46px);
-  height: 36px; height: clamp(30px, 9vw, 46px);
+  width: 32px; width: clamp(28px, 8vw, 42px);
+  height: 32px; height: clamp(28px, 8vw, 42px);
 }
 .d-label {
-  font-size: 13px; font-size: clamp(12px, 3vw, 15px);
-  color: #1e293b; font-weight: 700; letter-spacing: -0.3px;
+  font-size: 14px; font-size: clamp(12px, 3.2vw, 16px);
+  color: #1e293b; font-weight: 800; letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+.d-sub {
+  font-size: 10px; font-size: clamp(9px, 2.2vw, 11px);
+  color: #94a3b8; font-weight: 600; letter-spacing: 0.4px;
+  margin-top: -3px;
 }
 
 /* ── Detail Panel (slide in) ── */
@@ -462,18 +466,19 @@ body {
   background: var(--bg);
 }
 .proc-btn {
-  background: var(--white);
-  border: 2px solid rgba(12, 243, 43, 0.728);
-  border-radius: 14px; border-radius: clamp(12px, 3vw, 18px);
-  padding: 0;
+  background: white;
+  border: none;
+  border-radius: 16px; border-radius: clamp(14px, 3.5vw, 20px);
+  padding: 14px 6px 10px;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 6px; gap: clamp(4px, 1.2vw, 8px);
-  cursor: pointer; transition: all .15s;
-  box-shadow: var(--card-shadow); min-height: 0;
+  gap: 7px; gap: clamp(5px, 1.5vw, 9px);
+  cursor: pointer; transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+  min-height: 0;
   -webkit-tap-highlight-color: transparent;
 }
-.proc-btn:active { background: #eff6ff; transform: scale(0.96); box-shadow: none; }
+.proc-btn:active { transform: scale(0.95); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
 .proc-btn .d-icon { transition: transform .12s; }
 .proc-btn:active .d-icon { transform: scale(0.93); }
 #proc-sub {
@@ -3873,14 +3878,34 @@ function syncEditModalViewport(modal) {
 }
 
 // ── INIT: render icon grid ──────────────────────────
+const DISASTER_CARD_META = {
+  '화재':   { bg:'#fef2f2', ic:'#dc2626', en:'FIRE' },
+  '정전':   { bg:'#fffbeb', ic:'#d97706', en:'POWER OUTAGE' },
+  '홍수':   { bg:'#eff6ff', ic:'#1d4ed8', en:'FLOOD' },
+  '태풍':   { bg:'#eef2ff', ic:'#1e40af', en:'TYPHOON' },
+  '폭설':   { bg:'#f0f9ff', ic:'#0369a1', en:'HEAVY SNOW' },
+  '지진':   { bg:'#fff7ed', ic:'#92400e', en:'EARTHQUAKE' },
+  '가스누출':{ bg:'#f0fdf4', ic:'#4d7c0f', en:'GAS LEAK' },
+  '승강기': { bg:'#f5f3ff', ic:'#6d28d9', en:'ELEVATOR' },
+  '테러':   { bg:'#fff1f2', ic:'#be123c', en:'INTRUDER' },
+};
+
 function renderIconGrid() {
   const grid = document.getElementById('icons-grid');
-  grid.innerHTML = DISASTERS.map(d =>
-    `<div class="disaster-btn" onclick="openDisaster('${d.key}')">
-      <div class="d-icon">${d.iconSvg}</div>
-      <div class="d-label">${d.label}</div>
-    </div>`
-  ).join('');
+  grid.innerHTML = DISASTERS.map(d => {
+    const m = DISASTER_CARD_META[d.key] || { bg:'#f1f5f9', ic:'#475569', en:d.key };
+    // 한글 이름만 추출 (이모지 제거)
+    const ko = d.label.replace(/^[\s\S]*?\s/, '').trim();
+    // SVG 흰색 fill → 재난 컬러로 교체
+    const svg = d.iconSvg
+      .replace(/fill="white"/g, `fill="${m.ic}"`)
+      .replace(/stroke="white"/g, `stroke="${m.ic}"`);
+    return `<div class="disaster-btn" onclick="openDisaster('${d.key}')">
+      <div class="d-icon" style="background:${m.bg};">${svg}</div>
+      <div class="d-label" style="color:${m.ic};">${ko}</div>
+      <div class="d-sub">${m.en}</div>
+    </div>`;
+  }).join('');
 }
 
 // ── INIT: 대응 프로세스 그리드 (DISASTERS 아이콘 동일 사용) ──
@@ -3892,11 +3917,18 @@ const PROC_KEY_MAP = {
 function renderProcGrid() {
   const grid = document.getElementById('proc-grid');
   if (!grid) return;
-  grid.innerHTML = DISASTERS.map(d => `
-    <button class="proc-btn" onclick="openSubPanel('${PROC_KEY_MAP[d.key] || d.key}')">
-      <div class="d-icon">${d.iconSvg}</div>
-      <div class="d-label">${d.label}</div>
-    </button>`).join('');
+  grid.innerHTML = DISASTERS.map(d => {
+    const m = DISASTER_CARD_META[d.key] || { bg:'#f1f5f9', ic:'#475569', en:d.key };
+    const ko = d.label.replace(/^[\s\S]*?\s/, '').trim();
+    const svg = d.iconSvg
+      .replace(/fill="white"/g, `fill="${m.ic}"`)
+      .replace(/stroke="white"/g, `stroke="${m.ic}"`);
+    return `<button class="proc-btn" onclick="openSubPanel('${PROC_KEY_MAP[d.key] || d.key}')">
+      <div class="d-icon" style="background:${m.bg};">${svg}</div>
+      <div class="d-label" style="color:${m.ic};">${ko}</div>
+      <div class="d-sub">${m.en}</div>
+    </button>`;
+  }).join('');
 }
 
 // ── TAB SWITCH ──────────────────────────────────────
