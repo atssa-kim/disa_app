@@ -272,17 +272,17 @@ body {
 }
 .disaster-btn:active { transform: scale(0.95); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
 .d-icon {
-  width: 54px; width: clamp(46px, 13vw, 68px);
-  height: 54px; height: clamp(46px, 13vw, 68px);
-  border-radius: 14px; border-radius: clamp(12px, 3vw, 18px);
+  width: 66px; width: clamp(54px, 16vw, 80px);
+  height: 66px; height: clamp(54px, 16vw, 80px);
+  border-radius: 18px; border-radius: clamp(14px, 4vw, 22px);
   display: flex; align-items: center; justify-content: center;
   transition: transform .12s;
   flex-shrink: 0;
 }
 .disaster-btn:active .d-icon { transform: scale(0.93); }
 .d-icon svg {
-  width: 32px; width: clamp(28px, 8vw, 42px);
-  height: 32px; height: clamp(28px, 8vw, 42px);
+  width: 42px; width: clamp(34px, 10vw, 52px);
+  height: 42px; height: clamp(34px, 10vw, 52px);
 }
 .d-label {
   font-size: 14px; font-size: clamp(12px, 3.2vw, 16px);
@@ -3894,14 +3894,9 @@ function renderIconGrid() {
   const grid = document.getElementById('icons-grid');
   grid.innerHTML = DISASTERS.map(d => {
     const m = DISASTER_CARD_META[d.key] || { bg:'#f1f5f9', ic:'#475569', en:d.key };
-    // 한글 이름만 추출 (이모지 제거)
     const ko = d.label.replace(/^[\s\S]*?\s/, '').trim();
-    // SVG 흰색 fill → 재난 컬러로 교체
-    const svg = d.iconSvg
-      .replace(/fill="white"/g, `fill="${m.ic}"`)
-      .replace(/stroke="white"/g, `stroke="${m.ic}"`);
     return `<div class="disaster-btn" onclick="openDisaster('${d.key}')">
-      <div class="d-icon" style="background:${m.bg};">${svg}</div>
+      <div class="d-icon" style="background:${m.bg};">${_getDisasterSvg(d, m.ic)}</div>
       <div class="d-label" style="color:${m.ic};">${ko}</div>
       <div class="d-sub">${m.en}</div>
     </div>`;
@@ -3914,17 +3909,72 @@ const PROC_KEY_MAP = {
   '태풍':'storm', '폭설':'snow', '지진':'quake',
   '가스누출':'gas', '승강기':'elev', '테러':'intru'
 };
+// ── 재난별 개선 아이콘 (웹 아이콘 기반 재설계) ─────────────
+const DISASTER_ICONS = {
+  '화재': `<svg viewBox="0 0 40 40" fill="none">
+    <path d="M20 5C20 5 10 16 10 24C10 30.6 14.5 36 20 36C25.5 36 30 30.6 30 24C30 16 20 5 20 5Z" fill="white"/>
+    <path d="M20 18C18.5 21 18 24 19 27C19.5 28.5 20 30 20 30C20 30 20.5 28.5 21 27C22 24 21.5 21 20 18Z" fill="white" opacity="0.35"/>
+  </svg>`,
+  '정전': `<svg viewBox="0 0 40 40" fill="none">
+    <path d="M24 5L9 23H19L17 35L31 17H21L24 5Z" fill="white"/>
+  </svg>`,
+  '홍수': `<svg viewBox="0 0 40 40" fill="none">
+    <path d="M20 4C20 4 8 17 8 25C8 31.6 13.4 37 20 37C26.6 37 32 31.6 32 25C32 17 20 4 20 4Z" fill="white"/>
+    <ellipse cx="18" cy="27" rx="2.5" ry="4" fill="white" opacity="0.3"/>
+  </svg>`,
+  '태풍': `<svg viewBox="0 0 40 40" fill="none">
+    <circle cx="20" cy="20" r="14.5" stroke="white" stroke-width="3.5" fill="none"/>
+    <circle cx="20" cy="20" r="8" stroke="white" stroke-width="3" fill="none"/>
+    <circle cx="20" cy="20" r="3.5" fill="white"/>
+  </svg>`,
+  '폭설': `<svg viewBox="0 0 40 40" fill="none" stroke="white" stroke-linecap="round" stroke-width="3">
+    <line x1="20" y1="5" x2="20" y2="35"/>
+    <line x1="7" y1="12.5" x2="33" y2="27.5"/>
+    <line x1="7" y1="27.5" x2="33" y2="12.5"/>
+    <line x1="14" y1="9.5" x2="20" y2="14.5"/>
+    <line x1="26" y1="9.5" x2="20" y2="14.5"/>
+    <line x1="14" y1="30.5" x2="20" y2="25.5"/>
+    <line x1="26" y1="30.5" x2="20" y2="25.5"/>
+  </svg>`,
+  '지진': `<svg viewBox="0 0 40 40" fill="none">
+    <path fill-rule="evenodd" d="M11 6H29V27H11V6ZM15 10H19V15H15V10ZM21 10H25V15H21V10ZM15 17H19V22H15V17ZM21 17H25V22H21V17Z" fill="white"/>
+    <path d="M3 32L11 32L15 37L20 28L25 32L29 32L37 32" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>`,
+  '가스누출': `<svg viewBox="0 0 40 40" fill="none">
+    <path d="M20 5L37 34H3L20 5Z" stroke="white" stroke-width="3" stroke-linejoin="round" fill="none"/>
+    <rect x="18.5" y="14" width="3" height="11" rx="1.5" fill="white"/>
+    <circle cx="20" cy="29.5" r="2.5" fill="white"/>
+  </svg>`,
+  '승강기': `<svg viewBox="0 0 40 40" fill="none">
+    <rect x="7" y="4" width="26" height="34" rx="3" stroke="white" stroke-width="3" fill="none"/>
+    <line x1="20" y1="4" x2="20" y2="38" stroke="white" stroke-width="2.5"/>
+    <polyline points="11,17 15,11 19,17" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <polyline points="21,23 25,29 29,23" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>`,
+  '테러': `<svg viewBox="0 0 40 40" fill="none">
+    <path d="M20 4C13.5 4 9 8.5 9 14C9 21 14.5 24.5 20 24.5C25.5 24.5 31 21 31 14C31 8.5 26.5 4 20 4Z" fill="white"/>
+    <rect x="15" y="24.5" width="10" height="5" rx="1.5" fill="white"/>
+    <rect x="11" y="29.5" width="18" height="5.5" rx="2" fill="white"/>
+    <line x1="5" y1="8" x2="9" y2="12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="35" y1="8" x2="31" y2="12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="4" y1="15" x2="8" y2="15" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="36" y1="15" x2="32" y2="15" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>`,
+};
+
+function _getDisasterSvg(d, ic) {
+  const raw = DISASTER_ICONS[d.key] || d.iconSvg;
+  return raw.replace(/fill="white"/g, `fill="${ic}"`).replace(/stroke="white"/g, `stroke="${ic}"`);
+}
+
 function renderProcGrid() {
   const grid = document.getElementById('proc-grid');
   if (!grid) return;
   grid.innerHTML = DISASTERS.map(d => {
     const m = DISASTER_CARD_META[d.key] || { bg:'#f1f5f9', ic:'#475569', en:d.key };
     const ko = d.label.replace(/^[\s\S]*?\s/, '').trim();
-    const svg = d.iconSvg
-      .replace(/fill="white"/g, `fill="${m.ic}"`)
-      .replace(/stroke="white"/g, `stroke="${m.ic}"`);
     return `<button class="proc-btn" onclick="openSubPanel('${PROC_KEY_MAP[d.key] || d.key}')">
-      <div class="d-icon" style="background:${m.bg};">${svg}</div>
+      <div class="d-icon" style="background:${m.bg};">${_getDisasterSvg(d, m.ic)}</div>
       <div class="d-label" style="color:${m.ic};">${ko}</div>
       <div class="d-sub">${m.en}</div>
     </button>`;
@@ -5359,6 +5409,7 @@ const EVAC_FLOORS = [
 
 let broadcastSelectedFloor = null;
 let broadcastFlowOpen      = false;
+let broadcastOpenStages    = new Set();
 
 function calcBroadcastStages(fireFloor) {
   const fi = EVAC_FLOORS.indexOf(fireFloor);
@@ -5390,8 +5441,26 @@ function calcBroadcastStages(fireFloor) {
 }
 
 function selectFireFloor(floor) {
-  broadcastSelectedFloor = (broadcastSelectedFloor === floor) ? null : floor;
-  // 모달(broadcast-content) 또는 대피방송탭(member-list) 중 표시 중인 곳 업데이트
+  if (broadcastSelectedFloor === floor) {
+    broadcastSelectedFloor = null;
+    broadcastOpenStages = new Set();
+  } else {
+    broadcastSelectedFloor = floor;
+    broadcastOpenStages = new Set(['auto']); // 우선경보 자동 펼침
+  }
+  var bca = document.getElementById('broadcast-content');
+  if (bca) bca.innerHTML = buildBroadcastHTML();
+  if (typeof currentShift !== 'undefined' && currentShift === 'evac') {
+    renderEvacList();
+  }
+}
+
+function toggleBroadcastStage(stage) {
+  if (broadcastOpenStages.has(stage)) {
+    broadcastOpenStages.delete(stage);
+  } else {
+    broadcastOpenStages.add(stage);
+  }
   var bca = document.getElementById('broadcast-content');
   if (bca) bca.innerHTML = buildBroadcastHTML();
   if (typeof currentShift !== 'undefined' && currentShift === 'evac') {
@@ -5541,8 +5610,7 @@ function buildBroadcastHTML() {
           if (nxt === cur + 1 && (nxt <= 2) === isBase0) j++;
           else break;
         }
-        const count = j - i + 1;
-        if (count <= 1) {
+        if (j - i <= 0) {
           lines.push(fLabel(floors[i]));
         } else {
           const s = floors[i], e = floors[j];
@@ -5553,81 +5621,64 @@ function buildBroadcastHTML() {
       return lines;
     };
 
-    // 우선경보·1단계·2단계 카드 (범위 압축 표시)
-    const makeCard = (badge, label, timeTip, bdrColor, bgLight, floors) => {
-      const lines = compressFloors(floors);
-      const body = lines.map(line =>
-        `<div style="padding:3px 8px; font-size:13px; font-weight:700;
-          color:#1f2937; line-height:1.7;">${line}</div>`
-      ).join('');
-      return `<div style="background:white; border-radius:10px; overflow:hidden;
-        box-shadow:0 2px 6px rgba(0,0,0,.08); border-left:5px solid ${bdrColor};">
-        <div style="background:${bgLight}; padding:7px 10px;">
-          <div style="font-size:13.5px; font-weight:900; color:${bdrColor};">${badge} ${label}</div>
-          <div style="font-size:11px; color:${bdrColor}; opacity:.8; margin-top:1px;">
-            ${timeTip} · ${floors.length}개 층
-          </div>
-        </div>
-        <div style="padding:4px 2px 8px;">${body}</div>
-      </div>`;
-    };
-
-    // 3단계 카드: 상부층부터 5개층씩 순차 송출
-    const makeS3Card = (floors) => {
-      if (!floors.length) return `<div style="background:white; border-radius:10px;
-        border-left:5px solid #2563eb; padding:12px; grid-column:1/-1;
-        font-size:12px; color:#6b7280;">③ 3단계 해당 없음</div>`;
-      // 높은 층(index 큰)부터 정렬 후 5층씩 묶기
+    // s3 순차 송출 행 생성
+    const makeS3Rows = (floors) => {
       const sorted = [...floors].sort((a,b) =>
         EVAC_FLOORS.indexOf(b) - EVAC_FLOORS.indexOf(a));
       const chunks = [];
-      for (let i = 0; i < sorted.length; i += 5) {
-        // 각 청크 내부는 낮은 층→높은 층 순으로 뒤집어 표시
+      for (let i = 0; i < sorted.length; i += 5)
         chunks.push(sorted.slice(i, i+5).reverse());
-      }
-      const rows = chunks.map((chunk, idx) => {
+      return chunks.map((chunk, idx) => {
         const lines = compressFloors(chunk);
         const isLast = idx === chunks.length - 1;
-        return `<div style="display:flex; align-items:center; gap:8px; padding:5px 10px;
+        return `<div style="display:flex; align-items:center; gap:8px; padding:5px 12px;
           border-bottom:${isLast ? 'none' : '1px dashed #e5e7eb'};">
-          <div style="background:#2563eb; color:white; border-radius:6px;
-            padding:2px 7px; font-size:11.5px; font-weight:900; min-width:32px;
-            text-align:center; flex-shrink:0;">${idx+1}차</div>
-          <div style="font-size:13px; font-weight:700; color:#1f2937;">
-            ${lines.join(' · ')}
-          </div>
+          <div style="background:#2563eb; color:white; border-radius:5px; padding:1px 7px;
+            font-size:11.5px; font-weight:900; min-width:32px; text-align:center; flex-shrink:0;">${idx+1}차</div>
+          <div style="font-size:13px; font-weight:700; color:#1f2937;">${lines.join(' · ')}</div>
         </div>`;
       }).join('');
+    };
+
+    // 아코디언 단계 아이템
+    const makeAccordionItem = (key, badge, label, timeTip, bdrColor, bgLight, floors, bodyHtml) => {
+      const isOpen = broadcastOpenStages.has(key);
       return `<div style="background:white; border-radius:10px; overflow:hidden;
-        box-shadow:0 2px 6px rgba(0,0,0,.08); border-left:5px solid #2563eb; grid-column:1/-1;">
-        <div style="background:#eff6ff; padding:7px 10px;">
-          <div style="font-size:13.5px; font-weight:900; color:#2563eb;">③ 3단계</div>
-          <div style="font-size:11px; color:#2563eb; opacity:.8; margin-top:1px;">
-            상부층부터 5개층씩 순차 송출 · 총 ${floors.length}개 층
+        box-shadow:0 2px 6px rgba(0,0,0,.06); border-left:5px solid ${bdrColor}; margin-bottom:7px;">
+        <div onclick="toggleBroadcastStage('${key}')" style="display:flex; align-items:center;
+          gap:10px; padding:11px 12px; cursor:pointer;
+          background:${isOpen ? bgLight : 'white'}; transition:background .15s;">
+          <div style="font-size:18px; font-weight:900; color:${bdrColor}; min-width:22px; text-align:center; line-height:1;">${badge}</div>
+          <div style="flex:1;">
+            <div style="font-size:13.5px; font-weight:800; color:${bdrColor};">${label}</div>
+            <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${timeTip} · ${floors.length}개 층</div>
           </div>
+          <div style="font-size:20px; font-weight:300; color:${bdrColor};
+            transition:transform .2s; transform:rotate(${isOpen ? '90deg' : '0'});">›</div>
         </div>
-        <div style="padding:4px 0 4px;">${rows}</div>
-        <div style="padding:4px 10px 8px; font-size:11px; color:#6b7280;">
-          ▸ 차수별 약 5분 간격 · 계단 상황 확인 후 다음 차수 송출
-        </div>
+        ${isOpen ? `<div style="padding:6px 0 10px; border-top:1px solid #f1f5f9;">${bodyHtml}</div>` : ''}
       </div>`;
     };
+
+    const regularBody = (floors) => compressFloors(floors).map(l =>
+      `<div style="padding:3px 12px; font-size:13.5px; font-weight:700; color:#1f2937;">${l}</div>`
+    ).join('');
 
     const sfLabel = fLabel(sf);
     stageDisplay = `
       <div style="margin-bottom:8px;">
         <div style="font-size:13px; font-weight:900; color:#dc2626; margin-bottom:8px;
-          background:#fee2e2; border-radius:8px; padding:7px 10px;">
+          background:#fee2e2; border-radius:8px; padding:8px 12px;">
           📢 ${sfLabel} 화재시 방송 순서
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          ${makeCard('●','우선경보','자동송출','#dc2626','#fee2e2', stages.auto)}
-          ${makeCard('①','1단계','약 5분후','#ea580c','#fff7ed', stages.s1)}
-          ${makeCard('②','2단계','약 10분후','#d97706','#fefce8', stages.s2)}
-          ${makeS3Card(stages.s3)}
-        </div>
-        <div style="font-size:11px; color:#6b7280; margin-top:8px; text-align:center;">
-          ▸ 각 단계별 간격: 약 5분 기준 (계단 상황 고려하여 단계별 대피유도)
+        ${makeAccordionItem('auto','●','우선경보','자동송출','#dc2626','#fee2e2', stages.auto, regularBody(stages.auto))}
+        ${makeAccordionItem('s1','①','1단계','약 5분후','#ea580c','#fff7ed', stages.s1, regularBody(stages.s1))}
+        ${makeAccordionItem('s2','②','2단계','약 10분후','#d97706','#fefce8', stages.s2, regularBody(stages.s2))}
+        ${makeAccordionItem('s3','③','3단계 (순차송출)','상부층부터 5개층씩','#2563eb','#eff6ff', stages.s3,
+          `${makeS3Rows(stages.s3)}<div style="padding:4px 12px 0; font-size:11px; color:#6b7280;">▸ 차수별 약 5분 간격 · 계단 확인 후 다음 차수 송출</div>`
+        )}
+        <div style="font-size:11px; color:#6b7280; margin-top:4px; text-align:center;">
+          ▸ 단계별 간격: 약 5분 기준 (계단 상황 고려)
         </div>
       </div>`;
   } else {
