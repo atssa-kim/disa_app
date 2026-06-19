@@ -258,7 +258,7 @@ body {
   padding: 10px; padding: clamp(8px, 2.5vw, 16px);
 }
 .disaster-btn {
-  background: white;
+  background: #d6dad1;
   padding: 14px 6px 10px;
   text-align: center; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -291,7 +291,7 @@ body {
 }
 .d-sub {
   font-size: 10px; font-size: clamp(9px, 2.2vw, 11px);
-  color: #94a3b8; font-weight: 600; letter-spacing: 0.4px;
+  color: #01060ed2; font-weight: 600; letter-spacing: 0.4px;
   margin-top: -3px;
 }
 
@@ -564,10 +564,10 @@ body {
 .ec-tab {
   padding: 10px 3px; font-size: 11px; font-weight: 700;
   text-align: center; cursor: pointer; color: #94a3b8;
-  border-radius: 9px; border-left: 3px solid transparent;
+  border-radius: 9px; border-left: 4px solid transparent;
   transition: all .18s; letter-spacing: -0.3px; line-height: 1.35;
 }
-.ec-tab.active { color: var(--blue); background: #eff6ff; border-left-color: var(--blue); font-weight: 800; }
+.ec-tab.active { font-weight: 800; font-size: 12px; }
 .ec-pane { display: none; background: var(--bg); }
 .ec-pane.active { display: block; }
 
@@ -965,7 +965,7 @@ body {
         </div>
       </div>
     </div>
-    <div style="display:flex;background:#1e293b;border-bottom:3px solid #0f172a;flex-shrink:0;padding:5px 8px;gap:6px;">
+    <div style="display:flex;background:#374151;border-bottom:3px solid #1f2937;flex-shrink:0;padding:5px 8px;gap:6px;">
       <div id="msgtab-compose" onclick="switchMsgTab('compose')"
         style="flex:1;padding:9px 4px;text-align:center;font-size:13px;font-weight:800;
         cursor:pointer;color:white;background:#1d4ed8;border-radius:8px;border:2px solid #1d4ed8;
@@ -981,16 +981,9 @@ body {
     </div>
     <!-- 문자작성 탭 -->
     <div id="msgpane-compose" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 100px; display:block;">
-      <button onclick="openMsgWizard(currentMsgType)"
-        style="width:100%; padding:13px; margin-bottom:10px; background:linear-gradient(135deg,#0ea5e9,#0284c7);
-        color:white; border:none; border-radius:12px; font-size:13.5px; font-weight:900; cursor:pointer;
-        font-family:inherit; letter-spacing:-.3px; box-shadow:0 2px 8px rgba(14,165,233,.35);
-        display:flex; align-items:center; justify-content:center; gap:6px;">
-        📲 한 칸씩 입력하기 <span style="font-weight:600;opacity:.9;">(키보드 편하게)</span>
-      </button>
       <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
         box-shadow:0 2px 8px rgba(0,0,0,.08);">
-        <div style="font-size:12px; font-weight:800; color:#374151; margin-bottom:8px;">📌 보고 유형 선택</div>
+        <div style="font-size:12px; font-weight:800; color:#b3bccc; margin-bottom:8px;">📌 보고 유형 선택</div>
         <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px;">
           <button onclick="selectMsgType('initial')"
             id="mtype-initial"
@@ -1015,7 +1008,14 @@ body {
           </button>
         </div>
       </div>
-      <div style="background:white; border-radius:10px; overflow:hidden; margin-bottom:10px;
+      <button onclick="openMsgWizard(currentMsgType)"
+        style="width:100%; padding:13px; margin-bottom:10px; background:linear-gradient(135deg,#0ea5e9,#0284c7);
+        color:white; border:none; border-radius:12px; font-size:13.5px; font-weight:900; cursor:pointer;
+        font-family:inherit; letter-spacing:-.3px; box-shadow:0 2px 8px rgba(14,165,233,.35);
+        display:flex; align-items:center; justify-content:center; gap:6px;">
+        📲 한 칸씩 입력하기 <span style="font-weight:600;opacity:.9;">(키보드 편하게)</span>
+      </button>
+      <div id="compose-wrap" style="display:none; background:white; border-radius:10px; overflow:hidden; margin-bottom:10px;
         box-shadow:0 2px 8px rgba(0,0,0,.08);">
         <div id="compose-header" style="background:#1d4ed8; padding:8px 12px;
           font-size:12px; font-weight:800; color:white;"></div>
@@ -1816,7 +1816,7 @@ body {
       <!-- 입력 폼 -->
       <div style="padding:20px 18px 22px;">
         <div style="margin-bottom:12px;">
-          <label style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">아이디</label>
+          <label for="admin-id-input" style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">아이디</label>
           <input id="admin-id-input" type="text" placeholder="아이디 입력"
             onkeydown="if(event.key==='Enter')document.getElementById('admin-pw-input').focus()"
             style="width:100%;box-sizing:border-box;border:1.5px solid #e2e8f0;border-radius:10px;
@@ -1825,7 +1825,7 @@ body {
             onfocus="this.style.borderColor='#1b4fa8'" onblur="this.style.borderColor='#e2e8f0'">
         </div>
         <div style="margin-bottom:16px;">
-          <label style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">비밀번호</label>
+          <label for="admin-pw-input" style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">비밀번호</label>
           <input id="admin-pw-input" type="password" placeholder="비밀번호 입력"
             onkeydown="if(event.key==='Enter')submitAdminAuth()"
             style="width:100%;box-sizing:border-box;border:1.5px solid #e2e8f0;border-radius:10px;
@@ -3879,15 +3879,15 @@ function syncEditModalViewport(modal) {
 
 // ── INIT: render icon grid ──────────────────────────
 const DISASTER_CARD_META = {
-  '화재':   { bg:'#fef2f2', ic:'#dc2626', en:'FIRE' },
-  '정전':   { bg:'#fffbeb', ic:'#d97706', en:'POWER OUTAGE' },
-  '홍수':   { bg:'#eff6ff', ic:'#1d4ed8', en:'FLOOD' },
-  '태풍':   { bg:'#eef2ff', ic:'#1e40af', en:'TYPHOON' },
-  '폭설':   { bg:'#f0f9ff', ic:'#0369a1', en:'HEAVY SNOW' },
-  '지진':   { bg:'#fff7ed', ic:'#92400e', en:'EARTHQUAKE' },
-  '가스누출':{ bg:'#f0fdf4', ic:'#4d7c0f', en:'GAS LEAK' },
-  '승강기': { bg:'#f5f3ff', ic:'#6d28d9', en:'ELEVATOR' },
-  '테러':   { bg:'#fff1f2', ic:'#be123c', en:'INTRUDER' },
+  '화재':   { bg:'#dadee6', ic:'#dc2626', en:'FIRE' },
+  '정전':   { bg:'#dadee6', ic:'#d97706', en:'POWER OUTAGE' },
+  '홍수':   { bg:'#dadee6', ic:'#1d4ed8', en:'FLOOD' },
+  '태풍':   { bg:'#dadee6', ic:'#1e40af', en:'TYPHOON' },
+  '폭설':   { bg:'#dadee6', ic:'#0369a1', en:'HEAVY SNOW' },
+  '지진':   { bg:'#dadee6', ic:'#92400e', en:'EARTHQUAKE' },
+  '가스누출':{ bg:'#dadee6', ic:'#4d7c0f', en:'GAS LEAK' },
+  '승강기': { bg:'#dadee6', ic:'#6d28d9', en:'ELEVATOR' },
+  '테러':   { bg:'#dadee6', ic:'#be123c', en:'INTRUDER' },
 };
 
 function renderIconGrid() {
@@ -4538,8 +4538,12 @@ function renderEquipTabs() {
   const bar = document.getElementById('equip-tabbar');
   if (!bar) return;
   bar.innerHTML = EQUIP_TABS.map(function(t) {
-    return '<div class="ec-tab' + (t.key === currentEquipTab ? ' active' : '') + '" ' +
-      'id="etab-' + t.key + '" onclick="switchEquipTab(\'' + t.key + '\')">' + t.label + '</div>';
+    const isActive = t.key === currentEquipTab;
+    const style = isActive
+      ? ' style="border-left:5px solid ' + t.color + ';background:' + t.color + '22;color:' + t.color + ';"'
+      : '';
+    return '<div class="ec-tab' + (isActive ? ' active' : '') + '"' + style +
+      ' id="etab-' + t.key + '" onclick="switchEquipTab(\'' + t.key + '\')">' + t.label + '</div>';
   }).join('');
 }
 
@@ -4856,13 +4860,8 @@ function openMsgModal(type) {
   panel.style.height = '';   // top+bottom으로 결정
   panel.style.zIndex = '400';
   panel.classList.add('open');
-  // 헤더 비상문자 버튼(initial)은 보고예시 탭 먼저, 임무 내 📨 버튼(fire)은 문자작성 탭
-  if (type === 'initial') {
-    switchMsgTab('example');
-  } else {
-    switchMsgTab('compose');
-    selectMsgType('initial');
-  }
+  switchMsgTab('compose');
+  selectMsgType('initial');
 }
 
 function closeMsgModal() {
@@ -4967,6 +4966,8 @@ function selectMsgType(type) {
   const hdr = document.getElementById('compose-header');
   const fld = document.getElementById('compose-fields');
   if (!hdr || !fld) return;
+  const wrap = document.getElementById('compose-wrap');
+  if (wrap) wrap.style.display = 'block';
 
   hdr.style.background = tpl.color;
   hdr.textContent = tpl.title;
@@ -5771,10 +5772,26 @@ function renderEvacList() {
   el.innerHTML = '<div style="padding:10px 8px; background:#f9fafb;">' + buildBroadcastHTML() + '</div>';
 }
 
+function resetBmsTasksDone() {
+  if (!confirm('상황실 전체 체크 항목을 초기화할까요?')) return;
+  Object.keys(tasksDone).forEach(k => {
+    if (k.startsWith('화재_상황실')) delete tasksDone[k];
+  });
+  saveTasksDone();
+  renderBmsList();
+}
+
 function renderBmsList() {
   if (bmsOpenCatKeys.size === 0) bmsOpenCatKeys.add(BMS_CATEGORIES[0].key);
 
-  let html = '';
+  let html = `<div style="margin:8px 10px 2px;display:flex;justify-content:flex-end;">
+    <button onclick="resetBmsTasksDone()"
+      style="padding:6px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;
+      border-radius:8px;font-size:12px;font-weight:700;color:#475569;
+      cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">
+      🔄 전체 초기화
+    </button>
+  </div>`;
 
   // ── 카테고리별 아코디언 ──
   BMS_CATEGORIES.forEach(cat => {
@@ -5794,7 +5811,7 @@ function renderBmsList() {
       border-radius:14px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
       <div onclick="toggleBmsCatAccordion('${cat.key}')"
         style="display:flex;align-items:center;gap:12px;padding:12px 16px;
-        background:white;
+        background:${cat.headerBg};
         cursor:pointer;
         transition:background .2s;position:relative;overflow:hidden;">
         <div style="position:absolute;right:-10px;top:-10px;font-size:52px;
@@ -5874,27 +5891,6 @@ function renderBmsList() {
               color:${isComplete ? '#16a34a' : cat.tc};">${done}/${total}</span>
           </div>
         </div>
-        <!-- ⬆⬇ 순서변경 버튼 -->
-        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-right:4px;">
-          <div onclick="event.stopPropagation();moveBmsMember(${globalIdx},-1)"
-            title="위로 이동"
-            style="width:26px;height:26px;border-radius:6px;
-            background:${cat.accent}18;border:1.5px solid ${cat.accent}44;
-            display:flex;align-items:center;justify-content:center;
-            font-size:11px;cursor:pointer;color:${cat.accent};font-weight:700;
-            transition:background .15s;"
-            onmouseenter="this.style.background='${cat.accent}38'"
-            onmouseleave="this.style.background='${cat.accent}18'">▲</div>
-          <div onclick="event.stopPropagation();moveBmsMember(${globalIdx},1)"
-            title="아래로 이동"
-            style="width:26px;height:26px;border-radius:6px;
-            background:${cat.accent}18;border:1.5px solid ${cat.accent}44;
-            display:flex;align-items:center;justify-content:center;
-            font-size:11px;cursor:pointer;color:${cat.accent};font-weight:700;
-            transition:background .15s;"
-            onmouseenter="this.style.background='${cat.accent}38'"
-            onmouseleave="this.style.background='${cat.accent}18'">▼</div>
-        </div>
         <!-- ✏️ 임무수정 버튼 -->
         <div onclick="event.stopPropagation();openTaskDirect(${globalIdx},'화재_상황실')"
           title="임무 수정"
@@ -5904,17 +5900,6 @@ function renderBmsList() {
           font-size:14px;cursor:pointer;transition:background .15s;"
           onmouseenter="this.style.background='${cat.accent}44'"
           onmouseleave="this.style.background='${cat.accent}22'">✏️</div>
-        <!-- 완료/화살표 -->
-        <div style="flex-shrink:0;">
-          ${isComplete
-            ? `<div style="width:30px;height:30px;border-radius:50%;
-                background:#dcfce7;display:flex;align-items:center;
-                justify-content:center;font-size:16px;">✅</div>`
-            : `<div style="width:30px;height:30px;border-radius:50%;
-                background:white;border:2px solid ${cat.border};
-                display:flex;align-items:center;justify-content:center;
-                color:${cat.accent};font-size:18px;font-weight:300;">›</div>`}
-        </div>
       </div>
       <!-- 임무 체크리스트: 체크박스 중앙을 배지 중앙(36px) 아래에 정렬 -->
       <!-- 배지중앙=14(좌패딩)+22(배지절반)=36px, 체크박스(18px)중앙=27+9=36px -->
@@ -6362,6 +6347,7 @@ function openEmergencyPanel(el) {
   ep.style.width  = '100%';
   ep.classList.add('open');
   buildContactAccordions();
+  switchEcTab('gov');
 }
 
 // ── 비상연락처 섹션을 아코디언으로 변환 (제목 탭하면 전화번호 펼침/접힘) ──
@@ -6447,9 +6433,19 @@ function closeEmergencyPanel() {
 }
 
 function switchEcTab(tab) {
-  document.querySelectorAll('.ec-tab').forEach(t => t.classList.remove('active'));
+  const EC_COLOR = '#1d4ed8';
+  document.querySelectorAll('.ec-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.borderLeft = '';
+    t.style.background = '';
+    t.style.color = '';
+  });
   document.querySelectorAll('.ec-pane').forEach(p => p.classList.remove('active'));
-  document.getElementById('ectab-' + tab).classList.add('active');
+  const el = document.getElementById('ectab-' + tab);
+  el.classList.add('active');
+  el.style.borderLeft = '5px solid ' + EC_COLOR;
+  el.style.background = EC_COLOR + '22';
+  el.style.color = EC_COLOR;
   document.getElementById('ecpane-' + tab).classList.add('active');
 }
 
