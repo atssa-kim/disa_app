@@ -537,7 +537,7 @@ body {
   padding: 8px 12px;
   display: flex; align-items: center; gap: 10px;
   cursor: pointer; transition: background .12s;
-  border-bottom: 1px solid #f2f2f2;
+  border-bottom: 1px solid #e2e8f0;
 }
 .ec-card:active { background: #f0f7ff; }
 .ec-icon {
@@ -546,8 +546,8 @@ body {
   font-size: 18px; flex-shrink: 0;
 }
 .ec-info { flex: 1; min-width: 0; }
-.ec-name { font-size: 13px; font-weight: 700; color: #111; }
-.ec-sub  { font-size: 10.5px; color: #888; margin-top: 1px; }
+.ec-name { font-size: 13px; font-weight: 700; color: #0f172a; }
+.ec-sub  { font-size: 10.5px; color: #475569; margin-top: 1px; }
 .ec-num  { font-size: 12px; font-weight: 700; color: #1b4fa8; text-align: right; flex-shrink: 0; }
 .ec-section-header {
   padding: 7px 12px 4px;
@@ -557,7 +557,7 @@ body {
 }
 .ec-tab-bar {
   display: flex; flex-direction: column; background: #f8fafc;
-  border-right: 2px solid var(--border); flex-shrink: 0;
+  border-right: 2px solid #e2e8f0; flex-shrink: 0;
   width: 78px; padding: 6px 5px; gap: 5px;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
@@ -989,7 +989,7 @@ body {
         📲 한 칸씩 입력하기 <span style="font-weight:600;opacity:.9;">(키보드 편하게)</span>
       </button>
       <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
-        box-shadow:0 1px 4px rgba(0,0,0,.08);">
+        box-shadow:0 2px 8px rgba(0,0,0,.08);">
         <div style="font-size:12px; font-weight:800; color:#374151; margin-bottom:8px;">📌 보고 유형 선택</div>
         <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px;">
           <button onclick="selectMsgType('initial')"
@@ -1016,13 +1016,13 @@ body {
         </div>
       </div>
       <div style="background:white; border-radius:10px; overflow:hidden; margin-bottom:10px;
-        box-shadow:0 1px 4px rgba(0,0,0,.08);">
+        box-shadow:0 2px 8px rgba(0,0,0,.08);">
         <div id="compose-header" style="background:#1d4ed8; padding:8px 12px;
           font-size:12px; font-weight:800; color:white;"></div>
         <div style="padding:10px 12px;" id="compose-fields"></div>
       </div>
       <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
-        box-shadow:0 1px 4px rgba(0,0,0,.08);">
+        box-shadow:0 2px 8px rgba(0,0,0,.08);">
         <div style="font-size:11px; font-weight:800; color:#374151; margin-bottom:8px;">👁️ 문자 미리보기</div>
         <div id="msg-preview"
           style="background:#f9fafb; border-radius:8px; padding:10px; font-size:11.5px;
@@ -3896,7 +3896,7 @@ function renderIconGrid() {
     const m = DISASTER_CARD_META[d.key] || { bg:'#f1f5f9', ic:'#475569', en:d.key };
     const ko = d.label.replace(/^[\s\S]*?\s/, '').trim();
     return `<div class="disaster-btn" onclick="openDisaster('${d.key}')">
-      <div class="d-icon" style="background:${m.bg};">${_getDisasterSvg(d, m.ic)}</div>
+      <div class="d-icon" style="background:${m.bg};border:2px solid ${m.ic};">${_getDisasterSvg(d, m.ic)}</div>
       <div class="d-label" style="color:${m.ic};">${ko}</div>
       <div class="d-sub">${m.en}</div>
     </div>`;
@@ -3963,7 +3963,7 @@ const DISASTER_ICONS = {
 };
 
 function _getDisasterSvg(d, ic) {
-  const raw = DISASTER_ICONS[d.key] || d.iconSvg;
+  const raw = d.iconSvg;
   return raw.replace(/fill="white"/g, `fill="${ic}"`).replace(/stroke="white"/g, `stroke="${ic}"`);
 }
 
@@ -3974,7 +3974,7 @@ function renderProcGrid() {
     const m = DISASTER_CARD_META[d.key] || { bg:'#f1f5f9', ic:'#475569', en:d.key };
     const ko = d.label.replace(/^[\s\S]*?\s/, '').trim();
     return `<button class="proc-btn" onclick="openSubPanel('${PROC_KEY_MAP[d.key] || d.key}')">
-      <div class="d-icon" style="background:${m.bg};">${_getDisasterSvg(d, m.ic)}</div>
+      <div class="d-icon" style="background:${m.bg};border:2px solid ${m.ic};">${_getDisasterSvg(d, m.ic)}</div>
       <div class="d-label" style="color:${m.ic};">${ko}</div>
       <div class="d-sub">${m.en}</div>
     </button>`;
@@ -7538,6 +7538,22 @@ window.addEventListener('popstate', function(e) {
 
 renderIconGrid();
 renderProcGrid();
+
+// ec-icon 테두리를 해당 섹션 헤더 색상으로 자동 적용
+function applyEcIconBorders() {
+  document.querySelectorAll('.ec-pane').forEach(function(pane) {
+    var color = '#6b7280';
+    Array.from(pane.children).forEach(function(el) {
+      if (el.classList.contains('ec-section-header')) {
+        color = el.style.background || '#6b7280';
+      } else if (el.classList.contains('ec-card')) {
+        var icon = el.querySelector('.ec-icon');
+        if (icon) icon.style.border = '2px solid ' + color;
+      }
+    });
+  });
+}
+applyEcIconBorders();
 
 // 비상연락처 localStorage 복원
 (function restoreContacts() {
