@@ -783,7 +783,7 @@ body {
 
       <!-- 우측 버튼: 비상문자 + 비상장비 -->
       <div class="header-actions">
-        <div class="hdr-btn" onclick="openMsgModal('initial')">
+        <div class="hdr-btn" onclick="openMsgModal('initial', this)">
           <div class="badge-red">!</div>
           <svg viewBox="0 0 40 40" fill="none">
             <rect x="7" y="10" width="26" height="20" rx="3" stroke="white" stroke-width="2"/>
@@ -4836,8 +4836,12 @@ function renderMsgExamplePane() {
   exPane.innerHTML = guide + hint + cards;
 }
 
-function openMsgModal(type) {
-  closeAllQuickPanels();
+function openMsgModal(type, el) {
+  if (el) {
+    navClick(el);
+  } else {
+    closeAllQuickPanels();
+  }
   const panel  = document.getElementById('msg-modal');
   const header = document.getElementById('msg-header');
   const title  = document.getElementById('msg-title');
@@ -4877,6 +4881,7 @@ function closeMsgModal() {
   const panel = document.getElementById('msg-modal');
   panel.classList.remove('open');
   // 인라인 위치 스타일 초기화
+  panel.style.left = '';
   panel.style.top = '';
   panel.style.right = '';
   panel.style.bottom = '';
