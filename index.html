@@ -259,7 +259,7 @@ body {
   padding: 10px; padding: clamp(8px, 2.5vw, 16px);
 }
 .disaster-btn {
-  background: #d6dad1;
+  background: #d1dad2;
   padding: 14px 6px 10px;
   text-align: center; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -2879,7 +2879,7 @@ const DISASTERS = [
 const FIRE_NIGHT = [
   {
     "group": "야간대응",
-    "role": "🌙 통제자",
+    "role": "🌙 통제(소방)",
     "badge": "통제",
     "bc": "#7f1d1d",
     "tasks": [
@@ -4260,6 +4260,9 @@ function renderMemberList() {
     const isComplete = pct === 100;
     const barColor = isComplete ? '#22c55e' : gc.bg;
     const isOpen = openMemberIdx === idx;
+    const isBmsCard = currentDisaster === '화재' && (
+      (currentShift === 'day' && m.badge === '상황') ||
+      (currentShift === 'night' && m.badge === '통제'));
     const borderTop = idx > 0 ? 'border-top: 1px solid #f1f5f9;' : '';
 
     // ── 아코디언 HTML 사전 구성 ──
@@ -4377,7 +4380,7 @@ function renderMemberList() {
 
     html += `
     <div id="mc-${idx}" style="${cardStyle}">
-      <div onclick="toggleMemberAccordion(${idx})"
+      <div onclick="${isBmsCard ? 'setShift(\'bms\')' : 'toggleMemberAccordion(' + idx + ')'}"
         style="padding:11px 14px;cursor:pointer;
           display:flex;align-items:center;gap:11px;
           background:${isOpen ? 'white' : isComplete ? '#f0fdf4' : 'white'};
@@ -4420,6 +4423,15 @@ function renderMemberList() {
           onmouseenter="this.style.background='${gc.bg}44'"
           onmouseleave="this.style.background='${gc.bg}22'">✏️</div>
 
+        ${isBmsCard ? `
+        <div style="flex-shrink:0;text-align:center;">
+          <div style="width:28px;height:28px;border-radius:50%;
+            background:#0369a133;
+            display:flex;align-items:center;justify-content:center;
+            font-size:14px;color:#0369a1;">📋</div>
+          <div style="font-size:9px;color:#0369a1;
+            margin-top:2px;font-weight:700;">상황실</div>
+        </div>` : `
         <div style="flex-shrink:0;text-align:center;">
           <div style="width:28px;height:28px;border-radius:50%;
             background:${isComplete?'#dcfce7':isOpen?gc.bg+'33':'#f1f5f9'};
@@ -4431,7 +4443,7 @@ function renderMemberList() {
           </div>
           <div style="font-size:9px;color:${isComplete?'#16a34a':'#94a3b8'};
             margin-top:2px;font-weight:700;">${pct}%</div>
-        </div>
+        </div>`}
       </div>
 
       ${accordionHtml}
@@ -6773,6 +6785,7 @@ async function saveToLocalFile() {
     await writable.write(newHtml);
     await writable.close();
     alert('✅ 로컬 파일에 저장되었습니다!\n(' + _localFileHandle.name + ')');
+    syncToSupabase().catch(e => console.error('[Supabase] 동기화 오류:', e));
   } catch(err) {
     if (err.name === 'AbortError') return; // 사용자가 취소
     alert('❌ 로컬 저장 오류\n\n' + err.message);
@@ -6931,8 +6944,111 @@ async function pushToGitHub(retryWithNewToken) {
       return;
     }
     alert('✅ GitHub에 자동 저장되었습니다!');
+    // Supabase 동기화 (백그라운드, 실패해도 GitHub 저장에 영향 없음)
+    syncToSupabase().catch(e => console.error('[Supabase] 동기화 오류:', e));
   } catch(err) {
     alert('❌ GitHub 푸시 오류\n\n' + err.message);
+  }
+}
+
+// ── Supabase 동기화 ────────────────────────────────────────
+function getSupabaseAdminCfg(forceNew) {
+  if (forceNew) {
+    localStorage.removeItem('sb_url');
+    localStorage.removeItem('sb_srk');
+  }
+  let url = localStorage.getItem('sb_url');
+  let key = localStorage.getItem('sb_srk');
+  if (!url || !key) {
+    url = prompt(
+      'Supabase Project URL 입력\n' +
+      '(Supabase → Settings → API → Project URL)\n' +
+      '예) https://xxxxx.supabase.co'
+    );
+    if (!url) return null;
+    key = prompt(
+      'Supabase Service Role Key 입력\n' +
+      '(Settings → API → service_role secret)\n\n' +
+      '⚠️ 관리자 전용 키 — 타인에게 절대 노출 금지'
+    );
+    if (!key) return null;
+    localStorage.setItem('sb_url', url.trim());
+    localStorage.setItem('sb_srk', key.trim());
+  }
+  return { url: url.trim(), key: key.trim() };
+}
+
+async function syncToSupabase() {
+  const cfg = getSupabaseAdminCfg(false);
+  if (!cfg) { console.log('[Supabase] 설정 없음 — 동기화 건너뜀'); return; }
+
+  const h = {
+    'apikey': cfg.key,
+    'Authorization': 'Bearer ' + cfg.key,
+    'Content-Type': 'application/json',
+    'Prefer': 'resolution=merge-duplicates,return=representation'
+  };
+
+  let ok = 0, fail = 0;
+
+  for (const disaster of DISASTERS) {
+    for (const member of (disaster.members || [])) {
+      try {
+        const roleRes = await fetch(
+          cfg.url + '/rest/v1/disaster_roles?on_conflict=disaster,badge',
+          { method: 'POST', headers: h, body: JSON.stringify({
+              disaster: disaster.key,
+              group_name: member.group,
+              role: member.role,
+              badge: member.badge,
+              bc: member.bc || null
+            })
+          }
+        );
+        if (!roleRes.ok) { fail++; console.error('[SB] 역할 오류', disaster.key, member.badge, await roleRes.text()); continue; }
+
+        const roleId = (await roleRes.json())[0]?.id;
+        if (!roleId) { fail++; continue; }
+
+        // 기존 임무 삭제
+        await fetch(cfg.url + '/rest/v1/disaster_tasks?role_id=eq.' + roleId,
+          { method: 'DELETE', headers: h });
+
+        // 임무 재삽입
+        const tasks = (member.tasks || []).map((label, idx) => ({ role_id: roleId, task_idx: idx, label }));
+        if (tasks.length) {
+          const tRes = await fetch(cfg.url + '/rest/v1/disaster_tasks',
+            { method: 'POST', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify(tasks) });
+          if (!tRes.ok) { fail++; continue; }
+        }
+        ok++;
+      } catch(e) { fail++; console.error('[SB] 오류', e); }
+    }
+  }
+
+  const msg = fail === 0
+    ? '✅ Supabase 동기화 완료 (' + ok + '개 역할)'
+    : '⚠️ Supabase 동기화 부분 완료 (성공 ' + ok + ' / 실패 ' + fail + ')';
+  console.log(msg);
+  // 토스트 형식으로 짧게 표시
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  Object.assign(toast.style, {
+    position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+    background: fail === 0 ? '#15803d' : '#b45309',
+    color:'#fff', padding:'10px 20px', borderRadius:'10px',
+    fontSize:'13px', fontWeight:'700', zIndex:'9999',
+    boxShadow:'0 4px 16px rgba(0,0,0,0.3)'
+  });
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+function resetSupabaseCfg() {
+  if (confirm('저장된 Supabase 설정을 초기화하시겠습니까?')) {
+    localStorage.removeItem('sb_url');
+    localStorage.removeItem('sb_srk');
+    alert('초기화 완료. 다음 저장 시 재입력합니다.');
   }
 }
 
