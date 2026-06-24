@@ -9,6 +9,7 @@
 <title>트윈타워 재난대응 메뉴얼</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 /* ── 트윈타워 파비콘 (Canvas 렌더링) ── */
 (function(){
@@ -1890,16 +1891,24 @@ body {
         </button>
       </div>
       <div style="font-size:10.5px;color:#94a3b8;text-align:center;line-height:1.6;">
-        엑셀로 임무 수정 후 upload하면 앱에 즉시 반영 및 GitHub 자동 저장됩니다
+        엑셀로 임무 수정 후 upload하면 앱에 즉시 반영 및 Supabase 자동 저장됩니다
       </div>
-      <button onclick="forceRefreshTasks()"
-        style="width:100%;margin-top:12px;background:#e2e8f0;color:#475569;border:none;
-        border-radius:12px;padding:13px 8px;font-size:12.5px;font-weight:700;cursor:pointer;
-        font-family:inherit;">
-        🔄 최신 임무 불러오기 (폰·PC 내용이 다를 때)
-      </button>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button onclick="sbRefresh()"
+          style="flex:1;background:#1e3a8a;color:white;border:none;
+          border-radius:12px;padding:13px 8px;font-size:12px;font-weight:700;cursor:pointer;
+          font-family:inherit;">
+          ☁️ DB에서 불러오기
+        </button>
+        <button onclick="sbSyncAll()"
+          style="flex:1;background:#065f46;color:white;border:none;
+          border-radius:12px;padding:13px 8px;font-size:12px;font-weight:700;cursor:pointer;
+          font-family:inherit;">
+          ☁️ DB에 전체 저장
+        </button>
+      </div>
       <div style="font-size:10px;color:#cbd5e1;text-align:center;line-height:1.6;margin-top:6px;">
-        저장된 옛날 임무를 지우고 최신본을 다시 불러옵니다
+        twin-alarm과 동일 DB 사용 — 저장 후 다음 발령 시 반영됩니다
       </div>
     </div>
   </div>
@@ -3782,6 +3791,91 @@ function setShift(shift) {
   renderMemberList();
 }
 
+
+// ── Supabase 연동 ──────────────────────────────────
+const SB_URL = 'https://hzqesdprnlpzaomaeswx.supabase.co';
+const SB_KEY = 'sb_publishable_sX0tbsqpy2zdB-6n062V7g_0zzX1LHS';
+
+const sbClient = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SB_URL, SB_KEY)
+  : null;
+
+async function sbLoadDisasters() {
+  if (!sbClient) return false;
+  try {
+    const { data, error } = await sbClient
+      .from('disaster_roles')
+      .select('disaster, group_name, role, badge, bc, disaster_tasks(task_idx, label)')
+      .order('disaster');
+    if (error || !data || !data.length) return false;
+    data.forEach(function(r) {
+      const d = DISASTERS.find(function(x) { return x.key === r.disaster; });
+      if (!d) return;
+      const tasks = (r.disaster_tasks || [])
+        .sort(function(a, b) { return a.task_idx - b.task_idx; })
+        .map(function(t) { return t.label; });
+      const memberIdx = d.members
+        ? d.members.findIndex(function(m) { return m.badge === r.badge; })
+        : -1;
+      const member = { group: r.group_name, role: r.role, badge: r.badge, bc: r.bc, tasks: tasks };
+      if (!d.members) d.members = [];
+      if (memberIdx >= 0) d.members[memberIdx] = member;
+      else d.members.push(member);
+    });
+    console.log('[Supabase] 임무 로드 완료:', data.length + '개 역할');
+    return true;
+  } catch(e) {
+    console.warn('[Supabase] 로드 실패 (하드코딩 데이터 사용):', e);
+    return false;
+  }
+}
+
+async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks) {
+  if (!sbClient) return;
+  try {
+    const { data: roleRow, error: roleErr } = await sbClient
+      .from('disaster_roles')
+      .upsert(
+        { disaster: disasterKey, group_name: groupName, role: role, badge: badge, bc: bc },
+        { onConflict: 'disaster,badge' }
+      )
+      .select('id')
+      .single();
+    if (roleErr) { console.error('[Supabase] 역할 저장 오류:', roleErr); return; }
+    await sbClient.from('disaster_tasks').delete().eq('role_id', roleRow.id);
+    const { error: taskErr } = await sbClient.from('disaster_tasks').insert(
+      tasks.map(function(label, idx) { return { role_id: roleRow.id, task_idx: idx, label: label }; })
+    );
+    if (taskErr) console.error('[Supabase] 임무 저장 오류:', taskErr);
+    else console.log('[Supabase] 저장 완료:', disasterKey, badge, tasks.length + '개');
+  } catch(e) {
+    console.error('[Supabase] 저장 오류:', e);
+  }
+}
+
+async function sbSyncAll() {
+  if (!sbClient) { alert('Supabase 연결이 없습니다.'); return; }
+  let total = 0;
+  for (const d of DISASTERS) {
+    if (!d.members) continue;
+    for (const m of d.members) {
+      await sbSaveTasks(d.key, m.badge, m.group, m.role, m.bc, m.tasks);
+      total++;
+    }
+  }
+  alert('✅ Supabase 전체 동기화 완료: ' + total + '개 역할\ntwin-alarm 다음 발령 시 반영됩니다.');
+}
+
+async function sbRefresh() {
+  const ok = await sbLoadDisasters();
+  if (ok) {
+    if (typeof renderIconGrid === 'function') renderIconGrid();
+    if (currentDisaster && typeof renderMemberList === 'function') renderMemberList();
+    alert('✅ Supabase에서 최신 임무를 불러왔습니다.');
+  } else {
+    alert('⚠️ Supabase 연결 실패. 기존 데이터를 유지합니다.');
+  }
+}
 
 // ── localStorage 연동 ──────────────────────────────
 // ★ 임무 데이터 버전 ★
@@ -6280,6 +6374,11 @@ function saveTaskEdit() {
   customTasks[storageKey] = newTasks;
   saveCustomTasks();
 
+  // Supabase에도 저장 (일반 재난만; FIRE_NIGHT·BMS·시나리오 제외)
+  if (!isScenario && !isNight && !isBms) {
+    sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks);
+  }
+
   closeTaskEdit();
   closeTask();
   renderMemberList();
@@ -6683,11 +6782,7 @@ async function saveToLocalFile() {
 
 // ── 저장 라우터: 환경에 따라 로컬 또는 GitHub ────────────
 function saveData() {
-  if (isLocalEnv()) {
-    saveToLocalFile();
-  } else {
-    pushToGitHub();
-  }
+  sbSyncAll();
 }
 
 function getGhToken(forceNew) {
@@ -8458,6 +8553,14 @@ function closeImgZoom() {
   document.querySelector('meta[name="viewport"]').setAttribute('content',
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
 }
+
+// ── 앱 초기화: Supabase에서 임무 자동 로드 ──────────────────
+sbLoadDisasters().then(function(ok) {
+  if (ok) {
+    if (typeof renderIconGrid === 'function') renderIconGrid();
+    if (currentDisaster && typeof renderMemberList === 'function') renderMemberList();
+  }
+});
 
 </script>
 </body>
