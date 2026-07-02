@@ -4543,102 +4543,293 @@ function openActionPanel() {
   switchEquipTab(currentEquipTab || 'fire');
 }
 
-// ── 비상장비 데이터 ────────────────────────────────
+// ── 비상장비 데이터 (PDF 2026.06.25 기준, spec 필드 추가) ──────────────
 const EQUIP_DATA = {
-  // ── 화재 : 사업부기준 O 항목만 ──────────────────────
   fire: [
-    { cat:'🔥 화재 — 비상출동 휴대장비', items:[
-      { name:'비상키 (마스터키·비상잠금해제)', qty:'세트', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 중앙B1 종합상황실' },
-      { name:'무전기 (디지털·ch2 비상채널)', qty:'다수', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 중앙B1 종합상황실 · 동관B2 보안사무실' },
-      { name:'호르라기 (피난유도용 호루라기)', qty:'다수', loc:'동관B3 빌딩운영센터 · 서관B3 빌딩운영센터 · 각 층 방재함' },
+    { cat:'🔥 화재 — 안전장비 (소방)', items:[
+      { name:'방독면',                 spec:'DOBU CM-2',              qty:'35',  loc:'서관B3 운영센터(7) · 동관B3 운영센터(19) · 중앙B1 종합상황실(6) · 동관B2 보안사무실(3)' },
+      { name:'공기호흡기 SCBA 01~04',  spec:'양압식 60분용 SCA-790W', qty:'4',   loc:'중앙B1 종합상황실(4)  ※용기재검사 2026.07' },
+      { name:'공기호흡기 SCBA 05~06',  spec:'양압식 30분용 SCA420S',  qty:'2',   loc:'동관B2 보안사무실(2)  ※용기재검사 2030.01' },
+      { name:'공기호흡기 SCBA 07~08',  spec:'양압식 30분용 SCA420S',  qty:'2',   loc:'서관B3 운영센터(2)  ※용기재검사 2030.01' },
+      { name:'공기호흡기 SCBA 09~10',  spec:'양압식 30분용 SCA420S',  qty:'2',   loc:'정화조실 입구(2)  ※용기재검사 2030.08' },
+      { name:'방열방수복 SET',         spec:'방열복·방열모·방열장갑', qty:'4',   loc:'중앙B1 종합상황실(3) · 동관B2 보안사무실(1)' },
+      { name:'특수방화복',             spec:'방열복',                 qty:'1',   loc:'동관B2 보안사무실(1)' },
+      { name:'스마트에어백 C3',        spec:'사이즈free / 배터리120분',qty:'4',  loc:'건축·기계·전기·소방 파트' },
+      { name:'송기마스크',             spec:'HM-5000',                qty:'4',   loc:'동·서관 U.G(2인용) · 정화조 MCC실(2인용) · 상황실(4인용)' },
+      { name:'구조용 삼각대',          spec:'NTTP300',                qty:'2',   loc:'동관 U.G · 서관 U.G' },
+      { name:'방열포',                 spec:'KC인증',                 qty:'4',   loc:'중앙B1 종합상황실' },
+      { name:'들것',                   spec:'-',                      qty:'2',   loc:'중앙B1 종합상황실 · 동관B2 보안사무실' },
+      { name:'안전로프',               spec:'타이거로프',              qty:'1',   loc:'중앙B1 종합상황실' },
     ]},
-    { cat:'🔥 화재 — 안전장비', items:[
-      { name:'방독면', qty:'42', loc:'서관B3 빌딩운영센터(10) · 동관B3 빌딩운영센터(20) · 중앙B1 종합상황실(9) · 동관B2 보안사무실(3)' },
-      { name:'와이어절단기', qty:'1', loc:'중앙B1 종합상황실' },
-      { name:'도끼', qty:'2', loc:'중앙B1 종합상황실' },
-      { name:'공기호흡기 (60분용 SCA-790W)', qty:'4', loc:'중앙B1 종합상황실(4)' },
-      { name:'공기호흡기 (30분용 SCA420S)', qty:'6', loc:'개인보관(소방파트장책임)(1) · 동관B2 보안사무실(2) · 서관B3 운영센터(1) · 정화조실 입구(2)' },
-      { name:'방열방수복 SET', qty:'4', loc:'중앙B1 종합상황실(3) · 동관B2 보안사무실(1)' },
-      { name:'특수방화복', qty:'1', loc:'동관B3 운영센터(1)' },
-      { name:'스프링클러헤드 — 플러쉬형', qty:'5', loc:'중앙B1 종합상황실' },
-      { name:'스프링클러헤드 — 원형', qty:'5', loc:'중앙B1 종합상황실' },
-      { name:'스프링클러헤드 — 폐쇄상향형', qty:'5', loc:'중앙B1 종합상황실' },
-      { name:'감지기 — 아날로그식', qty:'5', loc:'중앙B1 종합상황실' },
-      { name:'감지기 — 정온식', qty:'4', loc:'중앙B1 종합상황실' },
-      { name:'들것', qty:'2', loc:'중앙B1 종합상황실 · 동관B2 보안사무실' },
-      { name:'방면마스크 (화재대피용)', qty:'8', loc:'중앙B1 종합상황실' },
-      { name:'휴대용산소소호흡기 (클린O2)', qty:'23', loc:'중앙B1 종합상황실' },
-      { name:'비상조끼', qty:'16', loc:'중앙B1 종합상황실' },
-      { name:'방열포 (KC인증)', qty:'4', loc:'중앙B1 종합상황실' },
-      { name:'간이소화용구 (가정용·차량용)', qty:'3', loc:'중앙B1 종합상황실' },
-      { name:'공기호흡이송관', qty:'3', loc:'중앙B1 종합상황실' },
-      { name:'방열모', qty:'3', loc:'중앙B1 종합상황실' },
-      { name:'IPAD제세동기', qty:'1', loc:'중앙B1 종합상황실' },
-      { name:'안전벨트 — 전체식', qty:'5', loc:'중앙B1 종합상황실' },
-      { name:'안전벨트 — 상체식', qty:'4', loc:'중앙B1 종합상황실' },
-      { name:'BOX형 전기릴 (30M)', qty:'1', loc:'중앙B1 종합상황실' },
-      { name:'방열장갑', qty:'3', loc:'중앙B1 종합상황실' },
-      { name:'방열신발', qty:'3', loc:'중앙B1 종합상황실' },
-      { name:'스마트에어백 C3', qty:'4', loc:'건축·기계·전기·소방' },
+    { cat:'🔥 화재 — 소화 자재', items:[
+      { name:'스프링클러헤드',         spec:'플러쉬형',               qty:'4',   loc:'중앙B1 종합상황실' },
+      { name:'스프링클러헤드',         spec:'폐쇄상향형',             qty:'5',   loc:'중앙B1 종합상황실' },
+      { name:'감지기',                 spec:'아날로그식',             qty:'5',   loc:'중앙B1 종합상황실' },
+      { name:'감지기',                 spec:'정온식',                 qty:'3',   loc:'중앙B1 종합상황실' },
+      { name:'무반동관창',             spec:'65mm',                   qty:'3',   loc:'중앙B1 종합상황실' },
+      { name:'와이어절단기',           spec:'대',                     qty:'1',   loc:'중앙B1 종합상황실' },
+      { name:'도끼',                   spec:'대',                     qty:'2',   loc:'중앙B1 종합상황실' },
+      { name:'간이소화용구',           spec:'가정용·차량용',          qty:'3',   loc:'중앙B1 종합상황실' },
+    ]},
+    { cat:'🔥 화재 — 구급·개인장비', items:[
+      { name:'휴대용 산소소호흡기',    spec:'클린O2 / 내구3년(2026.09)',qty:'17', loc:'중앙B1 종합상황실' },
+      { name:'구급상자',               spec:'박스',                   qty:'5',   loc:'중앙B1 종합상황실(1) · 동·서관B3 운영센터(2) · 동·서관 라운지(2)' },
+      { name:'IPAD 제세동기',          spec:'-',                      qty:'1',   loc:'중앙B1 종합상황실' },
+      { name:'방열모',                 spec:'-',                      qty:'3',   loc:'중앙B1 종합상황실' },
+      { name:'방열장갑',               spec:'-',                      qty:'3',   loc:'중앙B1 종합상황실' },
+      { name:'방열신발',               spec:'-',                      qty:'3',   loc:'중앙B1 종합상황실' },
+      { name:'안전벨트',               spec:'전체식',                 qty:'5',   loc:'중앙B1 종합상황실' },
+      { name:'안전벨트',               spec:'상체식',                 qty:'4',   loc:'중앙B1 종합상황실' },
+      { name:'야광조끼(형광색)',       spec:'개',                     qty:'10',  loc:'중앙B1 종합상황실' },
+      { name:'안전봉',                 spec:'0.53M',                  qty:'5',   loc:'중앙B1 종합상황실' },
+      { name:'경광등',                 spec:'260MM',                  qty:'18',  loc:'서관B3 운영센터(9) · 동관B3 운영센터(9)' },
+      { name:'랜턴',                   spec:'-',                      qty:'1',   loc:'중앙B1 종합상황실' },
+      { name:'메가폰',                 spec:'MAX 25W RATED 18W',      qty:'2',   loc:'중앙B1 종합상황실' },
+      { name:'해머(동망치)',           spec:'3kg',                    qty:'1',   loc:'중앙B1 종합상황실' },
+      { name:'파이프랜치',             spec:'18인치',                 qty:'1',   loc:'중앙B1 종합상황실' },
+      { name:'파이프랜치',             spec:'24인치',                 qty:'1',   loc:'중앙B1 종합상황실' },
+      { name:'비상조명배터리',         spec:'6V',                     qty:'3',   loc:'중앙B1 종합상황실' },
+      { name:'BOX형 전기릴',           spec:'30M / 5.4kg',            qty:'2',   loc:'중앙B1 종합상황실' },
     ]},
   ],
-  // ── 전기 : 사업부기준 O 항목만 ──────────────────────
+
   elec: [
-    { cat:'⚡ 전기 — 안전장비', items:[
-      { name:'특고압 절연장갑 (안전장갑 C종)', qty:'6', loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
-      { name:'특고압 절연장화 (DV750V/AC7,000V)', qty:'6', loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
-      { name:'활선경보기 (TK-808)', qty:'6', loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
-      { name:'이동식 릴선 (30m, 누전차단기 부착)', qty:'6', loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
-      { name:'DS봉 2M (24KV/3단)', qty:'4', loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1)' },
-      { name:'단락 접지공구 (22.9KV·7KV)', qty:'6', loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
-      { name:'25.8kv 파워 퓨즈 (24KV/1A)', qty:'6', loc:'동관B1 수전실(6)' },
-      { name:'특고압 검전기 (접촉식 HST-30)', qty:'1', loc:'동관B1 수전실(1)' },
-      { name:'MOF 직결 케이블 (FR-CNCO-W 1C 326SQ)', qty:'1', loc:'동관B1 수전실' },
-      { name:'절연저항 측정기 (1000V, 2000MΩ)', qty:'1', loc:'동관B3 트윈타워운영센터' },
-      { name:'클램프메터 — 누설전류측정기 (HIOKI CM4002)', qty:'1', loc:'동관B3 트윈타워운영센터' },
-      { name:'다이젯 퓨즈 (500V/IEC269)', qty:'12', loc:'동관B1 수전실(3) · 동관B3 변전실(3) · 중앙B3 변전실(3) · 서관B3 변전실(3)' },
-      { name:'특고압 절연복 (26.5kV)', qty:'6', loc:'동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1) · (추가1)' },
+    { cat:'⚡ 정전 — 절연·보호 장비', items:[
+      { name:'특고압 절연장갑',        spec:'안전장갑 C종 / 내구20년', qty:'6',  loc:'동관B3 변전실 · 중앙B3 변전실 · 서관B3 변전실 · 동관35층 변전실 · 서관35층 변전실' },
+      { name:'특고압 절연장화',        spec:'DV750V / AC7,000V / 내구20년',qty:'6', loc:'동관B3 변전실 · 중앙B3 변전실 · 서관B3 변전실 · 동관35층 변전실 · 서관35층 변전실' },
+      { name:'특고압 절연복',          spec:'26.5kV / 내구20년',      qty:'6',   loc:'동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
+      { name:'고무절연 블랭킷',        spec:'Class 3, 26.5kV / 내구10년', qty:'4', loc:'동관B1 수전실 · 동관B3 변전실 · 중앙B3 변전실 · 서관B3 변전실' },
+    ]},
+    { cat:'⚡ 정전 — 검전·경보 기기', items:[
+      { name:'활선경보기',              spec:'TK-808 / 내구20년',     qty:'6',   loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
+      { name:'활선경보기 (손목형)',     spec:'AC 80V~6,600V / 내구10년',qty:'4', loc:'동관B1 수전실 · 동관B3 변전실 · 중앙B3 변전실 · 서관B3 변전실' },
+      { name:'고압 검전기 (음향발광식)',spec:'TK-8030 / AC80V~30KV / 내구15년',qty:'5', loc:'동관B1 수전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
+      { name:'고압 검전기',            spec:'AC/DC 7000V / 내구10년', qty:'3',   loc:'동관B3 변전실 · 중앙B3 변전실 · 서관B3 변전실' },
+      { name:'특고압 검전기 (음향발광식)',spec:'AC3KV~44KV / 내구20년',qty:'2', loc:'동관B3 변전실 · 서관B3 변전실' },
+      { name:'특고압 검전기 (접촉식)', spec:'HST-30 AC3KV~34.5KV / 내구20년',qty:'1', loc:'동관B1 수전실' },
+      { name:'절연 방전봉',            spec:'30KV / 내구30년',        qty:'4',   loc:'동관B1 수전실 · 동관B3 변전실 · 중앙B3 변전실 · 서관B3 변전실' },
+    ]},
+    { cat:'⚡ 정전 — 접지·조작 공구', items:[
+      { name:'DS봉 2M',                spec:'24KV / 3단',             qty:'4',   loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1)' },
+      { name:'단락 접지공구',           spec:'22.9KV · 7KV',          qty:'6',   loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
+      { name:'COS봉 2M',               spec:'30KV',                   qty:'2',   loc:'동관35층 변전실(1) · 서관35층 변전실(1)' },
+      { name:'이동식 릴선',            spec:'30m / 누전차단기 부착',  qty:'6',   loc:'동관B1 수전실(1) · 동관B3 변전실(1) · 중앙B3 변전실(1) · 서관B3 변전실(1) · 동관35층 변전실(1) · 서관35층 변전실(1)' },
+    ]},
+    { cat:'⚡ 정전 — 퓨즈·자재', items:[
+      { name:'퓨즈링크',               spec:'LFL-6P-1; 3.6/7.2kV; 1A',qty:'15', loc:'동관B3 변전실(3) · 중앙B3 변전실(3) · 서관B3 변전실(3) · 동관35층 변전실(3) · 서관35층 변전실(3)' },
+      { name:'25.8kV 파워퓨즈',        spec:'24KV / 1A / 내구10년',   qty:'6',   loc:'동관B1 수전실(6)' },
+      { name:'다이젯 퓨즈',            spec:'500V / IEC269',           qty:'12',  loc:'동관B1 수전실(3) · 동관B3 변전실(3) · 중앙B3 변전실(3) · 서관B3 변전실(3)' },
+      { name:'MOF 직결 케이블',        spec:'FR-CNCO-W 1C 326SQ',     qty:'1',   loc:'동관B1 수전실' },
+      { name:'MOF 몰드형',             spec:'DMI-203N / 내구20년',     qty:'1',   loc:'동관B1 수전실' },
+    ]},
+    { cat:'⚡ 정전 — 측정 기기', items:[
+      { name:'절연저항 측정기',        spec:'1000V, 2000MΩ / 내구20년',qty:'1',  loc:'동관B3 트윈타워운영센터' },
+      { name:'클램프메터 (누설전류)',  spec:'HIOKI CM4002 / 내구20년', qty:'1',   loc:'동관B3 트윈타워운영센터' },
+      { name:'특고압 검전기 (접촉식)', spec:'HST-30 / 내구20년',       qty:'1',   loc:'동관B1 수전실' },
+      { name:'진공차단기 (VCB)',        spec:'24KV / 630A / 25KA / 내구20년', qty:'1', loc:'동관B1 수전실' },
+      { name:'계기용변압기 (PT)',       spec:'13200/110V / 내구20년',   qty:'1',   loc:'동관B1 수전실' },
+      { name:'ALTS 배터리',            spec:'EM-24100 / 내구6년',      qty:'1',   loc:'동관B1 수전실' },
     ]},
   ],
-  // ── 풍수해 : 사업부기준 O 항목만 ─────────────────────
-  flood: [
-    { cat:'💧 풍수해 — 기계', items:[
-      { name:'보양비닐', qty:'14', loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · 냉동기실(4) · E35F 공조실(1) · E26F EMR(1) · E17F EMR(1) · E06F EMR(1) · W35F 공조실(1) · W26F EMR(1) · W17F EMR(1) · W06F EMR(1)' },
-      { name:'사다리 (2M)', qty:'3', loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · 냉동기실(1)' },
-      { name:'우마 (1M)', qty:'3', loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · 냉동기실(1)' },
-      { name:'고무밀대', qty:'17', loc:'서관20층 물탱크실(1) · E35F 공조실(2) · E26F EMR(2) · E17F EMR(2) · E06F EMR(2) · W35F 공조실(2) · W26F EMR(2) · W17F EMR(2) · W06F EMR(2)' },
-      { name:'상치형 양수펌프 (PU-950U, 50φ/캄록·호스)', qty:'2', loc:'냉동기실' },
-      { name:'수중형 양수펌프 (IP-217-F, 220V/20φ/6ton)', qty:'3', loc:'냉동기실' },
-      { name:'수중형 양수펌프 (IP-415, 220V/40φ/10ton)', qty:'2', loc:'냉동기실' },
-      { name:'수중형 양수펌프 (IP-835-HC, 220V/50φ/15ton)', qty:'1', loc:'냉동기실' },
-      { name:'수중형 양수펌프 (IPV-835, 220V/40φ/19ton)', qty:'5', loc:'냉동기실' },
-      { name:'수중형 양수펌프 (PDV-750MA, 220V/40φ/10ton)', qty:'1', loc:'냉동기실' },
-      { name:'수중형 양수펌프 (PDV-M,MA, 220V/50φ/15ton)', qty:'2', loc:'냉동기실' },
-      { name:'수중형 양수펌프 (IP-415N, 220V/50φ)', qty:'1', loc:'냉동기실' },
-      { name:'수중형 양수펌프 (PDV-750M, 220V/50φ)', qty:'1', loc:'냉동기실' },
+
+  leak: [
+    { cat:'💧 누수·침수 — 수거·이송', items:[
+      { name:'물통 (대)',              spec:'대',                      qty:'10',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(1) · E26F EMR(1) · E17F EMR(1) · E06F EMR(1) · W35F 공조실(1) · W26F EMR(1) · W17F EMR(1) · W06F EMR(1)' },
+      { name:'물통 (소)',              spec:'소',                      qty:'16',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(2) · E26F EMR(2) · E17F EMR(2) · E06F EMR(2) · W35F 공조실(1) · W26F EMR(2) · W17F EMR(1) · W06F EMR(2)' },
+      { name:'소형 흡진/흡수기',      spec:'50ℓ',                    qty:'10',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(1) · E26F EMR(1) · E17F EMR(1) · E06F EMR(1) · W35F 공조실(1) · W26F EMR(1) · W17F EMR(1) · W06F EMR(1)' },
+      { name:'고무밀대',              spec:'-',                       qty:'20',  loc:'각 층 물탱크실·공조실·EMR 각 2EA' },
+      { name:'천막호스',              spec:'외경 24cm',               qty:'8',   loc:'E35F·W35F 공조실(2) · 동·서관 6F/17F/26F EMR(6)' },
     ]},
-    { cat:'💧 풍수해 — 건축·미화', items:[
-      { name:'침수예방 차수판', qty:'5', loc:'동·서관 B1썬큰 · 서관 1층 썬큰 입구' },
-      { name:'모래주머니 (7KG)', qty:'521', loc:'동·서관 주차장 입구 모래함 · 서관 샤워식당 선큰 모래함' },
-      { name:'장화 (고무)', qty:'5', loc:'서관B2F #16 FAN ROOM' },
-      { name:'우의 (제비표우의-S)', qty:'12', loc:'서관B3F 미화창고' },
-      { name:'눈삽 — 소 (플라스틱)', qty:'25', loc:'서관B2F #16 FAN ROOM' },
-      { name:'눈삽 — 대 (플라스틱)', qty:'23', loc:'서관B2F #16 FAN ROOM' },
-      { name:'송풍기 (EBZ8550)', qty:'2', loc:'서관B2F #16 FAN ROOM' },
-      { name:'제설용 브로쉬 (LGM-SG110)', qty:'4', loc:'서관B3F 주차장 세차장 앞' },
+    { cat:'💧 누수·침수 — 보양·작업', items:[
+      { name:'보양비닐',              spec:'-',                       qty:'10',  loc:'각 층 물탱크실·공조실·EMR' },
+      { name:'비닐카바링',            spec:'대·소',                   qty:'28',  loc:'각 층 물탱크실·공조실·EMR (대 17 / 소 11)' },
+      { name:'사다리',                spec:'2M',                      qty:'2',   loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1)' },
+      { name:'우마',                  spec:'1M',                      qty:'2',   loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1)' },
+    ]},
+  ],
+
+  flood: [
+    { cat:'🌀 풍수해 — 배수 펌프', items:[
+      { name:'엔진 양수기',           spec:'80φ캄록 / 60ton',        qty:'2',   loc:'냉동기실' },
+      { name:'상치형 양수펌프',       spec:'PU-950U / 50φ 캄록·호스',qty:'2',   loc:'냉동기실' },
+      { name:'수중형 양수펌프',       spec:'IP-217-F / 220V 20φ 6ton',qty:'3',  loc:'냉동기실' },
+      { name:'수중형 양수펌프',       spec:'IP-415 / 220V 40φ 10ton', qty:'2',  loc:'냉동기실' },
+      { name:'수중형 양수펌프',       spec:'IP-835-HC / 220V 50φ 15ton',qty:'1',loc:'냉동기실' },
+      { name:'수중형 양수펌프',       spec:'IPV-835 / 220V 40φ 19ton',qty:'4',  loc:'냉동기실' },
+      { name:'수중형 양수펌프',       spec:'PDV-750MA / 220V 40φ 10ton',qty:'1',loc:'냉동기실' },
+      { name:'수중형 양수펌프',       spec:'PDV-M,MA / 220V 50φ 15ton',qty:'2', loc:'냉동기실' },
+      { name:'수중형 양수펌프',       spec:'IP-415N / 220V 50φ',      qty:'1',  loc:'냉동기실' },
+      { name:'수중형 양수펌프',       spec:'PDV-750M / 220V 50φ',     qty:'1',  loc:'냉동기실' },
+      { name:'(비상) 엔진 발전기',    spec:'220V / 2.4Kw / DC12V',   qty:'2',   loc:'냉동기실' },
+    ]},
+    { cat:'🌀 풍수해 — 호스·호스릴', items:[
+      { name:'천막 호스',             spec:'외경 24cm',               qty:'2',   loc:'냉동기실' },
+      { name:'천막 호스',             spec:'외경 3"',                 qty:'9',   loc:'냉동기실' },
+      { name:'천막 호스',             spec:'외경 2"',                 qty:'4',   loc:'냉동기실' },
+      { name:'소방 호스',             spec:'외경 10cm',               qty:'3',   loc:'냉동기실' },
+      { name:'소방 호스',             spec:'외경 6cm',                qty:'5',   loc:'냉동기실' },
+      { name:'주름관 호스',           spec:'외경 5.5cm (50A)',        qty:'8',   loc:'냉동기실' },
+      { name:'주름관 호스',           spec:'외경 4cm',                qty:'2',   loc:'냉동기실' },
+      { name:'주름관 호스',           spec:'외경 8.5cm (75mm)',       qty:'2',   loc:'냉동기실' },
+      { name:'주름관 호스',           spec:'외경 3cm (25mm)',         qty:'2',   loc:'냉동기실' },
+      { name:'전선릴',                spec:'-',                       qty:'1',   loc:'냉동기실' },
+    ]},
+    { cat:'🌀 풍수해 — 침수 차단', items:[
+      { name:'침수예방 차수판',       spec:'-',                       qty:'5',   loc:'서관B1 선큰(4) · 서관1층 선큰 입구(1)' },
+      { name:'모래주머니',            spec:'7KG',                     qty:'521', loc:'동·서관 주차장 입구 모래함 · 서관 샤워식당 선큰 모래함' },
+    ]},
+    { cat:'🌀 풍수해 — 보양·작업', items:[
+      { name:'보양비닐',              spec:'-',                       qty:'4',   loc:'냉동기실' },
+      { name:'비닐카바링',            spec:'대·소',                   qty:'3',   loc:'냉동기실' },
+      { name:'사다리',                spec:'2M',                      qty:'1',   loc:'냉동기실' },
+      { name:'우마',                  spec:'1M',                      qty:'1',   loc:'냉동기실' },
+      { name:'고무밀대',              spec:'-',                       qty:'11',  loc:'냉동기실' },
+      { name:'보안경',                spec:'-',                       qty:'1',   loc:'냉동기실' },
+    ]},
+  ],
+
+  snow: [
+    { cat:'❄️ 폭설 — 제설 기계', items:[
+      { name:'인도용 제설기',         spec:'이텍산업',                qty:'2',   loc:'서관B3 주차장 세차장 앞' },
+      { name:'제설용 브러쉬',         spec:'LGM-SG110',               qty:'4',   loc:'서관B3 주차장 세차장 앞' },
+      { name:'송풍기',                spec:'EBZ8500',                 qty:'2',   loc:'서관B2F #16 FAN ROOM' },
+      { name:'송풍기',                spec:'EBZ8550',                 qty:'2',   loc:'서관B2F #16 FAN ROOM' },
+    ]},
+    { cat:'❄️ 폭설 — 제설 도구·자재', items:[
+      { name:'넉가래',                spec:'프라스틱',                qty:'24',  loc:'서관B2F #16 FAN ROOM' },
+      { name:'삽',                    spec:'-',                       qty:'20',  loc:'서관B2F #16 FAN ROOM' },
+      { name:'눈삽 (소)',             spec:'플라스틱',                qty:'25',  loc:'서관B2F #16 FAN ROOM' },
+      { name:'눈삽 (대)',             spec:'플라스틱',                qty:'23',  loc:'서관B2F #16 FAN ROOM' },
+      { name:'염화칼슘',              spec:'20KG',                    qty:'37포',loc:'서관B2F #16 FAN ROOM' },
+    ]},
+    { cat:'❄️ 폭설 — 작업자 보호', items:[
+      { name:'장화',                  spec:'고무',                    qty:'5켤레',loc:'서관B2F #16 FAN ROOM' },
+      { name:'우의',                  spec:'제비표우의-S',            qty:'12',  loc:'서관B3F 미화창고' },
+    ]},
+  ],
+
+  quake: [
+    { cat:'🌍 지진·붕괴 — 전동 공구', items:[
+      { name:'해머드릴',              spec:'DCH417X2 (60V)',          qty:'1',   loc:'동관B3 건축영선실' },
+      { name:'디월트 무선그라인더',   spec:'DCG405N (18V)',           qty:'1',   loc:'동관B3 건축영선실' },
+      { name:'체인블록',              spec:'1톤 / 3M',                qty:'1',   loc:'동관B3 건축영선실' },
+    ]},
+    { cat:'🌍 지진·붕괴 — 수공구', items:[
+      { name:'빠루(바)',              spec:'450mm (18")',              qty:'1',   loc:'동관B3 건축영선실' },
+      { name:'망치',                  spec:'16oz (450g)',              qty:'2',   loc:'동관B3 건축영선실' },
+      { name:'삽',                    spec:'각삽 290×240mm',          qty:'2',   loc:'동관B3 건축영선실' },
+      { name:'곡갱이',                spec:'2.0kg × 900mm',           qty:'1',   loc:'동관B3 건축영선실' },
+      { name:'렌치세트',              spec:'8~24mm',                  qty:'2세트',loc:'동관B3 건축영선실' },
+      { name:'니퍼',                  spec:'7인치 (175mm)',           qty:'2',   loc:'동관B3 건축영선실' },
+      { name:'절단가위',              spec:'10~12인치 (250~300mm)',   qty:'5',   loc:'동관B3 건축영선실' },
+      { name:'드라이버세트',          spec:'6pcs~10pcs',              qty:'20세트',loc:'동관B3 건축영선실' },
+    ]},
+    { cat:'🌍 지진·붕괴 — 보호·자재', items:[
+      { name:'슈퍼그립노컷5 장갑',   spec:'235MM / 너비 95MM',       qty:'5',   loc:'동관B3 건축영선실' },
+      { name:'3M 방진마스크',         spec:'안면부여과식 2급',        qty:'1box',loc:'동관B3 건축영선실' },
+      { name:'3M 보안경',             spec:'ANSI Z87.1',              qty:'3',   loc:'동관B3 건축영선실' },
+      { name:'PP (마대)',             spec:'550×800mm',               qty:'30',  loc:'동관B3 건축영선실' },
+    ]},
+  ],
+
+  gas: [
+    { cat:'💨 가스누출 — 호흡 보호', items:[
+      { name:'공기호흡기 SCBA 01~04', spec:'양압식 60분용 SCA-790W', qty:'4',   loc:'중앙B1 종합상황실(4)  ※용기재검사 2026.07' },
+      { name:'공기호흡기 SCBA 05~06', spec:'양압식 30분용 SCA420S',  qty:'2',   loc:'동관B2 보안사무실(2)  ※용기재검사 2030.01' },
+      { name:'공기호흡기 SCBA 07~08', spec:'양압식 30분용 SCA420S',  qty:'2',   loc:'서관B3 운영센터(2)  ※용기재검사 2030.01' },
+      { name:'공기호흡기 SCBA 09~10', spec:'양압식 30분용 SCA420S',  qty:'2',   loc:'정화조실 입구(2)  ※용기재검사 2030.08' },
+    ]},
+    { cat:'💨 가스누출 — 탐지·차단', items:[
+      { name:'가스누출 검출기',       spec:'-',                       qty:'1',   loc:'중앙B1 종합상황실' },
+      { name:'파이프랜치',            spec:'18인치',                  qty:'1',   loc:'중앙B1 종합상황실' },
+      { name:'파이프랜치',            spec:'24인치',                  qty:'1',   loc:'중앙B1 종합상황실' },
+    ]},
+    { cat:'💨 가스누출 — 구급·대피', items:[
+      { name:'들것',                  spec:'-',                       qty:'2',   loc:'중앙B1 종합상황실 · 동관B2 보안사무실' },
+      { name:'구급상자',              spec:'박스',                    qty:'5',   loc:'중앙B1 종합상황실(1) · 동·서관B3 운영센터(2) · 동·서관 라운지(2)' },
+      { name:'안전봉',                spec:'0.53M',                   qty:'5',   loc:'중앙B1 종합상황실' },
+      { name:'경광등',                spec:'260MM',                   qty:'18',  loc:'서관B3 운영센터(9) · 동관B3 운영센터(9)' },
+      { name:'랜턴',                  spec:'-',                       qty:'1',   loc:'중앙B1 종합상황실' },
+    ]},
+  ],
+
+  elev: [
+    { cat:'🛗 승강기갇힘 — 구조 도구', items:[
+      { name:'승장 도어키',           spec:'PS·화물·ES 엘리베이터용', qty:'2',   loc:'종합상황실(2)' },
+      { name:'승장 도어키',           spec:'LZ·MZ·HZ·VIP 엘리베이터용',qty:'1', loc:'종합상황실(1)' },
+    ]},
+  ],
+
+  terror: [
+    { cat:'🚨 테러 — 검색·차단', items:[
+      { name:'문형 금속탐지기',       spec:'-',                       qty:'3',   loc:'동관1층 검색구역(1) · 서관1층 검색구역(2)' },
+      { name:'휴대용 금속탐지기',     spec:'-',                       qty:'8',   loc:'동관1층 검색구역(1) · 동관27·28·29층 EV홀(3) · 서관1층 검색구역(3) · 동관B3 운영센터(1)' },
+      { name:'X-ray 검색기',          spec:'-',                       qty:'3',   loc:'동관1층 검색구역(1) · 서관1층 검색구역(2)' },
+      { name:'차단봉',                spec:'-',                       qty:'152', loc:'동관1층 및 외곽(81) · 서관1층 및 외곽(71)' },
+      { name:'바리케이드',            spec:'-',                       qty:'4',   loc:'동관 주차장(2) · 동관 선큰 입구(1) · 지하주차장 입구 초소(1)' },
+    ]},
+    { cat:'🚨 테러 — 보안 장비', items:[
+      { name:'무전기',                spec:'-',                       qty:'45',  loc:'동·서관 각 근무지 · 동관B2 보안사무실' },
+      { name:'경광봉',                spec:'-',                       qty:'24',  loc:'동관B2 보안사무실(17) · 외곽 각 초소(4) · 서관1층 보안데스크(1)' },
+      { name:'삼단봉',                spec:'-',                       qty:'3',   loc:'동관1층 안내데스크(2) · 동관B2 보안사무실(1)' },
+      { name:'방독면',                spec:'-',                       qty:'3',   loc:'동관B2 보안사무실' },
+      { name:'안전조끼',              spec:'-',                       qty:'7',   loc:'동관B2 보안사무실' },
+      { name:'물리 마스터키',         spec:'-',                       qty:'2',   loc:'동관B2 보안사무실 · 서관1층 보안데스크' },
+      { name:'카드 마스터키',         spec:'-',                       qty:'2',   loc:'동관1층 안내데스크 · 서관1층 보안데스크' },
+      { name:'랜턴',                  spec:'-',                       qty:'4',   loc:'동관B2 보안사무실(1) · 서관1층 보안데스크(3)' },
+    ]},
+    { cat:'🚨 테러 — 구급·구조', items:[
+      { name:'AED',                   spec:'-',                       qty:'2',   loc:'동관1층 안내데스크 앞 · 서관1층 안내데스크 앞' },
+      { name:'산소캔',                spec:'-',                       qty:'20',  loc:'동관1층 안내데스크 앞(10) · 서관1층 안내데스크 앞(10)' },
+      { name:'구조손수건',            spec:'-',                       qty:'60',  loc:'동관1층 안내데스크 앞(30) · 서관1층 안내데스크 앞(30)' },
+      { name:'구급함',                spec:'-',                       qty:'2',   loc:'동관1층 안내데스크 앞 · 서관1층 안내데스크 앞' },
+      { name:'수동식 공기호흡기',     spec:'-',                       qty:'2',   loc:'동관1층 안내데스크 앞 · 서관1층 안내데스크 앞' },
+      { name:'들것',                  spec:'-',                       qty:'1',   loc:'동관B2 보안사무실' },
+    ]},
+  ],
+
+  intru: [
+    { cat:'🚷 침입 — 차단·대응', items:[
+      { name:'차단봉',                spec:'-',                       qty:'152', loc:'동관1층 및 외곽(81) · 서관1층 및 외곽(71)' },
+      { name:'바리케이드',            spec:'-',                       qty:'4',   loc:'동관 주차장(2) · 동관 선큰 입구(1) · 지하주차장 입구 초소(1)' },
+      { name:'삼단봉',                spec:'-',                       qty:'3',   loc:'동관1층 안내데스크(2) · 동관B2 보안사무실(1)' },
+      { name:'방독면',                spec:'-',                       qty:'3',   loc:'동관B2 보안사무실' },
+    ]},
+    { cat:'🚷 침입 — 보안 장비', items:[
+      { name:'무전기',                spec:'-',                       qty:'45',  loc:'동·서관 각 근무지 · 동관B2 보안사무실' },
+      { name:'경광봉',                spec:'-',                       qty:'24',  loc:'동관B2 보안사무실(17) · 외곽 각 초소(4) · 서관1층 보안데스크(1)' },
+      { name:'안전조끼',              spec:'-',                       qty:'7',   loc:'동관B2 보안사무실' },
+      { name:'물리 마스터키',         spec:'-',                       qty:'2',   loc:'동관B2 보안사무실 · 서관1층 보안데스크' },
+      { name:'카드 마스터키',         spec:'-',                       qty:'2',   loc:'동관1층 안내데스크 · 서관1층 보안데스크' },
+      { name:'랜턴',                  spec:'-',                       qty:'4',   loc:'동관B2 보안사무실(1) · 서관1층 보안데스크(3)' },
+    ]},
+    { cat:'🚷 침입 — 구급·구조', items:[
+      { name:'AED',                   spec:'-',                       qty:'2',   loc:'동관1층 안내데스크 앞 · 서관1층 안내데스크 앞' },
+      { name:'산소캔',                spec:'-',                       qty:'20',  loc:'동관1층 안내데스크 앞(10) · 서관1층 안내데스크 앞(10)' },
+      { name:'구조손수건',            spec:'-',                       qty:'60',  loc:'동관1층 안내데스크 앞(30) · 서관1층 안내데스크 앞(30)' },
+      { name:'구급함',                spec:'-',                       qty:'2',   loc:'동관1층 안내데스크 앞 · 서관1층 안내데스크 앞' },
+      { name:'수동식 공기호흡기',     spec:'-',                       qty:'2',   loc:'동관1층 안내데스크 앞 · 서관1층 안내데스크 앞' },
+      { name:'들것',                  spec:'-',                       qty:'1',   loc:'동관B2 보안사무실' },
     ]},
   ],
 };
 
 let currentEquipTab = 'fire';
 
-// 00대응별 비상장비 탭 (좌측 세로탭 — 비상연락처와 동일 구성)
+// 대응별 비상장비 탭 (좌측 세로탭)
 const EQUIP_TABS = [
-  { key:'fire',  label:'🔥<br>화재',   color:'#dc2626' },
-  { key:'elec',  label:'⚡<br>정전',   color:'#b45309' },
-  { key:'flood', label:'💧<br>풍수해', color:'#0891b2' },
+  { key:'fire',   label:'🔥<br>화재',     color:'#dc2626' },
+  { key:'elec',   label:'⚡<br>정전',     color:'#b45309' },
+  { key:'leak',   label:'💧<br>누수·침수',color:'#0891b2' },
+  { key:'flood',  label:'🌀<br>풍수해',   color:'#7c3aed' },
+  { key:'snow',   label:'❄️<br>폭설',     color:'#0369a1' },
+  { key:'quake',  label:'🌍<br>지진·붕괴',color:'#78716c' },
+  { key:'gas',    label:'💨<br>가스누출', color:'#15803d' },
+  { key:'elev',   label:'🛗<br>승강기',   color:'#b45309' },
+  { key:'terror', label:'🚨<br>테러',     color:'#be185d' },
+  { key:'intru',  label:'🚷<br>침입',     color:'#6d28d9' },
 ];
-const EQUIP_TAB_COLOR = { fire:'#dc2626', elec:'#b45309', flood:'#0891b2' };
+const EQUIP_TAB_COLOR = { fire:'#dc2626', elec:'#b45309', leak:'#0891b2', flood:'#7c3aed', snow:'#0369a1', quake:'#78716c', gas:'#15803d', elev:'#b45309', terror:'#be185d', intru:'#6d28d9' };
 
 function renderEquipTabs() {
   const bar = document.getElementById('equip-tabbar');
@@ -4686,17 +4877,19 @@ function renderEquipList() {
     group.items.forEach(function(item, i) {
       const key = currentEquipTab + '-' + globalIdx;
       const ok = !!equipChecked[key];
-      const bg = ok ? '#ecfdf3' : hexTint(c, i % 2 === 0 ? 0.86 : 0.94);
+      const bg = ok ? '#ecfdf3' : (i % 2 === 0 ? hexTint(c, 0.87) : hexTint(c, 0.94));
       const qtyTag = item.qty && item.qty !== '-'
         ? `<span style="background:${c}; color:white; font-size:10.5px; font-weight:800;
             padding:1px 7px; border-radius:6px; margin-left:6px; flex-shrink:0;">×${item.qty}</span>` : '';
+      const specRow = (item.spec && item.spec !== '-')
+        ? `<div style="font-size:10px; color:#9ca3af; margin-top:2px; font-style:italic; word-break:keep-all;">${item.spec}</div>` : '';
       rows += `<div onclick="equipChecked['${key}']=!equipChecked['${key}']; renderEquipList();"
         style="background:${bg}; padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer;">
         <div style="display:flex; align-items:flex-start; gap:10px;">
           <div style="flex-shrink:0; margin-top:2px; width:18px; height:18px; border-radius:5px;
             border:2px solid ${ok ? c : '#cbd5e1'}; background:${ok ? c : 'white'};
             display:flex; align-items:center; justify-content:center;">
-            ${ok ? `<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+            ${ok ? '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
           </div>
           <div style="flex:1; min-width:0;">
             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:2px;">
@@ -4704,6 +4897,7 @@ function renderEquipList() {
                 color:${ok ? '#9ca3af' : '#111'};
                 text-decoration:${ok ? 'line-through' : 'none'}; word-break:keep-all;">${item.name}</span>${qtyTag}
             </div>
+            ${specRow}
             ${item.loc && item.loc !== '-' ? `<div style="font-size:10px; color:#6b7280; margin-top:3px; line-height:1.5; word-break:keep-all;">📍 ${item.loc}</div>` : ''}
           </div>
         </div>
