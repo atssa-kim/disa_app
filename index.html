@@ -3816,19 +3816,30 @@ async function sbLoadDisasters() {
   try {
     const { data, error } = await sbClient
       .from('disaster_roles')
-      .select('disaster, group_name, role, badge, bc, disaster_tasks(task_idx, label)')
+      .select('disaster, shift, group_name, role, badge, bc, disaster_tasks(task_idx, label)')
       .order('disaster');
     if (error || !data || !data.length) return false;
     data.forEach(function(r) {
-      const d = DISASTERS.find(function(x) { return x.key === r.disaster; });
-      if (!d) return;
+      const shift = r.shift || 'day';
+      // 화재 야간/상황실은 별도 하드코딩 배열(FIRE_NIGHT·FIRE_BMS)로, 그 외(주간)는 DISASTERS.members로 라우팅
+      const targetArr = (shift === 'night') ? FIRE_NIGHT
+                       : (shift === 'bms')   ? FIRE_BMS
+                       : null;
       const tasks = (r.disaster_tasks || [])
         .sort(function(a, b) { return a.task_idx - b.task_idx; })
         .map(function(t) { return t.label; });
+      const member = { group: r.group_name, role: r.role, badge: r.badge, bc: r.bc, tasks: tasks };
+      if (targetArr) {
+        const idx = targetArr.findIndex(function(m) { return m.badge === r.badge; });
+        if (idx >= 0) targetArr[idx] = member;
+        // 상황실 BMS·야간 배열은 고정 인원 구성이라 신규 badge는 추가하지 않음(로컬 정의만 갱신)
+        return;
+      }
+      const d = DISASTERS.find(function(x) { return x.key === r.disaster; });
+      if (!d) return;
       const memberIdx = d.members
         ? d.members.findIndex(function(m) { return m.badge === r.badge; })
         : -1;
-      const member = { group: r.group_name, role: r.role, badge: r.badge, bc: r.bc, tasks: tasks };
       if (!d.members) d.members = [];
       if (memberIdx >= 0) d.members[memberIdx] = member;
       else d.members.push(member);
@@ -3841,14 +3852,15 @@ async function sbLoadDisasters() {
   }
 }
 
-async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks) {
+async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks, shift) {
   if (!sbClient) return;
+  shift = shift || 'day';
   try {
     const { data: roleRow, error: roleErr } = await sbClient
       .from('disaster_roles')
       .upsert(
-        { disaster: disasterKey, group_name: groupName, role: role, badge: badge, bc: bc },
-        { onConflict: 'disaster,badge' }
+        { disaster: disasterKey, shift: shift, group_name: groupName, role: role, badge: badge, bc: bc },
+        { onConflict: 'disaster,shift,badge' }
       )
       .select('id')
       .single();
@@ -3858,7 +3870,7 @@ async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks) {
       tasks.map(function(label, idx) { return { role_id: roleRow.id, task_idx: idx, label: label }; })
     );
     if (taskErr) console.error('[Supabase] 임무 저장 오류:', taskErr);
-    else console.log('[Supabase] 저장 완료:', disasterKey, badge, tasks.length + '개');
+    else console.log('[Supabase] 저장 완료:', disasterKey, shift, badge, tasks.length + '개');
   } catch(e) {
     console.error('[Supabase] 저장 오류:', e);
   }
@@ -3870,9 +3882,17 @@ async function sbSyncAll() {
   for (const d of DISASTERS) {
     if (!d.members) continue;
     for (const m of d.members) {
-      await sbSaveTasks(d.key, m.badge, m.group, m.role, m.bc, m.tasks);
+      await sbSaveTasks(d.key, m.badge, m.group, m.role, m.bc, m.tasks, 'day');
       total++;
     }
+  }
+  for (const m of FIRE_NIGHT) {
+    await sbSaveTasks('화재', m.badge, m.group, m.role, m.bc, m.tasks, 'night');
+    total++;
+  }
+  for (const m of FIRE_BMS) {
+    await sbSaveTasks('화재', m.badge, m.group, m.role, m.bc, m.tasks, 'bms');
+    total++;
   }
   alert('✅ Supabase 전체 동기화 완료: ' + total + '개 역할\ntwin-alarm 다음 발령 시 반영됩니다.');
 }
@@ -6591,9 +6611,10 @@ function saveTaskEdit() {
   customTasks[storageKey] = newTasks;
   saveCustomTasks();
 
-  // Supabase에도 저장 (일반 재난만; FIRE_NIGHT·BMS·시나리오 제외)
-  if (!isScenario && !isNight && !isBms) {
-    sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks);
+  // Supabase에도 저장 (시나리오는 훈련용 임시 구성이라 제외; 주간/야간/상황실은 shift로 구분 저장되어 서로 덮어쓰지 않음)
+  if (!isScenario) {
+    const shift = isNight ? 'night' : isBms ? 'bms' : 'day';
+    sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks, shift);
   }
 
   closeTaskEdit();
