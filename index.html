@@ -868,6 +868,7 @@ body {
       box-shadow:0 8px 24px rgba(0,0,0,0.18);overflow:hidden;"></div>
     <div class="panel-scroll" style="background:#f1f5f9; padding-bottom:16px;">
       <div id="member-list"></div>
+      <div id="add-role-btn-wrap" style="padding:10px 14px;"></div>
     </div>
   </div>
 
@@ -4032,6 +4033,19 @@ async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks, shift
   }
 }
 
+// 배지 이름을 바꿔 저장할 때, 기존 배지로 저장돼있던 옛 역할 행을 정리(고아 데이터 방지)
+async function sbDeleteRole(disasterKey, shift, badge) {
+  if (!sbClient) return;
+  try {
+    const { error } = await sbClient.from('disaster_roles').delete()
+      .eq('disaster', disasterKey).eq('shift', shift || 'day').eq('badge', badge);
+    if (error) console.error('[Supabase] 옛 배지 역할 삭제 오류:', error);
+    else console.log('[Supabase] 옛 배지 역할 삭제 완료:', disasterKey, badge);
+  } catch(e) {
+    console.error('[Supabase] 옛 배지 역할 삭제 오류:', e);
+  }
+}
+
 async function sbSyncAll() {
   if (!sbClient) { alert('Supabase 연결이 없습니다.'); return; }
   let total = 0;
@@ -4641,6 +4655,14 @@ function renderMemberList() {
 
 
   document.getElementById('member-list').innerHTML = html;
+
+  const addWrap = document.getElementById('add-role-btn-wrap');
+  if (addWrap) {
+    addWrap.innerHTML = isScenario ? '' : `
+      <button onclick="openAddRoleModal()" style="width:100%;padding:11px;border-radius:10px;
+        border:1.5px dashed ${d.color}66;background:${d.color}0d;color:${d.color};
+        font-size:13px;font-weight:700;cursor:pointer;">＋ 새 역할 추가</button>`;
+  }
 }
 
 function toggleGroupAccordion(key) {
@@ -6556,6 +6578,16 @@ function openTaskDirect(idx, dkey) {
 }
 
 // ── 임무 수정 모달 ────────────────────────────────────
+// 표준 배지 어휘 (2026-07-06 twin-alarm과 통일) — 임무 수정/역할 추가 시 이 안에서만 선택 가능
+const BADGE_OPTIONS = ['총괄','통제','상황','출동','대응','대응1','대응2','유도','유도1','유도2','응급','방호','경계','복구','지원','지원1','지원2'];
+
+function badgeSelectHtml(id, currentBadge) {
+  const opts = BADGE_OPTIONS.includes(currentBadge) ? BADGE_OPTIONS : [currentBadge, ...BADGE_OPTIONS];
+  return '<select id="' + id + '" style="padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:inherit;color:#1e293b;background:white;">' +
+    opts.map(function(b) { return '<option value="' + b + '"' + (b === currentBadge ? ' selected' : '') + '>' + b + '</option>'; }).join('') +
+    '</select>';
+}
+
 function openTaskEdit() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
@@ -6611,15 +6643,20 @@ function openTaskEdit() {
           cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
 
-      <!-- 임무 갯수 표시바 -->
+      <!-- 임무 갯수 표시바 + 배지 수정 -->
       <div style="background:${d.color}22;border-bottom:2px solid ${d.color}44;
-        padding:6px 16px;display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        padding:6px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;">
         <div style="font-size:11px;font-weight:700;color:${d.color}80;">
           총 ${m.tasks.length}개 임무
         </div>
-        <div style="flex:1;height:3px;background:${d.color}22;border-radius:2px;">
+        <div style="flex:1;height:3px;background:${d.color}22;border-radius:2px;min-width:20px;">
           <div style="width:100%;height:100%;background:${d.color}80;border-radius:2px;"></div>
         </div>
+        ${isScenario ? '' : `
+        <div style="display:flex;align-items:center;gap:5px;">
+          <span style="font-size:11px;font-weight:700;color:${d.color}cc;">배지</span>
+          ${badgeSelectHtml('edit-badge-select', m.badge)}
+        </div>`}
       </div>
 
       <!-- 임무 목록 — 흰 배경 -->
@@ -6758,6 +6795,13 @@ function saveTaskEdit() {
 
   m.tasks = newTasks;
 
+  // 배지 변경 확인 (표준 배지 목록 내에서만 선택 가능한 select이므로 값 자체는 항상 유효함)
+  const badgeSelect = document.getElementById('edit-badge-select');
+  const oldBadge = m.badge;
+  const newBadge = badgeSelect ? badgeSelect.value : m.badge;
+  const badgeChanged = !isScenario && newBadge !== oldBadge;
+  if (badgeChanged) m.badge = newBadge;
+
   // localStorage에 저장 (key: "재난키-멤버인덱스")
   const storageKey = (isScenario ? '화재_' + currentFireScenario
                    : isNight    ? '화재_야간'
@@ -6770,7 +6814,11 @@ function saveTaskEdit() {
   // Supabase에도 저장 (시나리오는 훈련용 임시 구성이라 제외; 주간/야간/상황실은 shift로 구분 저장되어 서로 덮어쓰지 않음)
   if (!isScenario) {
     const shift = isNight ? 'night' : isBms ? 'bms' : 'day';
-    sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks, shift);
+    sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks, shift)
+      .then(function() {
+        // 배지를 바꿨으면 옛 배지로 저장돼있던 역할 행은 정리 (고아 데이터 방지)
+        if (badgeChanged) sbDeleteRole(currentDisaster, shift, oldBadge);
+      });
   }
 
   closeTaskEdit();
@@ -6781,6 +6829,71 @@ function saveTaskEdit() {
 function closeTaskEdit() {
   const modal = document.getElementById('task-edit-modal');
   if (modal) modal.style.display = 'none';
+}
+
+// ── 새 역할 추가 (표준 배지 범위 내에서만) ──────────────────
+function openAddRoleModal() {
+  const d = DISASTERS.find(x=>x.key===currentDisaster);
+  let modal = document.getElementById('add-role-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'add-role-modal';
+    document.getElementById('app').appendChild(modal);
+  }
+  modal.style.cssText = 'position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);';
+  modal.innerHTML = `
+    <div onclick="event.stopPropagation()" style="background:white;border-radius:14px;width:min(340px,90vw);overflow:hidden;">
+      <div style="background:${d.color};padding:14px 16px;color:white;font-size:14px;font-weight:900;">＋ 새 역할 추가</div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">그룹명 (예: 대응반)</div>
+          <input id="new-role-group" type="text" placeholder="그룹명 입력"
+            style="width:100%;padding:9px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">역할명 (예: 🏗️ 신규조 (부서명))</div>
+          <input id="new-role-name" type="text" placeholder="역할명 입력"
+            style="width:100%;padding:9px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">배지 (표준 배지 범위 내에서만 선택)</div>
+          ${badgeSelectHtml('new-role-badge', BADGE_OPTIONS[0])}
+        </div>
+      </div>
+      <div style="display:flex;border-top:1.5px solid #f1f5f9;">
+        <button onclick="closeAddRoleModal()" style="flex:1;padding:12px;background:#f1f5f9;border:none;font-size:13px;font-weight:700;color:#64748b;cursor:pointer;">취소</button>
+        <button onclick="saveNewRole()" style="flex:1;padding:12px;background:${d.color};border:none;font-size:13px;font-weight:800;color:white;cursor:pointer;">추가</button>
+      </div>
+    </div>`;
+}
+
+function closeAddRoleModal() {
+  const modal = document.getElementById('add-role-modal');
+  if (modal) modal.remove();
+}
+
+function saveNewRole() {
+  const group = document.getElementById('new-role-group').value.trim();
+  const role = document.getElementById('new-role-name').value.trim();
+  const badge = document.getElementById('new-role-badge').value;
+  if (!group || !role) { alert('그룹명과 역할명을 입력하세요.'); return; }
+
+  const d = DISASTERS.find(x=>x.key===currentDisaster);
+  const isNight = currentDisaster === '화재' && currentShift === 'night';
+  const targetArr = isNight ? FIRE_NIGHT : d.members;
+  if (targetArr.some(m => m.badge === badge)) {
+    alert(`'${badge}' 배지는 이미 이 재난(${isNight ? '야간' : '주간'})에 사용 중입니다. 다른 배지를 선택하거나 기존 역할을 수정하세요.`);
+    return;
+  }
+
+  const newMember = { group, role, badge, bc: d.color, tasks: [] };
+  targetArr.push(newMember);
+  const newIdx = targetArr.length - 1;
+
+  closeAddRoleModal();
+  renderMemberList();
+  openTask(newIdx);
+  openTaskEdit();
 }
 
 function resetTaskEdit() {
