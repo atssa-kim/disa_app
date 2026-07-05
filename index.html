@@ -848,10 +848,6 @@ body {
           style="flex:1;min-width:0;border:none;border-radius:7px 7px 0 0;
           padding:7px 2px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;
           white-space:nowrap;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">🌙 야간</button>
-        <button id="btn-bms" onclick="setShift('bms')"
-          style="flex:1;min-width:0;border:none;border-radius:7px 7px 0 0;
-          padding:7px 2px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;
-          white-space:nowrap;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">📋 상황실</button>
         <button id="btn-evac" onclick="setShift('evac')"
           style="flex:1;min-width:0;border:none;border-radius:7px 7px 0 0;
           padding:7px 2px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
@@ -3053,7 +3049,61 @@ const FIRE_NIGHT = [
     "tasks": [
       "상황 전파 및 보고",
       "현장대응조 지휘통제",
-      "현장대응 업무(소화·피난유도·화재확대방지·정보전달등)"
+      "현장대응 업무(소화·피난유도·화재확대방지·정보전달등)",
+      "◇ 1분 이내",
+      "┖ Ch1,2 무전기로 보안·시설파트·주차 상황전파 출동요청",
+      "┖ 주야간) 상황실 BMS 및 1층 보안근무자 비상백 매고 현장출동",
+      "┖ 야간) 전기근무자 현장출동, 운전근무자 상황실 이동 업무보조",
+      "┖ 주간) 초기출동조(소방·전기 근무자) 비상장비 착용·휴대 출동",
+      "┖ 수신기 감지위치등 도면 사진찍어 단톡에 정보 공지",
+      "┖ 소방·보안근무자 무전기로 위치 상세 부가 설명",
+      "┖ (사진) 수신기 감지기 동작 전체/부분 사진",
+      "┖ (기타정보) 자탐구역·재연구역·방수구역 도면제공",
+      "┖ 층별 근무자 비상연락 — 화재여부 확인 요청",
+      "┖ 미화·층별보안·입주사 담당 등 가까운 위치 근무자에게 연락",
+      "┖ 해당 위치의 카메라 검색(확인 불가층: 서관 2~36층, 동관 5층)",
+      "◇ 1분 이후 소방설비",
+      "┖ 비상방송·경종·시각경보 정상동작 확인 (화재층 및 직상4개층)",
+      "┖ 전층 출입통제설비 로비스피드게이트 동작상태 확인",
+      "┖ 기타 소화,경보,소화활동등 소방설비 동작상태 확인",
+      "┖ 방화셔터·방화문등 피난방화설비 동작상태 확인",
+      "┖ 전층 공조설비 OFF + 샌드위치가압설비 동작상태 확인",
+      "┖ 정전 및 화재시 비상조명 점등 상태 확인",
+      "┖ 입주사 담당자등 비상문자 발송",
+      "┖ 관계자(센터장·안전관리자등) 연락",
+      "┖ 경보출력에 따른 민원전화등 응대 (후순위/임무 후 응대)",
+      "┖ 대피 질의시 \"일단 대피하시고 원인파악 후 안내방송 참조요청\"",
+      "◇ 화재시 설비연동",
+      "┖ 출입통제설비 해정(Unlocked), 스피드게이트 Open 연동확인",
+      "┖ 일반용 E/V 파킹 후 보고(수동 파킹), 비상용-운전자 연락, 오티스 연락",
+      "┖ 피난유도: 평일주간 우선경보 → 화재층에 따른 기준(소방계획서 참조)",
+      "┖ 야간·휴일: 전층 피난유도",
+      "┖ 대피방송순서 별도첨부",
+      "◇ 화재시 비상연락",
+      "┖ 주간: 자위소방대 비상연락(무전·톡), 관계자(센터장·안전관리자)",
+      "┖ 주간: 어린이집·VIP보안 화재전파",
+      "┖ 야간: 시설·미화·보안·주차 근무자, 특히 미화감독(피난약자-야간미화)",
+      "┖ 119 화재신고, 상세히 정보제공",
+      "┖ 관계자·입주사 담당자등 화재상황·정보등 문자 보고 <span onclick=\"event.stopPropagation();openMsgModal('fire')\" style=\"display:inline-block;margin-left:6px;padding:2px 8px;background:#dc2626;color:white;border-radius:8px;font-size:9.5px;font-weight:700;cursor:pointer;\">📨 비상문자송출</span>",
+      "┖ 종합상황실 상황보고",
+      "┖ 화재 진행 정보, 설비동작, 119신고, 요구조자, 피난상황등 현황판 작성",
+      "◇ 화재진압 후",
+      "┖ 경보·비상방송 정지등 동작된 소방시설 연동정지 및 수신반 복구",
+      "┖ 승강기운행, 출입통제&스피드게이트, 공조설비등 자수동 복구",
+      "┖ IOC RMS 정지요청",
+      "┖ 화재진압에 따른 전층 안내방송 송출 <span onclick=\"event.stopPropagation();openBroadcastModal()\" style=\"display:inline-block;margin-left:6px;padding:2px 8px;background:#dc2626;color:white;border-radius:8px;font-size:9.5px;font-weight:700;cursor:pointer;\">📋 송출순서표</span>",
+      "┖ 입주사 담당자등 상황종료 문자 발송",
+      "◇ 비화재보",
+      "┖ 경보·비상방송 정지 우선조치",
+      "┖ 기타 소방설비 연동정지",
+      "┖ 경보층에 오보임을 알리는 안내방송 송출(★)",
+      "┖ 경보층 확인",
+      "┖ 출입통제·조명·공조소설비등 화재연동 복구",
+      "┖ IOC RMS 정지요청",
+      "┖ 관계자(센터장·안전관리자) 전화 보고",
+      "┖ 주간(07~20시): 문자 발송(SNI·주엘지·해당입주사 담당자)",
+      "┖ 야간(20~07시): 오전 07시 해당층 입주사 + LG 담당자",
+      "┖ 문자보고 프로세서(BMS Phone 010-7716-8449)"
     ]
   },
   {
@@ -3101,184 +3151,7 @@ const FIRE_NIGHT = [
   }
 ];
 
-const FIRE_BMS = [
-  {
-    "group": "1분 이내",
-    "role": "①출동요청 : 소방",
-    "badge": "출동",
-    "bc": "#b91c1c",
-    "tasks": [
-      "Ch1,2 무전기로 보안·시설파트·주차 상황전파 출동요청",
-      "주야간) 상황실 BMS 및 1층 보안근무자 비상백 매고 현장출동",
-      "야간) 전기근무자 현장출동, 운전근무자 상황실 이동 업무보조",
-      "주간) 초기출동조(소방·전기 근무자) 비상장비 착용·휴대 출동"
-    ]
-  },
-  {
-    "group": "1분 이내",
-    "role": "②정보제공 : 소방",
-    "badge": "정보",
-    "bc": "#ef4444",
-    "tasks": [
-      "수신기 감지위치등 도면 사진찍어 단톡에 정보 공지",
-      "소방·보안근무자 무전기로 위치 상세 부가 설명",
-      "(사진) 수신기 감지기 동작 전체/부분 사진",
-      "(기타정보) 자탐구역·재연구역·방수구역 도면제공"
-    ]
-  },
-  {
-    "group": "1분 이내",
-    "role": "③비상연락 : 소방",
-    "badge": "연락",
-    "bc": "#b91c1c",
-    "tasks": [
-      "층별 근무자 비상연락 — 화재여부 확인 요청",
-      "미화·층별보안·입주사 담당 등 가까운 위치 근무자에게 연락"
-    ]
-  },
-  {
-    "group": "1분 이내",
-    "role": "④카메라검색 : 소방",
-    "badge": "CCTV",
-    "bc": "#9a3412",
-    "tasks": [
-      "해당 위치의 카메라 검색(확인 불가층: 서관 2~36층, 동관 5층)"
-    ]
-  },
-  {
-    "group": "1분 이후 소방설비",
-    "role": "소방설비 동작확인 : 소방",
-    "badge": "설비",
-    "bc": "#7f1d1d",
-    "tasks": [
-      "비상방송·경종·시각경보 정상동작 확인 (화재층 및 직상4개층)",
-      "전층 출입통제설비 로비스피드게이트 동작상태 확인",
-      "기타 소화,경보,소화활동등 소방설비 동작상태 확인",
-      "방화셔터·방화문등 피난방화설비 동작상태 확인"
-    ]
-  },
-  {
-    "group": "1분 이후 소방설비",
-    "role": "타설비 연동확인 : BMS/운전",
-    "badge": "연동",
-    "bc": "#92400e",
-    "tasks": [
-      "전층 공조설비 OFF + 샌드위치가압설비 동작상태 확인",
-      "정전 및 화재시 비상조명 점등 상태 확인",
-      "입주사 담당자등 비상문자 발송",
-      "관계자(센터장·안전관리자등) 연락",
-      "경보출력에 따른 민원전화등 응대 (후순위/임무 후 응대)",
-      "대피 질의시 \"일단 대피하시고 원인파악 후 안내방송 참조요청\""
-    ]
-  },
-  {
-    "group": "화재시 설비연동",
-    "role": "설비연동 : 소방",
-    "badge": "화재",
-    "bc": "#dc2626",
-    "tasks": [
-      "출입통제설비 해정(Unlocked), 스피드게이트 Open 연동확인",
-      "일반용 E/V 파킹 후 보고(수동 파킹), 비상용-운전자 연락, 오티스 연락",
-      "피난유도: 평일주간 우선경보 → 화재층에 따른 기준(소방계획서 참조)",
-      "야간·휴일: 전층 피난유도",
-      "대피방송순서 별도첨부"
-    ]
-  },
-  {
-    "group": "화재시 비상연락",
-    "role": "비상연락 : 소방/BMS",
-    "badge": "비상",
-    "bc": "#b91c1c",
-    "tasks": [
-      "주간: 자위소방대 비상연락(무전·톡), 관계자(센터장·안전관리자)",
-      "주간: 어린이집·VIP보안 화재전파",
-      "야간: 시설·미화·보안·주차 근무자, 특히 미화감독(피난약자-야간미화)",
-      "119 화재신고, 상세히 정보제공"
-    ]
-  },
-  {
-    "group": "화재시 비상연락",
-    "role": "문자발송 및 현황판 : BMS/운전",
-    "badge": "문자",
-    "bc": "#9a3412",
-    "tasks": [
-      "관계자·입주사 담당자등 화재상황·정보등 문자 보고 <span onclick=\"event.stopPropagation();openMsgModal('fire')\" style=\"display:inline-block;margin-left:6px;padding:2px 8px;background:#dc2626;color:white;border-radius:8px;font-size:9.5px;font-weight:700;cursor:pointer;\">📨 비상문자송출</span>",
-      "종합상황실 상황보고",
-      "화재 진행 정보, 설비동작, 119신고, 요구조자, 피난상황등 현황판 작성"
-    ]
-  },
-  {
-    "group": "화재진압 후",
-    "role": "경보정지 및 설비복구 : 소방·BMS근무자",
-    "badge": "복구",
-    "bc": "#1d4ed8",
-    "tasks": [
-      "경보·비상방송 정지등 동작된 소방시설 연동정지 및 수신반 복구",
-      "승강기운행, 출입통제&스피드게이트, 공조설비등 자수동 복구",
-      "IOC RMS 정지요청"
-    ]
-  },
-  {
-    "group": "화재진압 후",
-    "role": "안내방송 : 소방근무자",
-    "badge": "방송",
-    "bc": "#2563eb",
-    "tasks": [
-      "화재진압에 따른 전층 안내방송 송출 <span onclick=\"event.stopPropagation();openBroadcastModal()\" style=\"display:inline-block;margin-left:6px;padding:2px 8px;background:#dc2626;color:white;border-radius:8px;font-size:9.5px;font-weight:700;cursor:pointer;\">📋 송출순서표</span>"
-    ]
-  },
-  {
-    "group": "화재진압 후",
-    "role": "문자발송 : BMS근무자",
-    "badge": "종료",
-    "bc": "#0369a1",
-    "tasks": [
-      "입주사 담당자등 상황종료 문자 발송"
-    ]
-  },
-  {
-    "group": "비화재보",
-    "role": "①연동정지 : 소방",
-    "badge": "정지",
-    "bc": "#374151",
-    "tasks": [
-      "경보·비상방송 정지 우선조치",
-      "기타 소방설비 연동정지"
-    ]
-  },
-  {
-    "group": "비화재보",
-    "role": "②안내방송 : 소방",
-    "badge": "안내",
-    "bc": "#4b5563",
-    "tasks": [
-      "경보층에 오보임을 알리는 안내방송 송출(★)",
-      "경보층 확인"
-    ]
-  },
-  {
-    "group": "비화재보",
-    "role": "③설비복구 : 소방/BMS",
-    "badge": "복구",
-    "bc": "#6b7280",
-    "tasks": [
-      "출입통제·조명·공조소설비등 화재연동 복구",
-      "IOC RMS 정지요청"
-    ]
-  },
-  {
-    "group": "비화재보",
-    "role": "④문자발송 : 소방/BMS",
-    "badge": "문자",
-    "bc": "#374151",
-    "tasks": [
-      "관계자(센터장·안전관리자) 전화 보고",
-      "주간(07~20시): 문자 발송(SNI·주엘지·해당입주사 담당자)",
-      "야간(20~07시): 오전 07시 해당층 입주사 + LG 담당자",
-      "문자보고 프로세서(BMS Phone 010-7716-8449)"
-    ]
-  }
-];
+// 2026-07-08: 상황실(BMS) 메뉴 삭제 — 세부 절차 내용은 FIRE_NIGHT의 '통제' 역할 임무로 병합됨
 
 const FIRE_SCENARIOS = {
   "general": {
@@ -3812,10 +3685,6 @@ function exportToExcel() {
   wsNight['!cols'] = COL_W;
   XLSX.utils.book_append_sheet(wb, wsNight, '화재_야간');
 
-  const wsBms = XLSX.utils.aoa_to_sheet(membersToRows(FIRE_BMS));
-  wsBms['!cols'] = COL_W;
-  XLSX.utils.book_append_sheet(wb, wsBms, '화재_상황실');
-
   // 화재 시나리오별 시트
   const SCENARIO_SHEETS = [
     { key:'kitchen',    name:'화재_주방K급'   },
@@ -3890,10 +3759,6 @@ function importFromExcel(input) {
           FIRE_NIGHT.splice(0, FIRE_NIGHT.length);
           members.forEach(function(m) { FIRE_NIGHT.push(m); });
           updated++;
-        } else if (sheetName === '화재_상황실') {
-          FIRE_BMS.splice(0, FIRE_BMS.length);
-          members.forEach(function(m) { FIRE_BMS.push(m); });
-          updated++;
         } else if (SHEET_TO_SCENARIO[sheetName]) {
           const scenKey = SHEET_TO_SCENARIO[sheetName];
           const sc = FIRE_SCENARIOS[scenKey];
@@ -3942,17 +3807,15 @@ function setShift(shift) {
   currentShift = shift;
   const btnDay   = document.getElementById('btn-day');
   const btnNight = document.getElementById('btn-night');
-  const btnBms   = document.getElementById('btn-bms');
   const btnEvac  = document.getElementById('btn-evac');
   if (!btnDay) return;
   // 모두 비활성 (lifted-tab 스타일)
-  [btnDay, btnNight, btnBms, btnEvac].forEach(b => {
+  [btnDay, btnNight, btnEvac].forEach(b => {
     if (b) { b.style.background = 'rgba(255,255,255,0.1)'; b.style.color = 'rgba(255,255,255,0.7)'; b.style.opacity = '1'; b.style.pointerEvents = ''; }
   });
   // 선택 활성 (white 탭)
   if (shift === 'day')   { btnDay.style.background   = 'white'; btnDay.style.color   = '#dc2626'; }
   if (shift === 'night') { btnNight.style.background = 'white'; btnNight.style.color = '#1e3a8a'; }
-  if (shift === 'bms')   { btnBms.style.background   = 'white'; btnBms.style.color   = '#374151'; bmsOpenCatKeys = new Set([BMS_CATEGORIES[0].key]); }
   if (shift === 'evac')  { btnEvac.style.background  = 'white'; btnEvac.style.color  = '#b91c1c'; }
   openGroupKeys = new Set();
   openMemberIdx = null;
@@ -3978,10 +3841,10 @@ async function sbLoadDisasters() {
     if (error || !data || !data.length) return false;
     data.forEach(function(r) {
       const shift = r.shift || 'day';
-      // 화재 야간/상황실은 별도 하드코딩 배열(FIRE_NIGHT·FIRE_BMS)로, 그 외(주간)는 DISASTERS.members로 라우팅
-      const targetArr = (shift === 'night') ? FIRE_NIGHT
-                       : (shift === 'bms')   ? FIRE_BMS
-                       : null;
+      // 2026-07-08: 상황실(BMS) 메뉴 삭제 — 남아있는 옛 shift='bms' 행은 무시(어느 배열에도 안 들어감)
+      if (shift === 'bms') return;
+      // 화재 야간은 별도 하드코딩 배열(FIRE_NIGHT)로, 그 외(주간)는 DISASTERS.members로 라우팅
+      const targetArr = (shift === 'night') ? FIRE_NIGHT : null;
       const tasks = (r.disaster_tasks || [])
         .sort(function(a, b) { return a.task_idx - b.task_idx; })
         .map(function(t) { return t.label; });
@@ -3989,7 +3852,7 @@ async function sbLoadDisasters() {
       if (targetArr) {
         const idx = targetArr.findIndex(function(m) { return m.badge === r.badge; });
         if (idx >= 0) targetArr[idx] = member;
-        // 상황실 BMS·야간 배열은 고정 인원 구성이라 신규 badge는 추가하지 않음(로컬 정의만 갱신)
+        // 야간 배열은 고정 인원 구성이라 신규 badge는 추가하지 않음(로컬 정의만 갱신)
         return;
       }
       const d = DISASTERS.find(function(x) { return x.key === r.disaster; });
@@ -4058,10 +3921,6 @@ async function sbSyncAll() {
   }
   for (const m of FIRE_NIGHT) {
     await sbSaveTasks('화재', m.badge, m.group, m.role, m.bc, m.tasks, 'night');
-    total++;
-  }
-  for (const m of FIRE_BMS) {
-    await sbSaveTasks('화재', m.badge, m.group, m.role, m.bc, m.tasks, 'bms');
     total++;
   }
   alert('✅ Supabase 전체 동기화 완료: ' + total + '개 역할\ntwin-alarm 다음 발령 시 반영됩니다.');
@@ -4289,8 +4148,6 @@ function getProgress(dkey, idx) {
   let tasks;
   if (dkey === '화재_야간') {
     tasks = FIRE_NIGHT[idx] ? FIRE_NIGHT[idx].tasks : [];
-  } else if (dkey === '화재_상황실') {
-    tasks = FIRE_BMS[idx] ? FIRE_BMS[idx].tasks : [];
   } else if (dkey.startsWith('화재_') && FIRE_SCENARIOS[dkey.slice(3)]) {
     const sc = FIRE_SCENARIOS[dkey.slice(3)];
     tasks = sc.members && sc.members[idx] ? sc.members[idx].tasks : [];
@@ -4346,13 +4203,12 @@ function openDisaster(key) {
     tabScenario.style.borderColor = isGen ? 'rgba(255,255,255,0.5)' : 'white';
     const btnDay = document.getElementById('btn-day');
     const btnNight = document.getElementById('btn-night');
-    const btnBms = document.getElementById('btn-bms');
     const btnEvac = document.getElementById('btn-evac');
     if (isGen) {
-      [btnDay, btnNight, btnBms, btnEvac].forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = ''; });
+      [btnDay, btnNight, btnEvac].forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = ''; });
       setShift('day'); currentShift = 'day';
     } else {
-      [btnDay, btnNight, btnBms, btnEvac].forEach(b => {
+      [btnDay, btnNight, btnEvac].forEach(b => {
         b.style.background = 'rgba(255,255,255,0.06)'; b.style.color = 'rgba(255,255,255,0.35)';
         b.style.opacity = '0.5'; b.style.pointerEvents = 'none';
       });
@@ -4392,10 +4248,6 @@ function parseTaskKind(text) {
 function renderMemberList() {
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
 
-  if (!isScenario && currentDisaster === '화재' && currentShift === 'bms') {
-    renderBmsList();
-    return;
-  }
   if (!isScenario && currentDisaster === '화재' && currentShift === 'evac') {
     renderEvacList();
     return;
@@ -4461,9 +4313,6 @@ function renderMemberList() {
     const isComplete = pct === 100;
     const barColor = isComplete ? '#22c55e' : gc.bg;
     const isOpen = openMemberIdx === idx;
-    const isBmsCard = currentDisaster === '화재' && (
-      (currentShift === 'day' && m.badge === '상황') ||
-      (currentShift === 'night' && m.badge === '통제'));
     const borderTop = idx > 0 ? 'border-top: 1px solid #f1f5f9;' : '';
 
     // ── 아코디언 HTML 사전 구성 ──
@@ -4581,7 +4430,7 @@ function renderMemberList() {
 
     html += `
     <div id="mc-${idx}" style="${cardStyle}">
-      <div onclick="${isBmsCard ? 'setShift(\'bms\')' : 'toggleMemberAccordion(' + idx + ')'}"
+      <div onclick="toggleMemberAccordion(${idx})"
         style="padding:11px 14px;cursor:pointer;
           display:flex;align-items:center;gap:11px;
           background:${isOpen ? 'white' : isComplete ? '#f0fdf4' : 'white'};
@@ -4624,15 +4473,6 @@ function renderMemberList() {
           onmouseenter="this.style.background='${gc.bg}44'"
           onmouseleave="this.style.background='${gc.bg}22'">✏️</div>
 
-        ${isBmsCard ? `
-        <div style="flex-shrink:0;text-align:center;">
-          <div style="width:28px;height:28px;border-radius:50%;
-            background:#0369a133;
-            display:flex;align-items:center;justify-content:center;
-            font-size:14px;color:#0369a1;">📋</div>
-          <div style="font-size:9px;color:#0369a1;
-            margin-top:2px;font-weight:700;">상황실</div>
-        </div>` : `
         <div style="flex-shrink:0;text-align:center;">
           <div style="width:28px;height:28px;border-radius:50%;
             background:${isComplete?'#dcfce7':isOpen?gc.bg+'33':'#f1f5f9'};
@@ -4644,7 +4484,7 @@ function renderMemberList() {
           </div>
           <div style="font-size:9px;color:${isComplete?'#16a34a':'#94a3b8'};
             margin-top:2px;font-weight:700;">${pct}%</div>
-        </div>`}
+        </div>
       </div>
 
       ${accordionHtml}
@@ -6262,284 +6102,10 @@ function closeBroadcastModal() {
 }
 
 
-const BMS_CATEGORIES = [
-  {
-    key: 'bms_1min',
-    label: '⏱ 1분 이내',
-    color: '#374151',
-    gradient: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
-    headerBg: 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)',
-    border: '#374151',
-    tc: '#111827',
-    icon: '🚨',
-    accent: '#374151',
-    badge: { bg: '#374151', shadow: 'rgba(55,65,81,0.4)' },
-    desc: '화재감지 → 출동·정보·연락·카메라',
-    groups: ['1분 이내'],
-  },
-  {
-    key: 'bms_after',
-    label: '🚒 1분 이후',
-    color: '#f97316',
-    gradient: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
-    headerBg: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
-    border: '#f97316',
-    tc: '#7c2d12',
-    icon: '🔧',
-    accent: '#ea580c',
-    badge: { bg: '#ea580c', shadow: 'rgba(234,88,12,0.4)' },
-    desc: '소방설비 동작확인 및 타설비 연동',
-    groups: ['1분 이후 소방설비'],
-  },
-  {
-    key: 'bms_false',
-    label: '⚠️ 비화재보시',
-    color: '#6366f1',
-    gradient: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
-    headerBg: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)',
-    border: '#6366f1',
-    tc: '#3730a3',
-    icon: '🔕',
-    accent: '#4f46e5',
-    badge: { bg: '#4f46e5', shadow: 'rgba(79,70,229,0.4)' },
-    desc: '연동정지·안내방송·설비복구·문자',
-    groups: ['비화재보'],
-  },
-  {
-    key: 'bms_fire',
-    label: '🔥 화재 발생시',
-    color: '#dc2626',
-    gradient: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
-    headerBg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-    border: '#dc2626',
-    tc: '#991b1b',
-    icon: '🏃',
-    accent: '#dc2626',
-    badge: { bg: '#dc2626', shadow: 'rgba(220,38,38,0.4)' },
-    desc: '설비연동·비상연락·문자·현황판',
-    groups: ['화재시 설비연동', '화재시 비상연락', '화재진압 후'],
-  },
-];
-
-let bmsOpenCatKeys = new Set(); // 현재 열린 카테고리 keys
-
 function renderEvacList() {
   const el = document.getElementById('member-list');
   el.style.padding = '0';
   el.innerHTML = '<div style="padding:10px 8px; background:#f9fafb;">' + buildBroadcastHTML() + '</div>';
-}
-
-function resetBmsTasksDone() {
-  if (!confirm('상황실 전체 체크 항목을 초기화할까요?')) return;
-  Object.keys(tasksDone).forEach(k => {
-    if (k.startsWith('화재_상황실')) delete tasksDone[k];
-  });
-  saveTasksDone();
-  renderBmsList();
-}
-
-function renderBmsList() {
-  if (bmsOpenCatKeys.size === 0) bmsOpenCatKeys.add(BMS_CATEGORIES[0].key);
-
-  let html = `<div style="margin:8px 10px 2px;display:flex;justify-content:flex-end;">
-    <button onclick="resetBmsTasksDone()"
-      style="padding:6px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;
-      border-radius:8px;font-size:12px;font-weight:700;color:#475569;
-      cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">
-      🔄 전체 초기화
-    </button>
-  </div>`;
-
-  // ── 카테고리별 아코디언 ──
-  BMS_CATEGORIES.forEach(cat => {
-    const isCatOpen = bmsOpenCatKeys.has(cat.key);
-    const items = FIRE_BMS.filter(m => cat.groups.includes(m.group));
-    const totalDone = items.reduce((acc, m) => {
-      const gi = FIRE_BMS.indexOf(m);
-      const { done } = getProgress('화재_상황실', gi);
-      return acc + done;
-    }, 0);
-    const totalAll = items.reduce((acc, m) => acc + m.tasks.length, 0);
-    const catPct = totalAll ? Math.round(totalDone / totalAll * 100) : 0;
-    const catComplete = catPct === 100;
-
-    // ── 카테고리 아코디언 헤더 ──
-    html += `<div style="margin:6px 10px 0; border-left:5px solid ${cat.color};
-      border-radius:14px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-      <div onclick="toggleBmsCatAccordion('${cat.key}')"
-        style="display:flex;align-items:center;gap:12px;padding:12px 16px;
-        background:${cat.headerBg};
-        cursor:pointer;
-        transition:background .2s;position:relative;overflow:hidden;">
-        <div style="position:absolute;right:-10px;top:-10px;font-size:52px;
-          opacity:0.05;line-height:1;pointer-events:none;">${cat.icon}</div>
-        <div style="width:44px;height:44px;border-radius:12px;
-          background:${cat.color}18;border:2px solid ${cat.color}44;
-          display:flex;align-items:center;justify-content:center;
-          font-size:22px;flex-shrink:0;position:relative;">${cat.icon}</div>
-        <div style="flex:1;min-width:0;position:relative;">
-          <div style="font-size:15.5px;font-weight:900;color:${cat.color};letter-spacing:-0.4px;">
-            ${cat.label}
-          </div>
-          <div style="font-size:12.5px;color:#64748b;margin-top:2px;">
-            ${cat.desc}
-          </div>
-          <div style="margin-top:8px;height:4px;background:#e2e8f0;
-            border-radius:2px;overflow:hidden;">
-            <div style="width:${catPct}%;height:100%;background:${cat.color};
-              border-radius:2px;transition:width .5s;"></div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;position:relative;">
-          <div style="font-size:16px;font-weight:900;color:${cat.color};line-height:1;">
-            ${catComplete ? '✅' : catPct + '%'}
-          </div>
-          <div style="width:24px;height:24px;border-radius:50%;
-            background:${cat.color}18;
-            display:flex;align-items:center;justify-content:center;
-            font-size:16px;font-weight:300;color:${cat.color};
-            transition:transform .2s;transform:rotate(${isCatOpen ? '90deg' : '0'});">›</div>
-        </div>
-      </div>`;
-
-    if (isCatOpen) {
-    // ── 멤버 카드 목록 ──
-    html += `<div style="background:white;border-top:1px solid #f1f5f9;overflow:hidden;">`;
-
-  items.forEach((m, mi) => {
-    const globalIdx = FIRE_BMS.indexOf(m);
-    const { done, total, pct } = getProgress('화재_상황실', globalIdx);
-    const isComplete = pct === 100;
-
-    html += `
-    <div style="border-top:${mi > 0 ? '1px solid rgba(0,0,0,0.06)' : 'none'};">
-      <!-- 멤버 헤더 (배지 원위치) -->
-      <div onclick="openTask(${globalIdx},'화재_상황실')"
-        style="padding:12px 14px;display:flex;align-items:center;gap:10px;
-        cursor:pointer;background:${isComplete ? 'rgba(34,197,94,0.08)' : 'transparent'};
-        transition:background .15s;"
-        onmouseenter="this.style.background='rgba(0,0,0,0.04)'"
-        onmouseleave="this.style.background='${isComplete ? 'rgba(34,197,94,0.08)' : 'transparent'}'">
-        <!-- 뱃지 -->
-        <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;
-          background:${isComplete ? '#dcfce7' : 'white'};
-          border:2px solid ${isComplete ? '#22c55e' : cat.border};
-          display:flex;flex-direction:column;align-items:center;
-          justify-content:center;box-shadow:0 2px 8px ${cat.badge.shadow};">
-          <div style="font-size:11px;font-weight:900;
-            color:${isComplete ? '#16a34a' : cat.accent};
-            line-height:1.2;text-align:center;">${m.badge}</div>
-        </div>
-        <!-- 정보 -->
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14.5px;font-weight:800;color:#0f172a;
-            letter-spacing:-0.2px;margin-bottom:5px;
-            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            ${m.role}
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="flex:1;height:5px;background:rgba(0,0,0,0.1);
-              border-radius:3px;overflow:hidden;">
-              <div style="width:${pct}%;height:100%;
-                background:${isComplete ? '#22c55e' : cat.accent};
-                border-radius:3px;transition:width .4s;"></div>
-            </div>
-            <span style="font-size:12.5px;font-weight:800;flex-shrink:0;
-              color:${isComplete ? '#16a34a' : cat.tc};">${done}/${total}</span>
-          </div>
-        </div>
-        <!-- ✏️ 임무수정 버튼 -->
-        <div onclick="event.stopPropagation();openTaskDirect(${globalIdx},'화재_상황실')"
-          title="임무 수정"
-          style="width:30px;height:30px;border-radius:8px;flex-shrink:0;margin-right:6px;
-          background:${cat.accent}22;border:1.5px solid ${cat.accent}66;
-          display:flex;align-items:center;justify-content:center;
-          font-size:14px;cursor:pointer;transition:background .15s;"
-          onmouseenter="this.style.background='${cat.accent}44'"
-          onmouseleave="this.style.background='${cat.accent}22'">✏️</div>
-      </div>
-      <!-- 임무 체크리스트: 체크박스 중앙을 배지 중앙(36px) 아래에 정렬 -->
-      <!-- 배지중앙=14(좌패딩)+22(배지절반)=36px, 체크박스(18px)중앙=27+9=36px -->
-      <div style="padding:0 14px 10px 27px;">
-        ${m.tasks.map((task, ti) => {
-          const tkey = `화재_상황실-${globalIdx}-${ti}`;
-          const ok = !!tasksDone[tkey];
-          return `<div onclick="event.stopPropagation();toggleBmsTask('${tkey}')"
-            style="display:flex;align-items:flex-start;gap:8px;
-            padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);
-            cursor:pointer;transition:opacity .15s;"
-            onmouseenter="this.style.opacity='.75'"
-            onmouseleave="this.style.opacity='1'">
-            <div style="width:18px;height:18px;border-radius:5px;flex-shrink:0;
-              margin-top:1px;background:${ok ? cat.accent : 'white'};
-              border:2px solid ${ok ? cat.accent : '#cbd5e1'};
-              display:flex;align-items:center;justify-content:center;
-              box-shadow:${ok ? '0 2px 6px ' + cat.badge.shadow : 'none'};
-              transition:all .2s;">
-              ${ok ? '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
-            </div>
-            <div style="font-size:13.5px;color:${ok ? '#94a3b8' : '#1e293b'};
-              line-height:1.55;text-decoration:${ok ? 'line-through' : 'none'};
-              font-weight:${ok ? '400' : '600'};">${task}</div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-    });  // end items.forEach
-    html += `</div>`;  // close member cards container
-    } // end if (isCatOpen)
-    html += `</div>`;  // close category accordion
-  }); // end BMS_CATEGORIES.forEach
-
-  html += `<div style="height:6px;"></div>`;
-  document.getElementById('member-list').innerHTML = html;
-}
-
-function toggleBmsCatAccordion(key) {
-  if (bmsOpenCatKeys.has(key)) {
-    bmsOpenCatKeys.delete(key);
-  } else {
-    bmsOpenCatKeys.clear();
-    bmsOpenCatKeys.add(key);
-  }
-  renderBmsList();
-  const container = document.getElementById('member-list').parentElement;
-  if (container) container.scrollTop = 0;
-}
-
-function moveBmsMember(globalIdx, direction) {
-  const m = FIRE_BMS[globalIdx];
-  const groupItems = FIRE_BMS
-    .map((item, i) => ({ item, i }))
-    .filter(({ item }) => item.group === m.group);
-  const posInGroup = groupItems.findIndex(({ i }) => i === globalIdx);
-  const targetPos = posInGroup + direction;
-  if (targetPos < 0 || targetPos >= groupItems.length) return;
-  const targetGlobalIdx = groupItems[targetPos].i;
-  const temp = FIRE_BMS[globalIdx];
-  FIRE_BMS[globalIdx] = FIRE_BMS[targetGlobalIdx];
-  FIRE_BMS[targetGlobalIdx] = temp;
-  renderBmsList();
-}
-
-function toggleBmsItem(idx) {
-  bmsOpenItem = bmsOpenItem === idx ? null : idx;
-  renderBmsList();
-  // 열리는 서브메뉴가 상단에 오도록 스크롤
-  if (bmsOpenItem !== null) {
-    requestAnimationFrame(() => {
-      const el = document.getElementById('bmsitem-' + idx);
-      if (el) {
-        const container = document.getElementById('member-list').parentElement;
-        container.scrollTop = el.offsetTop - 4;
-      }
-    });
-  }
-}
-
-function toggleBmsTask(tkey) {
-  tasksDone[tkey] = !tasksDone[tkey];
-  renderBmsList();
 }
 
 function closeDetail() {
@@ -6554,13 +6120,11 @@ function openTask(idx, dkeyOverride) {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
   const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
-  const isBms      = !isScenario && currentDisaster === '화재' && currentShift === 'bms';
   const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[idx]
           : isNight    ? FIRE_NIGHT[idx]
-          : isBms      ? FIRE_BMS[idx]
           : d.members[idx];
   const shiftLabel = isScenario ? FIRE_SCENARIOS[currentFireScenario].label
-                   : isNight    ? '야간' : isBms ? '상황실' : '주간';
+                   : isNight    ? '야간' : '주간';
   document.getElementById('task-header').style.background = d.color;
   document.getElementById('task-member-name').textContent = m.role;
   document.getElementById('task-member-sub').textContent =
@@ -6592,10 +6156,8 @@ function openTaskEdit() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
   const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
-  const isBms      = !isScenario && currentDisaster === '화재' && currentShift === 'bms';
   const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
           : isNight    ? FIRE_NIGHT[currentMemberIdx]
-          : isBms      ? FIRE_BMS[currentMemberIdx]
           :               d.members[currentMemberIdx];
 
   // #app 직속으로 생성 (task-panel은 transform이 걸려 있어 position:fixed가 안 먹음 → 키보드 대응 불가)
@@ -6774,10 +6336,8 @@ function saveTaskEdit() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
   const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
-  const isBms      = !isScenario && currentDisaster === '화재' && currentShift === 'bms';
   const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
           : isNight    ? FIRE_NIGHT[currentMemberIdx]
-          : isBms      ? FIRE_BMS[currentMemberIdx]
           :               d.members[currentMemberIdx];
 
   // 살아있는 input 값만 수집
@@ -6805,15 +6365,14 @@ function saveTaskEdit() {
   // localStorage에 저장 (key: "재난키-멤버인덱스")
   const storageKey = (isScenario ? '화재_' + currentFireScenario
                    : isNight    ? '화재_야간'
-                   : isBms      ? '화재_상황실'
                    : currentDisaster)
                    + '-' + currentMemberIdx;
   customTasks[storageKey] = newTasks;
   saveCustomTasks();
 
-  // Supabase에도 저장 (시나리오는 훈련용 임시 구성이라 제외; 주간/야간/상황실은 shift로 구분 저장되어 서로 덮어쓰지 않음)
+  // Supabase에도 저장 (시나리오는 훈련용 임시 구성이라 제외; 주간/야간은 shift로 구분 저장되어 서로 덮어쓰지 않음)
   if (!isScenario) {
-    const shift = isNight ? 'night' : isBms ? 'bms' : 'day';
+    const shift = isNight ? 'night' : 'day';
     sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks, shift)
       .then(function() {
         // 배지를 바꿨으면 옛 배지로 저장돼있던 역할 행은 정리 (고아 데이터 방지)
@@ -6899,8 +6458,7 @@ function saveNewRole() {
 function resetTaskEdit() {
   if (!confirm('이 조원의 임무를 원래대로 초기화할까요?')) return;
   const isNight = currentDisaster === '화재' && currentShift === 'night';
-  const isBms   = currentDisaster === '화재' && currentShift === 'bms';
-  const storageKey = (isNight ? '화재_야간' : isBms ? '화재_상황실' : currentDisaster)
+  const storageKey = (isNight ? '화재_야간' : currentDisaster)
                    + '-' + currentMemberIdx;
   delete customTasks[storageKey];
   saveCustomTasks();
@@ -6912,14 +6470,11 @@ function renderTaskList() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
   const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
-  const isBms      = !isScenario && currentDisaster === '화재' && currentShift === 'bms';
   const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
           : isNight    ? FIRE_NIGHT[currentMemberIdx]
-          : isBms      ? FIRE_BMS[currentMemberIdx]
           : d.members[currentMemberIdx];
   const dkey = isScenario ? '화재_' + currentFireScenario
              : isNight    ? '화재_야간'
-             : isBms      ? '화재_상황실'
              : currentDisaster;
   const {done,total,pct} = getProgress(dkey, currentMemberIdx);
   const c = pct===100 ? '#22c55e' : d.color;
@@ -7320,8 +6875,6 @@ function buildDataBlock() {
     'const DISASTERS = ' + JSON.stringify(DISASTERS, null, 2) + ';',
     '',
     'const FIRE_NIGHT = ' + JSON.stringify(FIRE_NIGHT, null, 2) + ';',
-    '',
-    'const FIRE_BMS = ' + JSON.stringify(FIRE_BMS, null, 2) + ';',
     '',
     'const FIRE_SCENARIOS = ' + JSON.stringify(scenarios, null, 2) + ';',
     '// [[DATA_BLOCK_END]]'
@@ -8256,8 +7809,6 @@ window.addEventListener('popstate', function(e) {
 
     if (dkey === '화재_야간') {
       if (FIRE_NIGHT[idx]) FIRE_NIGHT[idx].tasks = tasks;
-    } else if (dkey === '화재_상황실') {
-      if (FIRE_BMS[idx]) FIRE_BMS[idx].tasks = tasks;
     } else if (dkey.startsWith('화재_') && FIRE_SCENARIOS[dkey.slice(3)]) {
       const sc = FIRE_SCENARIOS[dkey.slice(3)];
       if (sc.members && sc.members[idx]) sc.members[idx].tasks = tasks;
