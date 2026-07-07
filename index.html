@@ -1793,8 +1793,8 @@ body {
     </div>
   </div>
 
-  <!-- ── 관리자 인증 모달 ── -->
-  <div id="admin-auth-overlay"
+  <!-- ── 로그인 모달 (재난별 담당 파트장 / 마스터 계정) ── -->
+  <div id="login-overlay"
     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);
     z-index:500;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
     <div onclick="event.stopPropagation()"
@@ -1804,45 +1804,45 @@ body {
       <div style="background:#1b4fa8;padding:16px 18px;display:flex;align-items:center;gap:10px;">
         <div style="font-size:20px;">🔐</div>
         <div style="flex:1;">
-          <div style="font-size:14px;font-weight:800;color:white;">관리자 인증</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.75);margin-top:1px;">임무 가져오기는 관리자만 사용 가능합니다</div>
+          <div style="font-size:14px;font-weight:800;color:white;">로그인</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);margin-top:1px;">임무 수정은 담당 파트장/마스터 계정만 가능합니다</div>
         </div>
-        <button onclick="closeAdminAuth()"
+        <button onclick="closeLoginModal()"
           style="background:rgba(255,255,255,0.2);border:none;color:white;width:28px;height:28px;
           border-radius:50%;font-size:16px;cursor:pointer;line-height:1;flex-shrink:0;">✕</button>
       </div>
       <!-- 입력 폼 -->
       <div style="padding:20px 18px 22px;">
         <div style="margin-bottom:12px;">
-          <label for="admin-id-input" style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">아이디</label>
-          <input id="admin-id-input" type="text" placeholder="아이디 입력"
-            onkeydown="if(event.key==='Enter')document.getElementById('admin-pw-input').focus()"
+          <label for="login-email-input" style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">이메일</label>
+          <input id="login-email-input" type="email" placeholder="이메일 입력" autocomplete="username"
+            onkeydown="if(event.key==='Enter')document.getElementById('login-pw-input').focus()"
             style="width:100%;box-sizing:border-box;border:1.5px solid #e2e8f0;border-radius:10px;
             padding:10px 13px;font-size:14px;font-family:inherit;outline:none;
             transition:border-color .15s;"
             onfocus="this.style.borderColor='#1b4fa8'" onblur="this.style.borderColor='#e2e8f0'">
         </div>
         <div style="margin-bottom:16px;">
-          <label for="admin-pw-input" style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">비밀번호</label>
-          <input id="admin-pw-input" type="password" placeholder="비밀번호 입력"
-            onkeydown="if(event.key==='Enter')submitAdminAuth()"
+          <label for="login-pw-input" style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">비밀번호</label>
+          <input id="login-pw-input" type="password" placeholder="비밀번호 입력" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')submitLogin()"
             style="width:100%;box-sizing:border-box;border:1.5px solid #e2e8f0;border-radius:10px;
             padding:10px 13px;font-size:14px;font-family:inherit;outline:none;
             transition:border-color .15s;"
             onfocus="this.style.borderColor='#1b4fa8'" onblur="this.style.borderColor='#e2e8f0'">
         </div>
-        <div id="admin-auth-error"
+        <div id="login-error"
           style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;
           padding:8px 12px;font-size:12px;color:#dc2626;font-weight:600;margin-bottom:12px;">
-          ⚠️ 아이디 또는 비밀번호가 올바르지 않습니다.
+          ⚠️ 이메일 또는 비밀번호가 올바르지 않습니다.
         </div>
         <div style="display:flex;gap:8px;">
-          <button onclick="closeAdminAuth()"
+          <button onclick="closeLoginModal()"
             style="flex:1;background:#f1f5f9;border:none;border-radius:10px;padding:11px;
             font-size:13px;font-weight:700;cursor:pointer;color:#64748b;font-family:inherit;">취소</button>
-          <button onclick="submitAdminAuth()"
+          <button onclick="submitLogin()"
             style="flex:2;background:#1b4fa8;border:none;border-radius:10px;padding:11px;
-            font-size:13px;font-weight:700;cursor:pointer;color:white;font-family:inherit;">확인</button>
+            font-size:13px;font-weight:700;cursor:pointer;color:white;font-family:inherit;">로그인</button>
         </div>
       </div>
     </div>
@@ -1865,12 +1865,18 @@ body {
     </div>
     <div style="padding:8px 18px 22px;">
       <!-- 타이틀 -->
-      <div style="display:flex;align-items:center;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;margin-bottom:12px;">
         <div style="font-size:14px;font-weight:800;color:#1e293b;flex:1;">📊 임무 데이터 관리</div>
         <button onclick="closeExcelMenu()"
           style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:50%;
           font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
           color:#64748b;">✕</button>
+      </div>
+      <!-- 로그인 상태 -->
+      <div id="auth-status-line"
+        style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;
+        border-radius:10px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#475569;">
+        <span style="flex:1;">확인 중...</span>
       </div>
       <!-- 버튼 두 개 -->
       <div style="display:flex;gap:10px;margin-bottom:12px;">
@@ -1880,7 +1886,7 @@ body {
           font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;">
           <span style="font-size:22px;">📥</span>엑셀 download
         </button>
-        <button onclick="openAdminAuth()"
+        <button onclick="handleExcelUploadClick()"
           style="flex:1;background:#0f766e;color:white;border:none;border-radius:12px;
           padding:14px 8px;font-size:13px;font-weight:700;cursor:pointer;
           font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;">
@@ -1888,7 +1894,7 @@ body {
         </button>
       </div>
       <div style="font-size:10.5px;color:#94a3b8;text-align:center;line-height:1.6;">
-        엑셀로 임무 수정 후 upload하면 앱에 즉시 반영 및 Supabase 자동 저장됩니다
+        엑셀로 임무 수정 후 upload하면 앱에 즉시 반영 및 Supabase 자동 저장됩니다 (마스터 계정 전용)
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;">
         <button onclick="sbRefresh()"
@@ -1897,7 +1903,7 @@ body {
           font-family:inherit;">
           ☁️ DB에서 불러오기
         </button>
-        <button onclick="sbSyncAll()"
+        <button onclick="handleSyncAllClick()"
           style="flex:1;background:#065f46;color:white;border:none;
           border-radius:12px;padding:13px 8px;font-size:12px;font-weight:700;cursor:pointer;
           font-family:inherit;">
@@ -3713,6 +3719,9 @@ function importFromExcel(input) {
       const data = new Uint8Array(e.target.result);
       const wb = XLSX.read(data, { type: 'array', codepage: isCsv ? 65001 : undefined });
       let updated = 0;
+      // 실제로 이번 임포트에서 바뀐 재난·근무만 기록 — Supabase 재동기화 시 이 목록만 밀어써서
+      // 임포트에 포함 안 된 다른 재난이 옛 데이터로 되돌아가는 걸 방지 (2026-07-07 수정)
+      const syncTargets = [];
 
       wb.SheetNames.forEach(function(sheetName) {
         const ws = wb.Sheets[sheetName];
@@ -3750,6 +3759,7 @@ function importFromExcel(input) {
           FIRE_NIGHT.splice(0, FIRE_NIGHT.length);
           members.forEach(function(m) { FIRE_NIGHT.push(m); });
           updated++;
+          syncTargets.push({ key: '화재', shift: 'night' });
         } else if (SHEET_TO_SCENARIO[sheetName]) {
           const scenKey = SHEET_TO_SCENARIO[sheetName];
           const sc = FIRE_SCENARIOS[scenKey];
@@ -3771,6 +3781,7 @@ function importFromExcel(input) {
             d.members.splice(0, d.members.length);
             members.forEach(function(m) { d.members.push(m); });
             updated++;
+            syncTargets.push({ key: d.key, shift: 'day' });
           }
         }
       });
@@ -3782,7 +3793,9 @@ function importFromExcel(input) {
         if (typeof renderProcGrid === 'function') renderProcGrid();
         if (currentDisaster) renderMemberList();
         alert(updated + '개 시트 데이터를 가져왔습니다.\n앱에 적용되었습니다.');
-        saveData();
+        if (syncTargets.length > 0) {
+          sbSyncDisasters(syncTargets).catch(function(e) { console.error('[Supabase] 임포트 동기화 오류:', e); });
+        }
       } else {
         alert('가져올 수 있는 시트를 찾지 못했습니다.\n시트 이름을 확인해 주세요.');
       }
@@ -3863,8 +3876,9 @@ async function sbLoadDisasters() {
   }
 }
 
+// 반환값: true(저장 성공) / false(실패 — RLS 권한 없음 포함). 호출부에서 실패 시 사용자에게 알려야 함.
 async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks, shift) {
-  if (!sbClient) return;
+  if (!sbClient) return false;
   shift = shift || 'day';
   try {
     const { data: roleRow, error: roleErr } = await sbClient
@@ -3875,33 +3889,58 @@ async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks, shift
       )
       .select('id')
       .single();
-    if (roleErr) { console.error('[Supabase] 역할 저장 오류:', roleErr); return; }
+    if (roleErr) { console.error('[Supabase] 역할 저장 오류:', roleErr); return false; }
     await sbClient.from('disaster_tasks').delete().eq('role_id', roleRow.id);
     const { error: taskErr } = await sbClient.from('disaster_tasks').insert(
       tasks.map(function(label, idx) { return { role_id: roleRow.id, task_idx: idx, label: label }; })
     );
-    if (taskErr) console.error('[Supabase] 임무 저장 오류:', taskErr);
-    else console.log('[Supabase] 저장 완료:', disasterKey, shift, badge, tasks.length + '개');
+    if (taskErr) { console.error('[Supabase] 임무 저장 오류:', taskErr); return false; }
+    console.log('[Supabase] 저장 완료:', disasterKey, shift, badge, tasks.length + '개');
+    return true;
   } catch(e) {
     console.error('[Supabase] 저장 오류:', e);
+    return false;
   }
 }
 
 // 배지 이름을 바꿔 저장할 때, 기존 배지로 저장돼있던 옛 역할 행을 정리(고아 데이터 방지)
 async function sbDeleteRole(disasterKey, shift, badge) {
-  if (!sbClient) return;
+  if (!sbClient) return false;
   try {
     const { error } = await sbClient.from('disaster_roles').delete()
       .eq('disaster', disasterKey).eq('shift', shift || 'day').eq('badge', badge);
-    if (error) console.error('[Supabase] 옛 배지 역할 삭제 오류:', error);
-    else console.log('[Supabase] 옛 배지 역할 삭제 완료:', disasterKey, badge);
+    if (error) { console.error('[Supabase] 옛 배지 역할 삭제 오류:', error); return false; }
+    console.log('[Supabase] 옛 배지 역할 삭제 완료:', disasterKey, badge);
+    return true;
   } catch(e) {
     console.error('[Supabase] 옛 배지 역할 삭제 오류:', e);
+    return false;
   }
+}
+
+// 특정 재난·근무만 골라 동기화 (엑셀 임포트처럼 일부만 바뀐 경우 — 나머지 재난은 건드리지 않음)
+async function sbSyncDisasters(targets) {
+  if (!sbClient) { alert('Supabase 연결이 없습니다.'); return 0; }
+  let total = 0;
+  for (const t of targets) {
+    const members = (t.shift === 'night')
+      ? FIRE_NIGHT
+      : ((DISASTERS.find(function(d) { return d.key === t.key; }) || {}).members || []);
+    for (const m of members) {
+      await sbSaveTasks(t.key, m.badge, m.group, m.role, m.bc, m.tasks, t.shift);
+      total++;
+    }
+  }
+  return total;
 }
 
 async function sbSyncAll() {
   if (!sbClient) { alert('Supabase 연결이 없습니다.'); return; }
+  if (!confirm(
+    '⚠️ 지금 이 화면에 열려있는 데이터로 Supabase의 모든 재난 임무를 덮어씁니다.\n' +
+    '다른 사람이 방금 수정한 내용이 있다면 그 내용이 되돌아갈 수 있습니다.\n\n' +
+    '이 화면이 최신 상태가 맞는지 확인했나요? 계속하려면 확인을 누르세요.'
+  )) return;
   let total = 0;
   for (const d of DISASTERS) {
     if (!d.members) continue;
@@ -6186,6 +6225,11 @@ function badgeSelectHtml(id, currentBadge) {
 }
 
 function openTaskEdit() {
+  if (!currentAuthUser) { openLoginModal(openTaskEdit); return; }
+  if (!canEditDisaster(currentDisaster)) {
+    alert('⛔ "' + currentDisaster + '" 임무 수정 권한이 없습니다.\n담당 파트장 또는 마스터 계정으로 로그인하세요.');
+    return;
+  }
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
   const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
@@ -6407,7 +6451,11 @@ function saveTaskEdit() {
   if (!isScenario) {
     const shift = isNight ? 'night' : 'day';
     sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks, shift)
-      .then(function() {
+      .then(function(ok) {
+        if (!ok) {
+          alert('⚠️ Supabase 저장에 실패했습니다 (권한이 없거나 연결 오류).\n이 화면의 변경 내용은 이 기기에만 남아있고, 다른 사람에게는 반영되지 않았습니다.');
+          return;
+        }
         // 배지를 바꿨으면 옛 배지로 저장돼있던 역할 행은 정리 (고아 데이터 방지)
         if (badgeChanged) sbDeleteRole(currentDisaster, shift, oldBadge);
       });
@@ -6425,6 +6473,11 @@ function closeTaskEdit() {
 
 // ── 새 역할 추가 (표준 배지 범위 내에서만) ──────────────────
 function openAddRoleModal() {
+  if (!currentAuthUser) { openLoginModal(openAddRoleModal); return; }
+  if (!canEditDisaster(currentDisaster)) {
+    alert('⛔ "' + currentDisaster + '" 임무 수정 권한이 없습니다.\n담당 파트장 또는 마스터 계정으로 로그인하세요.');
+    return;
+  }
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   let modal = document.getElementById('add-role-modal');
   if (!modal) {
@@ -7165,30 +7218,118 @@ function resetSupabaseCfg() {
   }
 }
 
-// ── 관리자 인증 ────────────────────────────────────────
-function openAdminAuth() {
-  closeExcelMenu();
-  const overlay = document.getElementById('admin-auth-overlay');
-  document.getElementById('admin-id-input').value = '';
-  document.getElementById('admin-pw-input').value = '';
-  document.getElementById('admin-auth-error').style.display = 'none';
-  overlay.style.display = 'flex';
-  setTimeout(function() { document.getElementById('admin-id-input').focus(); }, 120);
+// ── 로그인 / 권한 (2026-07-07: 파트장별 재난 수정 권한 도입) ─────
+// disa_app_auth_setup.sql 로 만든 app_admins(마스터)/disaster_editors(담당 재난) 테이블을
+// 기준으로 "내가 이 재난을 수정할 수 있는지"를 판단합니다. 실제 저장 차단은 Supabase RLS가
+// 서버단에서 강제하며, 여기 값들은 UI 안내용(버튼 노출/에러 메시지)입니다.
+let currentAuthUser = null;
+let myIsMaster = false;
+let myDisasters = new Set();
+let _loginThen = null;
+
+async function initAuthSession() {
+  if (!sbClient) return;
+  const { data } = await sbClient.auth.getSession();
+  currentAuthUser = data.session ? data.session.user : null;
+  if (currentAuthUser) await refreshMyPermissions();
+  renderAuthStatusLine();
+  sbClient.auth.onAuthStateChange(function(_event, session) {
+    currentAuthUser = session ? session.user : null;
+    if (currentAuthUser) {
+      refreshMyPermissions().then(renderAuthStatusLine);
+    } else {
+      myIsMaster = false;
+      myDisasters = new Set();
+      renderAuthStatusLine();
+    }
+  });
 }
-function closeAdminAuth() {
-  document.getElementById('admin-auth-overlay').style.display = 'none';
+
+async function refreshMyPermissions() {
+  if (!currentAuthUser) { myIsMaster = false; myDisasters = new Set(); return; }
+  const [adminRes, editorRes] = await Promise.all([
+    sbClient.from('app_admins').select('user_id').eq('user_id', currentAuthUser.id).maybeSingle(),
+    sbClient.from('disaster_editors').select('disaster').eq('user_id', currentAuthUser.id)
+  ]);
+  myIsMaster = !!adminRes.data;
+  myDisasters = new Set((editorRes.data || []).map(function(r) { return r.disaster; }));
 }
-function submitAdminAuth() {
-  const id = document.getElementById('admin-id-input').value.trim();
-  const pw = document.getElementById('admin-pw-input').value;
-  if (id === 'atssa.kim' && pw === 'ats3773') {
-    closeAdminAuth();
-    document.getElementById('excel-import-input').click();
-  } else {
-    document.getElementById('admin-auth-error').style.display = 'block';
-    document.getElementById('admin-pw-input').value = '';
-    document.getElementById('admin-pw-input').focus();
+
+function canEditDisaster(key) {
+  return myIsMaster || myDisasters.has(key);
+}
+
+function renderAuthStatusLine() {
+  const el = document.getElementById('auth-status-line');
+  if (!el) return;
+  if (!currentAuthUser) {
+    el.innerHTML =
+      '<span style="flex:1;">🔒 로그인하지 않음 — 조회만 가능</span>' +
+      '<button onclick="openLoginModal()" style="background:#1b4fa8;color:white;border:none;' +
+      'border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">로그인</button>';
+    return;
   }
+  const scope = myIsMaster
+    ? '전체 재난 수정 가능 (마스터)'
+    : (myDisasters.size ? [...myDisasters].join('·') + ' 담당' : '담당 재난 없음 — 관리자에게 문의');
+  el.innerHTML =
+    '<span style="flex:1;">👤 ' + currentAuthUser.email + '<br><span style="color:#94a3b8;">' + scope + '</span></span>' +
+    '<button onclick="logout()" style="background:#f1f5f9;color:#475569;border:none;' +
+    'border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">로그아웃</button>';
+}
+
+// onSuccess: 로그인 성공 후 이어서 실행할 동작(예: 엑셀 업로드 계속 진행)
+function openLoginModal(onSuccess) {
+  _loginThen = onSuccess || null;
+  const overlay = document.getElementById('login-overlay');
+  document.getElementById('login-email-input').value = '';
+  document.getElementById('login-pw-input').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  overlay.style.display = 'flex';
+  setTimeout(function() { document.getElementById('login-email-input').focus(); }, 120);
+}
+function closeLoginModal() {
+  document.getElementById('login-overlay').style.display = 'none';
+  _loginThen = null;
+}
+async function submitLogin() {
+  if (!sbClient) { alert('Supabase 연결이 없습니다.'); return; }
+  const email = document.getElementById('login-email-input').value.trim();
+  const pw = document.getElementById('login-pw-input').value;
+  const { data, error } = await sbClient.auth.signInWithPassword({ email: email, password: pw });
+  if (error || !data.session) {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-pw-input').value = '';
+    document.getElementById('login-pw-input').focus();
+    return;
+  }
+  currentAuthUser = data.session.user;
+  await refreshMyPermissions();
+  renderAuthStatusLine();
+  document.getElementById('login-overlay').style.display = 'none';
+  const then = _loginThen;
+  _loginThen = null;
+  if (then) then();
+}
+async function logout() {
+  if (sbClient) await sbClient.auth.signOut();
+  currentAuthUser = null;
+  myIsMaster = false;
+  myDisasters = new Set();
+  renderAuthStatusLine();
+}
+
+// ── 엑셀 일괄 업로드 / DB 전체 저장 — 마스터 계정 전용 ─────────
+function handleExcelUploadClick() {
+  closeExcelMenu();
+  if (!currentAuthUser) { openLoginModal(handleExcelUploadClick); return; }
+  if (!myIsMaster) { alert('⛔ 엑셀 일괄 업로드는 마스터 계정만 사용할 수 있습니다.'); return; }
+  document.getElementById('excel-import-input').click();
+}
+function handleSyncAllClick() {
+  if (!currentAuthUser) { openLoginModal(handleSyncAllClick); return; }
+  if (!myIsMaster) { alert('⛔ DB 전체 저장은 마스터 계정만 사용할 수 있습니다.'); return; }
+  sbSyncAll();
 }
 
 function openExcelMenu() {
@@ -7199,6 +7340,7 @@ function openExcelMenu() {
     overlay.style.opacity = '1';
     sheet.style.transform = 'translateY(0)';
   });
+  renderAuthStatusLine();
 }
 function closeExcelMenu() {
   const overlay = document.getElementById('excel-sheet-overlay');
@@ -8788,6 +8930,7 @@ sbLoadDisasters().then(function(ok) {
     if (currentDisaster && typeof renderMemberList === 'function') renderMemberList();
   }
 });
+initAuthSession();
 
 </script>
 </body>
