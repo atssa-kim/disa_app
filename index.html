@@ -1848,6 +1848,66 @@ body {
     </div>
   </div>
 
+  <!-- ── 비밀번호 변경 모달 ── -->
+  <div id="change-pw-overlay"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);
+    z-index:500;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
+    <div onclick="event.stopPropagation()"
+      style="background:white;border-radius:18px;width:100%;max-width:340px;
+      overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <!-- 헤더 -->
+      <div style="background:#1b4fa8;padding:16px 18px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:20px;">🔑</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:800;color:white;">비밀번호 변경</div>
+          <div id="change-pw-subtitle" style="font-size:11px;color:rgba(255,255,255,0.75);margin-top:1px;"></div>
+        </div>
+        <button onclick="closeChangePasswordModal()"
+          style="background:rgba(255,255,255,0.2);border:none;color:white;width:28px;height:28px;
+          border-radius:50%;font-size:16px;cursor:pointer;line-height:1;flex-shrink:0;">✕</button>
+      </div>
+      <!-- 입력 폼 -->
+      <div style="padding:20px 18px 22px;">
+        <div style="margin-bottom:12px;">
+          <label for="change-pw-new1" style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">새 비밀번호 (6자 이상)</label>
+          <input id="change-pw-new1" type="password" placeholder="새 비밀번호 입력" autocomplete="new-password"
+            onkeydown="if(event.key==='Enter')document.getElementById('change-pw-new2').focus()"
+            style="width:100%;box-sizing:border-box;border:1.5px solid #e2e8f0;border-radius:10px;
+            padding:10px 13px;font-size:14px;font-family:inherit;outline:none;
+            transition:border-color .15s;"
+            onfocus="this.style.borderColor='#1b4fa8'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="change-pw-new2" style="font-size:11.5px;font-weight:700;color:#475569;display:block;margin-bottom:5px;">새 비밀번호 확인</label>
+          <input id="change-pw-new2" type="password" placeholder="새 비밀번호 다시 입력" autocomplete="new-password"
+            onkeydown="if(event.key==='Enter')submitChangePassword()"
+            style="width:100%;box-sizing:border-box;border:1.5px solid #e2e8f0;border-radius:10px;
+            padding:10px 13px;font-size:14px;font-family:inherit;outline:none;
+            transition:border-color .15s;"
+            onfocus="this.style.borderColor='#1b4fa8'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <div id="change-pw-error"
+          style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;
+          padding:8px 12px;font-size:12px;color:#dc2626;font-weight:600;margin-bottom:12px;">
+          ⚠️ 오류
+        </div>
+        <div id="change-pw-success"
+          style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;
+          padding:8px 12px;font-size:12px;color:#15803d;font-weight:600;margin-bottom:12px;">
+          ✅ 비밀번호가 변경되었습니다.
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="closeChangePasswordModal()"
+            style="flex:1;background:#f1f5f9;border:none;border-radius:10px;padding:11px;
+            font-size:13px;font-weight:700;cursor:pointer;color:#64748b;font-family:inherit;">취소</button>
+          <button onclick="submitChangePassword()"
+            style="flex:2;background:#1b4fa8;border:none;border-radius:10px;padding:11px;
+            font-size:13px;font-weight:700;cursor:pointer;color:white;font-family:inherit;">변경</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── 엑셀 임무수정 팝업 시트 ── -->
   <div id="excel-sheet-overlay"
     onclick="closeExcelMenu()"
@@ -2150,7 +2210,7 @@ const DISASTERS = [
       {
         "group": "대응반",
         "role": "🧯 인명구조조 (보안파트)",
-        "badge": "구조",
+        "badge": "응급",
         "bc": "#b91c1c",
         "tasks": [
           "비상장구_방화복SET·공기호흡기·무전기·들것·약품통",
@@ -2556,7 +2616,7 @@ const DISASTERS = [
       {
         "group": "지원반",
         "role": "🏥 구조조",
-        "badge": "구조",
+        "badge": "응급",
         "bc": "#4338ca",
         "tasks": [
           "응급환자 발생 시 119 신고 및 구급차 출동 요청",
@@ -2721,7 +2781,7 @@ const DISASTERS = [
       {
         "group": "지원반",
         "role": "🏥 지원반 (운영파트)",
-        "badge": "구조",
+        "badge": "응급",
         "bc": "#d97706",
         "tasks": [
           "들것·구급약품·산소호흡기 지참 현장 출동",
@@ -3012,7 +3072,7 @@ const DISASTERS = [
       {
         "group": "지원반",
         "role": "🏥 응급·지원반 (운영,보안1)",
-        "badge": "구조",
+        "badge": "응급",
         "bc": "#9f1239",
         "tasks": [
           "부상자 발생 시 응급처치 및 119 신고",
@@ -3244,7 +3304,7 @@ const FIRE_SCENARIOS = {
       {
         "group": "대응반",
         "role": "🧯 소화조 (기계파트)",
-        "badge": "소화",
+        "badge": "대응",
         "bc": "#ef4444",
         "tasks": [
           "비상장비_방화복Set·공기호흡기·무전기·헤드랜턴",
@@ -3260,7 +3320,7 @@ const FIRE_SCENARIOS = {
       {
         "group": "대응반",
         "role": "🧯 인명구조조 (보안파트)",
-        "badge": "구조",
+        "badge": "응급",
         "bc": "#b91c1c",
         "tasks": [
           "비상장구_방화복SET·공기호흡기·무전기·들것·약품통",
@@ -3377,7 +3437,7 @@ const FIRE_SCENARIOS = {
       {
         "group": "대응반",
         "role": "🧯 소화조 (기계파트)",
-        "badge": "소화",
+        "badge": "대응",
         "bc": "#ef4444",
         "tasks": [
           "공기호흡기 착용 — CO₂ 농도 위험 (질식)",
@@ -3392,7 +3452,7 @@ const FIRE_SCENARIOS = {
       {
         "group": "대응반",
         "role": "🪜 인명구조조 (보안파트)",
-        "badge": "구조",
+        "badge": "응급",
         "bc": "#b91c1c",
         "tasks": [
           "구역 내 잔류인원 신속 확인 및 대피",
@@ -3478,7 +3538,7 @@ const FIRE_SCENARIOS = {
       {
         "group": "대응반",
         "role": "🧯 소화조 (기계파트)",
-        "badge": "소화",
+        "badge": "대응",
         "bc": "#ef4444",
         "tasks": [
           "공기호흡기 착용 — 오프가스 질식·폭발 위험",
@@ -3493,7 +3553,7 @@ const FIRE_SCENARIOS = {
       {
         "group": "대응반",
         "role": "🪜 인명구조조 (보안파트)",
-        "badge": "구조",
+        "badge": "응급",
         "bc": "#b91c1c",
         "tasks": [
           "UPS실 인근 인원 신속 대피 유도",
@@ -3581,7 +3641,7 @@ const FIRE_SCENARIOS = {
       {
         "group": "대응반",
         "role": "🧯 소화조 (기계파트)",
-        "badge": "소화",
+        "badge": "대응",
         "bc": "#ef4444",
         "tasks": [
           "공기호흡기 착용 — 지하 밀폐 공간 연기 위험",
@@ -3595,7 +3655,7 @@ const FIRE_SCENARIOS = {
       {
         "group": "대응반",
         "role": "🪜 인명구조조 (보안파트)",
-        "badge": "구조",
+        "badge": "응급",
         "bc": "#b91c1c",
         "tasks": [
           "지하주차장 내 인원 신속 대피 유도",
@@ -7274,8 +7334,12 @@ function renderAuthStatusLine() {
     : (myDisasters.size ? [...myDisasters].join('·') + ' 담당' : '담당 재난 없음 — 관리자에게 문의');
   el.innerHTML =
     '<span style="flex:1;">👤 ' + currentAuthUser.email + '<br><span style="color:#94a3b8;">' + scope + '</span></span>' +
+    '<div style="display:flex;gap:6px;">' +
+    '<button onclick="openChangePasswordModal()" style="background:#f1f5f9;color:#475569;border:none;' +
+    'border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">비밀번호 변경</button>' +
     '<button onclick="logout()" style="background:#f1f5f9;color:#475569;border:none;' +
-    'border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">로그아웃</button>';
+    'border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">로그아웃</button>' +
+    '</div>';
 }
 
 // onSuccess: 로그인 성공 후 이어서 실행할 동작(예: 엑셀 업로드 계속 진행)
@@ -7317,6 +7381,44 @@ async function logout() {
   myIsMaster = false;
   myDisasters = new Set();
   renderAuthStatusLine();
+}
+
+// ── 비밀번호 변경 (로그인한 본인 계정) ──────────────────────
+function openChangePasswordModal() {
+  if (!currentAuthUser) { openLoginModal(openChangePasswordModal); return; }
+  const overlay = document.getElementById('change-pw-overlay');
+  document.getElementById('change-pw-subtitle').textContent = currentAuthUser.email;
+  document.getElementById('change-pw-new1').value = '';
+  document.getElementById('change-pw-new2').value = '';
+  document.getElementById('change-pw-error').style.display = 'none';
+  document.getElementById('change-pw-success').style.display = 'none';
+  overlay.style.display = 'flex';
+  setTimeout(function() { document.getElementById('change-pw-new1').focus(); }, 120);
+}
+function closeChangePasswordModal() {
+  document.getElementById('change-pw-overlay').style.display = 'none';
+}
+function showChangePwError(msg) {
+  const el = document.getElementById('change-pw-error');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+  document.getElementById('change-pw-success').style.display = 'none';
+}
+async function submitChangePassword() {
+  if (!sbClient || !currentAuthUser) { closeChangePasswordModal(); return; }
+  const pw1 = document.getElementById('change-pw-new1').value;
+  const pw2 = document.getElementById('change-pw-new2').value;
+  if (pw1.length < 6) { showChangePwError('비밀번호는 6자 이상이어야 합니다.'); return; }
+  if (pw1 !== pw2) { showChangePwError('두 비밀번호가 서로 다릅니다.'); return; }
+
+  const { error } = await sbClient.auth.updateUser({ password: pw1 });
+  if (error) { showChangePwError(error.message || '변경에 실패했습니다.'); return; }
+
+  document.getElementById('change-pw-error').style.display = 'none';
+  document.getElementById('change-pw-success').style.display = 'block';
+  document.getElementById('change-pw-new1').value = '';
+  document.getElementById('change-pw-new2').value = '';
+  setTimeout(closeChangePasswordModal, 1500);
 }
 
 // ── 엑셀 일괄 업로드 / DB 전체 저장 — 마스터 계정 전용 ─────────
