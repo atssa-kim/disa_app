@@ -779,7 +779,7 @@ body {
             <rect x="26" y="42" width="8" height="6" rx="0.5" fill="#1b4fa8"/>
           </svg>
         </div>
-        <div class="header-title" onclick="window.open('https://atssa-kim.github.io/twin-alarm/','_blank')" style="cursor:pointer;"><strong>트윈타워 재난대응<br>메뉴얼</strong></div>
+        <div class="header-title" onclick="window.open('https://atssa-kim.github.io/twin-alarm/','twin_alarm_window')" style="cursor:pointer;"><strong>트윈타워 재난대응<br>메뉴얼</strong></div>
       </div>
 
       <!-- 우측 버튼: 비상문자 + 비상장비 -->
@@ -4258,6 +4258,7 @@ const FIRE_CAT_MAP = {
   '화재진압 후': 'fire',
 };
 let fireEscalated = false; // false=감지기 동작(1분이내·1분이후·비화재보만 노출), true=화재 확정(화재시까지 노출)
+let taskViewFilterVariant = 'all'; // 임무 상세화면(읽기전용)의 상황별 보기 필터 — 'all'|''(공통)|variant명
 
 function getTaskCategories(tasks) {
   let cur = null;
@@ -6265,6 +6266,7 @@ function closeDetail() {
 // ── OPEN TASK ──────────────────────────────────────
 function openTask(idx, dkeyOverride) {
   currentMemberIdx = idx;
+  taskViewFilterVariant = 'all';
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
   const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
@@ -6283,9 +6285,14 @@ function openTask(idx, dkeyOverride) {
   panel.classList.add('open');
 }
 
+// 카드 목록에서 임무뷰(TASK 상세) 없이 수정 모달로 바로 들어온 경우를 기억해뒀다가,
+// 취소로 빠져나갈 때 임무뷰가 아니라 원래 있던 카드 목록으로 돌아가게 함 (2026-07-09)
+let _taskPanelOpenedByEditShortcut = false;
+
 // ✏️ 버튼 클릭 → 임무뷰 없이 수정 모달 바로 열기
 function openTaskDirect(idx, dkey) {
   openTask(idx, dkey);   // 패널 세팅 + currentMemberIdx 설정
+  _taskPanelOpenedByEditShortcut = true;
   openTaskEdit();        // 수정 모달 즉시 표시
 }
 
@@ -6298,6 +6305,65 @@ function badgeSelectHtml(id, currentBadge) {
   return '<select id="' + id + '" style="padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:inherit;color:#1e293b;background:white;">' +
     opts.map(function(b) { return '<option value="' + b + '"' + (b === currentBadge ? ' selected' : '') + '>' + b + '</option>'; }).join('') +
     '</select>';
+}
+
+// 이 재난(주/야 구분)에 이미 쓰이고 있는 variant 이름 전부 모으기 — 배지가 달라도 같은 상황 이름을
+// 재사용하도록(예: 화재의 '가스구역'을 통제·출동·총괄 등 여러 배지에서 똑같이 쓰게) 유도하기 위함
+function getDisasterVariantOptions(disasterKey, isNight) {
+  const members = isNight ? FIRE_NIGHT : ((DISASTERS.find(function(x) { return x.key === disasterKey; }) || {}).members || []);
+  const set = new Set();
+  members.forEach(function(m) {
+    if (!m.taskVariants) return;
+    Object.values(m.taskVariants).forEach(function(v) { if (v) set.add(v); });
+  });
+  return Array.from(set).sort();
+}
+
+// 임무 한 줄의 "상황(variant)" 선택 드롭다운 — 공통 / 기존 상황들 / +새 상황 추가
+function variantSelectHtml(id, currentVariant, options) {
+  const others = options.filter(function(v) { return v !== currentVariant; });
+  const opts = currentVariant ? ['', currentVariant].concat(others) : [''].concat(others);
+  const optionsHtml = opts.map(function(v) {
+    const label = v === '' ? '공통' : ('🏷️ ' + v);
+    return '<option value="' + v.replace(/"/g,'&quot;') + '"' + (v === currentVariant ? ' selected' : '') + '>' + label + '</option>';
+  }).join('');
+  return '<select id="' + id + '" onchange="onVariantSelectChange(this)" data-prev="' + (currentVariant || '').replace(/"/g,'&quot;') + '"' +
+    ' style="padding:0 6px;height:38px;border:1.5px solid #e2e8f0;border-left:none;font-size:10.5px;' +
+    'font-family:inherit;color:' + (currentVariant ? '#7c3aed' : '#94a3b8') + ';background:white;flex-shrink:0;max-width:88px;">' +
+    optionsHtml +
+    '<option value="__new__">＋ 새 상황...</option>' +
+    '</select>';
+}
+
+// 상황 드롭다운 변경 — "새 상황..." 선택 시 이름을 물어보고, 이 모달의 다른 줄 드롭다운에도 옵션 추가
+function onVariantSelectChange(select) {
+  if (select.value !== '__new__') {
+    select.style.color = select.value ? '#7c3aed' : '#94a3b8';
+    select.setAttribute('data-prev', select.value);
+    syncRowVariantAttr(select);
+    return;
+  }
+  const name = prompt('새 상황 이름을 입력하세요 (예: 변전실화재, 유류화재 등)');
+  const trimmed = (name || '').trim();
+  if (!trimmed) { select.value = select.getAttribute('data-prev') || ''; return; }
+  // 이 모달 안의 모든 상황 드롭다운에 새 옵션 추가(중복 방지) — 다른 줄에서도 같은 이름 재사용 가능하게
+  document.querySelectorAll('#edit-task-list select[id^="edit-variant-"]').forEach(function(sel) {
+    if (!Array.from(sel.options).some(function(o) { return o.value === trimmed; })) {
+      const opt = document.createElement('option');
+      opt.value = trimmed; opt.textContent = '🏷️ ' + trimmed;
+      sel.insertBefore(opt, sel.lastElementChild); // "+새 상황" 앞에 삽입
+    }
+  });
+  select.value = trimmed;
+  select.style.color = '#7c3aed';
+  select.setAttribute('data-prev', trimmed);
+  syncRowVariantAttr(select);
+}
+
+// 드롭다운이 속한 행의 data-variant(필터가 참조하는 값)를 최신값으로 동기화
+function syncRowVariantAttr(select) {
+  const row = select.closest('[id^="edit-row-"]');
+  if (row) row.setAttribute('data-variant', select.value);
 }
 
 function openTaskEdit() {
@@ -6322,20 +6388,17 @@ function openTaskEdit() {
   }
   positionEditModal(modal);
 
+  const variantOptions = isScenario ? [] : getDisasterVariantOptions(currentDisaster, isNight);
   const tasksHtml = m.tasks.map((t,i) => {
-    const variant = m.taskVariants && m.taskVariants[t];
-    const variantTag = variant
-      ? `<div style="background:#7c3aed;color:white;font-size:9.5px;font-weight:800;
-          padding:0 6px;height:38px;display:flex;align-items:center;flex-shrink:0;white-space:nowrap;"
-          title="상황 확정(${variant})에서만 표시되는 임무 — 문구를 고치면 이 태그가 사라집니다">🏷️ ${variant}</div>`
-      : '';
+    const variant = (m.taskVariants && m.taskVariants[t]) || '';
+    const variantSelect = isScenario ? '' : variantSelectHtml('edit-variant-' + i, variant, variantOptions);
     return `
-    <div style="display:flex;align-items:center;gap:0;margin-bottom:6px;" id="edit-row-${i}">
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:6px;" id="edit-row-${i}" data-variant="${variant}">
       <div data-badge onmousedown="editDragHandleDown(event,this)" ontouchstart="editDragHandleDown(event,this)"
         style="background:${d.color}80;color:white;font-size:11px;font-weight:800;
         padding:0 8px;height:38px;display:flex;align-items:center;flex-shrink:0;
         min-width:28px;justify-content:center;cursor:grab;user-select:none;touch-action:none;">${i+1}</div>
-      ${variantTag}
+      ${variantSelect}
       <input type="text" value="${t.replace(/"/g,'&quot;')}"
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
         onfocus="setTimeout(()=>this.scrollIntoView({block:'center',behavior:'smooth'}),300)"
@@ -6348,6 +6411,30 @@ function openTaskEdit() {
         color:white;font-size:15px;cursor:pointer;flex-shrink:0;">✕</button>
     </div>`;
   }).join('');
+
+  // 상황별 필터 칩 — 이 배지에 실제로 존재하는 variant만 동적으로 뽑음 (없으면 필터바 자체를 안 그림)
+  const variantCounts = {};
+  m.tasks.forEach(t => {
+    const v = (m.taskVariants && m.taskVariants[t]) || '';
+    variantCounts[v] = (variantCounts[v] || 0) + 1;
+  });
+  const variantKeys = Object.keys(variantCounts).filter(v => v !== '').sort();
+  const filterChipsHtml = variantKeys.length === 0 ? '' : `
+    <div id="edit-filter-bar" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+      padding:6px 16px;background:${d.color}0d;border-bottom:1px solid ${d.color}22;flex-shrink:0;">
+      <span style="font-size:10.5px;font-weight:700;color:#64748b;">상황별 보기:</span>
+      <button onclick="applyEditFilter('all')" data-filter-chip="all"
+        style="padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;cursor:pointer;
+        border:1px solid ${d.color}55;background:${d.color};color:white;">전체 ${m.tasks.length}</button>
+      <button onclick="applyEditFilter('')" data-filter-chip=""
+        style="padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;cursor:pointer;
+        border:1px solid #cbd5e1;background:white;color:#475569;">공통 ${variantCounts[''] || 0}</button>
+      ${variantKeys.map(v => `
+      <button onclick="applyEditFilter('${v}')" data-filter-chip="${v}"
+        style="padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;cursor:pointer;
+        border:1px solid #c4b5fd;background:white;color:#7c3aed;">🏷️ ${v} ${variantCounts[v]}</button>
+      `).join('')}
+    </div>`;
 
   modal.innerHTML = `
     <div onclick="event.stopPropagation()" style="background:#f8fafc;width:100%;
@@ -6383,6 +6470,8 @@ function openTaskEdit() {
         </div>`}
       </div>
 
+      ${filterChipsHtml}
+
       <!-- 임무 목록 — 흰 배경 -->
       <div style="flex:1;overflow-y:auto;padding:12px 14px;background:white;"
         id="edit-task-list">
@@ -6413,19 +6502,53 @@ function openTaskEdit() {
   modal.style.display = 'flex';
 }
 
+// 상황별 필터 칩 클릭 — 'all'=전체, ''=공통만, 그 외='variant명'만 보이게
+function applyEditFilter(variant) {
+  const list = document.getElementById('edit-task-list');
+  if (!list) return;
+  list.querySelectorAll('[id^="edit-row-"]').forEach(function(row) {
+    const rv = row.getAttribute('data-variant') || '';
+    row.style.display = (variant === 'all' || rv === variant) ? 'flex' : 'none';
+  });
+  const d = DISASTERS.find(function(x) { return x.key === currentDisaster; });
+  const color = d ? d.color : '#1d4ed8';
+  document.querySelectorAll('[data-filter-chip]').forEach(function(chip) {
+    const key = chip.getAttribute('data-filter-chip');
+    const active = key === variant;
+    if (key === 'all') {
+      chip.style.background = active ? color : 'white';
+      chip.style.color = active ? 'white' : '#475569';
+      chip.style.borderColor = active ? color + '55' : '#cbd5e1';
+    } else if (key === '') {
+      chip.style.background = active ? '#475569' : 'white';
+      chip.style.color = active ? 'white' : '#475569';
+      chip.style.borderColor = active ? '#475569' : '#cbd5e1';
+    } else {
+      chip.style.background = active ? '#7c3aed' : 'white';
+      chip.style.color = active ? 'white' : '#7c3aed';
+      chip.style.borderColor = active ? '#7c3aed' : '#c4b5fd';
+    }
+  });
+}
+
 function addEditTask() {
   const list = document.getElementById('edit-task-list');
   const i = list.querySelectorAll('[id^="edit-row-"]').length;
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const color = d ? d.color : '#1d4ed8';
+  const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
+  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const variantSelect = isScenario ? '' : variantSelectHtml('edit-variant-' + i, '', getDisasterVariantOptions(currentDisaster, isNight));
   const div = document.createElement('div');
   div.id = `edit-row-${i}`;
+  div.setAttribute('data-variant', '');
   div.style.cssText = 'display:flex;align-items:center;gap:0;margin-bottom:6px;';
   div.innerHTML = `
     <div data-badge onmousedown="editDragHandleDown(event,this)" ontouchstart="editDragHandleDown(event,this)"
       style="background:${color}80;color:white;font-size:11px;font-weight:800;
       padding:0 8px;height:38px;display:flex;align-items:center;flex-shrink:0;
       min-width:28px;justify-content:center;cursor:grab;user-select:none;touch-action:none;">${i+1}</div>
+    ${variantSelect}
     <input type="text" placeholder="새 임무 내용 입력..."
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
       onfocus="setTimeout(()=>this.scrollIntoView({block:'center',behavior:'smooth'}),300)"
@@ -6437,6 +6560,8 @@ function addEditTask() {
       border-left:2px solid rgba(255,255,255,0.2);
       color:white;font-size:15px;cursor:pointer;flex-shrink:0;">✕</button>`;
   list.appendChild(div);
+  // 필터 걸려있으면 전체 보기로 되돌려서 방금 추가한 임무가 바로 보이게 함
+  if (document.getElementById('edit-filter-bar')) applyEditFilter('all');
   div.querySelector('input').focus();
 }
 
@@ -6502,12 +6627,17 @@ function saveTaskEdit() {
           : isNight    ? FIRE_NIGHT[currentMemberIdx]
           :               d.members[currentMemberIdx];
 
-  // 살아있는 input 값만 수집
+  // 살아있는 input 값만 수집 — 같은 줄의 상황(variant) 드롭다운도 같이 읽어서 텍스트에 매칭
   const inputs = document.querySelectorAll('#edit-task-list input[type="text"]');
   const newTasks = [];
+  const newTaskVariants = {};
   inputs.forEach(inp => {
     const v = inp.value.trim();
-    if (v) newTasks.push(v);
+    if (!v) return;
+    newTasks.push(v);
+    const idx = inp.id.replace('edit-task-', '');
+    const variantSelect = document.getElementById('edit-variant-' + idx);
+    if (variantSelect && variantSelect.value) newTaskVariants[v] = variantSelect.value;
   });
 
   if (newTasks.length === 0) {
@@ -6516,6 +6646,7 @@ function saveTaskEdit() {
   }
 
   m.tasks = newTasks;
+  if (!isScenario) m.taskVariants = newTaskVariants;
 
   // 배지 변경 확인 (표준 배지 목록 내에서만 선택 가능한 select이므로 값 자체는 항상 유효함)
   const badgeSelect = document.getElementById('edit-badge-select');
@@ -6554,6 +6685,12 @@ function saveTaskEdit() {
 function closeTaskEdit() {
   const modal = document.getElementById('task-edit-modal');
   if (modal) modal.style.display = 'none';
+  // 카드 목록에서 임무뷰 없이 바로 수정으로 들어왔던 경우, 취소해도 임무뷰(TASK 상세)가
+  // 아니라 원래 있던 카드 목록으로 돌아가게 함
+  if (_taskPanelOpenedByEditShortcut) {
+    _taskPanelOpenedByEditShortcut = false;
+    closeTask();
+  }
 }
 
 // ── 새 역할 추가 (표준 배지 범위 내에서만) ──────────────────
@@ -6675,11 +6812,48 @@ function renderTaskList() {
     modeBar.remove();
   }
 
+  // 상황별 보기 필터 — 이 배지 임무에 variant가 하나라도 있으면 필터바 표시 (없으면 기존과 완전히 동일)
+  const variantCounts = {};
+  m.tasks.forEach(t => {
+    const v = (m.taskVariants && m.taskVariants[t]) || '';
+    variantCounts[v] = (variantCounts[v] || 0) + 1;
+  });
+  const variantKeys = Object.keys(variantCounts).filter(v => v !== '').sort();
+  let variantBar = document.getElementById('task-variant-filter-bar');
+  if (variantKeys.length > 0) {
+    if (!variantBar) {
+      variantBar = document.createElement('div');
+      variantBar.id = 'task-variant-filter-bar';
+      const listEl = document.getElementById('task-list');
+      listEl.parentElement.insertBefore(variantBar, listEl);
+    }
+    variantBar.style.cssText = 'display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:8px 14px;background:#faf5ff;border-bottom:1px solid #e9d5ff;';
+    const chip = (key, label, count, activeBg, activeColor, inactiveColor) => {
+      const active = taskViewFilterVariant === key;
+      return `<button onclick="applyTaskViewFilter('${key}')"
+        style="padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;cursor:pointer;
+        border:1px solid ${active ? activeBg : '#e9d5ff'};background:${active ? activeBg : 'white'};
+        color:${active ? activeColor : inactiveColor};">${label} ${count}</button>`;
+    };
+    variantBar.innerHTML =
+      `<span style="font-size:10.5px;font-weight:700;color:#7c3aed;">🏷️ 상황별 보기:</span>` +
+      chip('all', '전체', m.tasks.length, '#7c3aed', 'white', '#7c3aed') +
+      chip('', '공통', variantCounts[''] || 0, '#475569', 'white', '#475569') +
+      variantKeys.map(v => chip(v, v, variantCounts[v], '#7c3aed', 'white', '#7c3aed')).join('');
+  } else if (variantBar) {
+    variantBar.remove();
+  }
+
   const cats = isFireCat ? getTaskCategories(m.tasks) : null;
   const visibleCats = fireEscalated ? ['1min','after','false','fire'] : ['1min','after','false'];
   const indices = m.tasks
     .map((_, i) => i)
-    .filter(i => !isFireCat || visibleCats.includes(cats[i]));
+    .filter(i => !isFireCat || visibleCats.includes(cats[i]))
+    .filter(i => {
+      if (taskViewFilterVariant === 'all') return true;
+      const v = (m.taskVariants && m.taskVariants[m.tasks[i]]) || '';
+      return v === taskViewFilterVariant;
+    });
 
   // 분기 그룹 번호 계산 (보이는 임무 기준, 일반/분기 = 1,2,3…  분기 하위 = 5-1, 5-2…)
   let tnMain = 0, tnSub = 0;
@@ -6695,14 +6869,21 @@ function renderTaskList() {
     const key = `${dkey}-${currentMemberIdx}-${i}`;
     const ok = !!tasksDone[key];
     const pk = parseTaskKind(task);
+    const variant = (m.taskVariants && m.taskVariants[task]) || '';
+    const variantBadge = variant
+      ? `<span style="background:#7c3aed;color:white;font-size:9.5px;font-weight:800;
+          padding:1px 7px;border-radius:7px;margin-left:5px;white-space:nowrap;">🏷️ ${variant}</span>`
+      : '';
     let rowStyle = '', numHtml = `TASK ${taskNums[i]}`;
     if (pk.kind === 'branch') {
       rowStyle = ok ? '' : 'background:#fffbeb;border-color:#fcd34d;border-left:4px solid #f59e0b;';
       numHtml = `<span style="background:#f59e0b;color:white;padding:1px 7px;border-radius:7px;">🔀 ${pk.tag} 분기 ${taskNums[i]}</span>
-        <span style="color:#b45309;margin-left:5px;">해당 시 아래 단계 수행</span>`;
+        <span style="color:#b45309;margin-left:5px;">해당 시 아래 단계 수행</span>${variantBadge}`;
     } else if (pk.kind === 'sub') {
       rowStyle = 'margin-left:24px;' + (ok ? '' : 'background:#fffdf5;border-left:4px solid #fcd34d;');
-      numHtml = `┖ TASK ${taskNums[i]}`;
+      numHtml = `┖ TASK ${taskNums[i]}${variantBadge}`;
+    } else {
+      numHtml = `TASK ${taskNums[i]}${variantBadge}`;
     }
     return `<div class="task-item${ok?' done':''}" style="${rowStyle}" onclick="toggleTask('${key}')">
       <div class="t-check">
@@ -6720,6 +6901,11 @@ function renderTaskList() {
 
 function setFireEscalated(val) {
   fireEscalated = val;
+  renderTaskList();
+}
+
+function applyTaskViewFilter(variant) {
+  taskViewFilterVariant = variant;
   renderTaskList();
 }
 
