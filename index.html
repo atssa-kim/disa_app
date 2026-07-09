@@ -4259,6 +4259,7 @@ const FIRE_CAT_MAP = {
 };
 let fireEscalated = false; // false=감지기 동작(1분이내·1분이후·비화재보만 노출), true=화재 확정(화재시까지 노출)
 let taskViewFilterVariant = 'all'; // 임무 상세화면(읽기전용)의 상황별 보기 필터 — 'all'|''(공통)|variant명
+let memberViewFilterVariant = 'all'; // 카드 목록 내 인라인 펼침(renderMemberList)의 상황별 보기 필터
 
 function getTaskCategories(tasks) {
   let cur = null;
@@ -4474,7 +4475,8 @@ function renderMemberList() {
         const isEquipTask = task.startsWith('비상장구_');
         const equipKeyword = isEquipTask ? task.substring(5) : '';
         const pk = parseTaskKind(isEquipTask ? equipKeyword : task);
-        const entry = { ti: ti, pk: pk, isEquipTask: isEquipTask, equipKeyword: equipKeyword };
+        const variant = (m.taskVariants && m.taskVariants[task]) || '';
+        const entry = { ti: ti, pk: pk, isEquipTask: isEquipTask, equipKeyword: equipKeyword, variant: variant };
         if (pk.kind === 'sub' && lastBranch) {
           lastBranch.subs.push(entry);
         } else {
@@ -4484,6 +4486,34 @@ function renderMemberList() {
           lastBranch = pk.kind === 'branch' ? entry : null;
         }
       });
+
+      // 상황별 보기 필터 — 이 배지에 variant가 하나라도 있으면 칩 표시 (없으면 기존과 완전히 동일)
+      const memberVariantCounts = {};
+      taskItems.forEach(e => { memberVariantCounts[e.variant] = (memberVariantCounts[e.variant] || 0) + 1; });
+      const memberVariantKeys = Object.keys(memberVariantCounts).filter(v => v !== '').sort();
+      let memberFilterBarHtml = '';
+      if (memberVariantKeys.length > 0) {
+        const chip = (key, label, count) => {
+          const active = memberViewFilterVariant === key;
+          const activeBg = key === 'all' ? d.color : (key === '' ? '#475569' : '#7c3aed');
+          const inactiveColor = key === 'all' ? d.color : (key === '' ? '#475569' : '#7c3aed');
+          return `<button onclick="event.stopPropagation();applyMemberViewFilter('${key}')"
+            style="padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;cursor:pointer;
+            border:1px solid ${active ? activeBg : '#e2e8f0'};background:${active ? activeBg : 'white'};
+            color:${active ? 'white' : inactiveColor};">${label} ${count}</button>`;
+        };
+        memberFilterBarHtml =
+          `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:8px 14px;
+            background:#faf5ff;border-bottom:1px solid #e9d5ff;">
+            <span style="font-size:10.5px;font-weight:700;color:#7c3aed;">🏷️ 상황별 보기:</span>
+            ${chip('all', '전체', taskItems.length)}
+            ${chip('', '공통', memberVariantCounts[''] || 0)}
+            ${memberVariantKeys.map(v => chip(v, v, memberVariantCounts[v])).join('')}
+          </div>`;
+      }
+      const visibleTaskItems = memberViewFilterVariant === 'all'
+        ? taskItems
+        : taskItems.filter(e => e.variant === memberViewFilterVariant);
 
       const checkSvg = '<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const mkEquipBtn = function(e) {
@@ -4503,8 +4533,14 @@ function renderMemberList() {
           'transition:all .2s;">' + (ok ? checkSvg : '') + '</div>';
       };
 
+      const mkVariantBadge = function(v) {
+        if (!v) return '';
+        return '<span style="background:#7c3aed;color:white;font-size:9.5px;font-weight:800;' +
+          'padding:1px 7px;border-radius:7px;margin-left:5px;white-space:nowrap;">🏷️ ' + v + '</span>';
+      };
+
       let tasksHtml = '';
-      taskItems.forEach(function(e) {
+      visibleTaskItems.forEach(function(e) {
         const tkey = dkey + '-' + idx + '-' + e.ti;
         const ok = !!tasksDone[tkey];
         const numStr = String(e.no).padStart(2, '0');
@@ -4563,11 +4599,12 @@ function renderMemberList() {
             '<div style="font-size:14px;color:' + (ok ? '#94a3b8' : '#1e293b') + ';line-height:1.5;' +
             'text-decoration:' + (ok ? 'line-through' : 'none') + ';font-weight:' + (ok ? '400' : '500') + ';flex:1;">' +
             '<span style="font-size:11px;font-weight:800;margin-right:4px;color:' + (ok ? '#94a3b8' : barColor) + ';display:inline;">' +
-            numStr + '</span>' + e.pk.text + mkEquipBtn(e) + '</div></div>';
+            numStr + '</span>' + e.pk.text + mkEquipBtn(e) + mkVariantBadge(e.variant) + '</div></div>';
         }
       });
       accordionHtml =
         '<div style="border-top:2px solid ' + gc.bg + '33;border-radius:0 0 14px 14px;overflow:hidden;">' +
+        memberFilterBarHtml +
         tasksHtml +
         '</div>';
     }
@@ -4669,6 +4706,7 @@ function toggleGroupAccordion(key) {
 
 function toggleMemberAccordion(idx) {
   openMemberIdx = openMemberIdx === idx ? null : idx;
+  memberViewFilterVariant = 'all';
   renderMemberList();
   if (openMemberIdx !== null) {
     setTimeout(function() {
@@ -6907,6 +6945,11 @@ function setFireEscalated(val) {
 function applyTaskViewFilter(variant) {
   taskViewFilterVariant = variant;
   renderTaskList();
+}
+
+function applyMemberViewFilter(variant) {
+  memberViewFilterVariant = variant;
+  renderMemberList();
 }
 
 function toggleTask(key) {
