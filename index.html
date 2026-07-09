@@ -103,6 +103,7 @@
       display: 'standalone',
       background_color: '#dc2626',
       theme_color: '#dc2626',
+      launch_handler: { client_mode: 'navigate-existing' },
       icons: [
         { src: url, sizes: '256x256', type: 'image/png', purpose: 'any maskable' }
       ]
@@ -8548,8 +8549,7 @@ applyEcIconBorders();
     📋 정전 및 복전 대응 표준 매뉴얼
   </div>
   <style>
-        body {
-            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+        #em-wrap {
             line-height: 1.6;
             color: #333;
             margin: 0;
