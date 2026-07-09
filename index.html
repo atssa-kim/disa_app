@@ -2424,7 +2424,7 @@ const DISASTERS = [
   },
   {
     "key": "누수",
-    "label": "💧 누수·침수",
+    "label": "💧 누수",
     "color": "#1d4ed8",
     "members": [
       {
@@ -4171,7 +4171,7 @@ function syncEditModalViewport(modal) {
 const DISASTER_CARD_META = {
   '화재':   { bg:'#dadee6', ic:'#dc2626', en:'FIRE' },
   '정전':   { bg:'#dadee6', ic:'#d97706', en:'POWER OUTAGE' },
-  '누수':   { bg:'#dadee6', ic:'#1d4ed8', en:'FLOOD' },
+  '누수':   { bg:'#dadee6', ic:'#1d4ed8', en:'WATER LEAK' },
   '태풍/홍수': { bg:'#dadee6', ic:'#1e40af', en:'TYPHOON' },
   '폭설':   { bg:'#dadee6', ic:'#0369a1', en:'HEAVY SNOW' },
   '지진':   { bg:'#dadee6', ic:'#92400e', en:'EARTHQUAKE' },
@@ -4478,7 +4478,7 @@ function renderMemberList() {
     '현장대응반':  { bg:'#f87171', label:'🔥 현장대응반' },
     '현장대응조':  { bg:'#f87171', label:'🔥 현장대응조' },
     '대피지원반':  { bg:'#fb923c', label:'🦺 대피지원반' },
-    // 누수·침수
+    // 누수
     '총괄관리자': { bg:'#3b82f6', label:'🎖️ 총괄지휘' },
     '상황실':      { bg:'#60a5fa', label:'📻 상황실' },
     // 공통 그룹 — 재난별 계층 색상
@@ -4915,14 +4915,14 @@ const EQUIP_DATA = {
   ],
 
   leak: [
-    { cat:'💧 누수·침수 — 수거·이송', items:[
+    { cat:'💧 누수 — 수거·이송', items:[
       { name:'물통 (대)',              spec:'대',                      qty:'10',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(1) · E26F EMR(1) · E17F EMR(1) · E06F EMR(1) · W35F 공조실(1) · W26F EMR(1) · W17F EMR(1) · W06F EMR(1)' },
       { name:'물통 (소)',              spec:'소',                      qty:'16',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(2) · E26F EMR(2) · E17F EMR(2) · E06F EMR(2) · W35F 공조실(1) · W26F EMR(2) · W17F EMR(1) · W06F EMR(2)' },
       { name:'소형 흡진/흡수기',      spec:'50ℓ',                    qty:'10',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(1) · E26F EMR(1) · E17F EMR(1) · E06F EMR(1) · W35F 공조실(1) · W26F EMR(1) · W17F EMR(1) · W06F EMR(1)' },
       { name:'고무밀대',              spec:'-',                       qty:'20',  loc:'각 층 물탱크실·공조실·EMR 각 2EA' },
       { name:'천막호스',              spec:'외경 24cm',               qty:'8',   loc:'E35F·W35F 공조실(2) · 동·서관 6F/17F/26F EMR(6)' },
     ]},
-    { cat:'💧 누수·침수 — 보양·작업', items:[
+    { cat:'💧 누수 — 보양·작업', items:[
       { name:'보양비닐',              spec:'-',                       qty:'10',  loc:'각 층 물탱크실·공조실·EMR' },
       { name:'비닐카바링',            spec:'대·소',                   qty:'28',  loc:'각 층 물탱크실·공조실·EMR (대 17 / 소 11)' },
       { name:'사다리',                spec:'2M',                      qty:'2',   loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1)' },
@@ -5102,7 +5102,7 @@ let currentEquipTab = 'fire';
 const EQUIP_TABS = [
   { key:'fire',   label:'🔥<br>화재',     color:'#dc2626' },
   { key:'elec',   label:'⚡<br>정전',     color:'#b45309' },
-  { key:'leak',   label:'💧<br>누수·침수',color:'#0891b2' },
+  { key:'leak',   label:'💧<br>누수',color:'#0891b2' },
   { key:'flood',  label:'🌀<br>풍수해',   color:'#7c3aed' },
   { key:'snow',   label:'❄️<br>폭설',     color:'#0369a1' },
   { key:'quake',  label:'🌍<br>지진·붕괴',color:'#78716c' },
@@ -8827,34 +8827,34 @@ applyEcIconBorders();
 <div class="process-panel" id="panel-flood-day">
   <div style="padding:12px 4px 8px;">
     <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:10px;padding:0 4px;">
-      💧 누수·침수 대응 프로세스 — 주간
+      💧 누수 대응 프로세스 — 주간
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
   <img src="images/img_06주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
-    alt="💧 누수·침수 대응 프로세스 — 주간">
+    alt="💧 누수 대응 프로세스 — 주간">
   <img src="images/img_07주간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
-    alt="💧 누수·침수 대응 프로세스 — 주간">
+    alt="💧 누수 대응 프로세스 — 주간">
     </div>
   </div>
 </div>
 <div class="process-panel" id="panel-flood-night">
   <div style="padding:12px 4px 8px;">
     <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:10px;padding:0 4px;">
-      💧 누수·침수 대응 프로세스 — 야간·휴일
+      💧 누수 대응 프로세스 — 야간·휴일
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
   <img src="images/img_08야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
-    alt="💧 누수·침수 대응 프로세스 — 야간·휴일">
+    alt="💧 누수 대응 프로세스 — 야간·휴일">
   <img src="images/img_09야간_process.jpg"
     style="width:100%;height:auto;display:block;border-radius:10px;
     box-shadow:0 2px 12px rgba(0,0,0,0.12);margin-bottom:10px;"
-    alt="💧 누수·침수 대응 프로세스 — 야간·휴일">
+    alt="💧 누수 대응 프로세스 — 야간·휴일">
     </div>
   </div>
 </div>
@@ -9211,7 +9211,7 @@ applyEcIconBorders();
 <script>
 // ── 대응 프로세스 ──────────────────────────────────
 const procDisasterMap = {
-  fire:'🔥 화재', power:'⚡ 정전', flood:'💧 누수·침수',
+  fire:'🔥 화재', power:'⚡ 정전', flood:'💧 누수',
   storm:'🌊 풍수해', snow:'❄️ 폭설', quake:'🏔️ 지진',
   gas:'☁️ 가스누출', elev:'🛗 승강기갇힘', intru:'🚨 테러·침입'
 };
