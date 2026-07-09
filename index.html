@@ -135,11 +135,18 @@ html {
   height: 100%; height: -webkit-fill-available;
   overflow: hidden;
 }
+@font-face {
+  font-family: 'LG Smart UI';
+  src: url('fonts/LG_Smart_UI-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 body {
   width: 100%; height: 100%; height: -webkit-fill-available;
   overflow: hidden;
   background: #f1f5f9;
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: 'LG Smart UI', 'Noto Sans KR', sans-serif;
 }
 
 /* ── App Shell — 폰 전체화면 ── */
@@ -259,19 +266,25 @@ body {
   padding: 10px; padding: clamp(8px, 2.5vw, 16px);
 }
 .disaster-btn {
-  background: #d1dad2;
+  /* 2026-07-09: 글로시 그라디언트 — 위에서 아래로 밝기 변화 + 상단 하이라이트로 볼록한 버튼 느낌 */
+  background: linear-gradient(180deg, #e6ebe4 0%, #d1dad2 55%, #b7c2b8 100%);
   padding: 14px 6px 10px;
   text-align: center; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 7px; gap: clamp(5px, 1.5vw, 9px);
-  transition: transform .15s, box-shadow .15s;
+  transition: box-shadow .14s ease, transform .14s ease;
   -webkit-tap-highlight-color: transparent;
   min-height: 0;
   border-radius: 16px; border-radius: clamp(14px, 3.5vw, 20px);
-  box-shadow: 0 2px 10px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.7), 0 5px 12px rgba(20,30,20,.18);
   border: none;
 }
-.disaster-btn:active { transform: scale(0.95); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.disaster-btn:hover { transform: translateY(-1px); }
+.disaster-btn:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 5px rgba(20,30,20,.22);
+  background: linear-gradient(180deg, #d1dad2 0%, #b7c2b8 100%);
+}
 .d-icon {
   width: 66px; width: clamp(54px, 16vw, 80px);
   height: 66px; height: clamp(54px, 16vw, 80px);
@@ -294,6 +307,25 @@ body {
   font-size: 10px; font-size: clamp(9px, 2.2vw, 11px);
   color: #01060ed2; font-weight: 600; letter-spacing: 0.4px;
   margin-top: -3px;
+}
+
+/* ── 2026-07-09: 새 카드 스타일 시안(화재만 적용, 최종 확정 전 미리보기) ──
+   카드 바깥 배경은 원래대로 유지 + 단색 아웃라인 아이콘 + 한글 라벨만 (영문 부제 없음) */
+.disaster-btn-ref {
+  background: #d1dad2;
+}
+.d-icon-ref {
+  background: transparent;
+  border: none;
+}
+.d-icon-ref svg {
+  width: 34px; width: clamp(28px, 8vw, 40px);
+  height: 34px; height: clamp(28px, 8vw, 40px);
+  color: #a8895f;
+}
+.d-label-ref {
+  color: #1e293b !important;
+  font-weight: 700;
 }
 
 /* ── Detail Panel (slide in) ── */
@@ -4147,11 +4179,24 @@ const DISASTER_CARD_META = {
   '테러':   { bg:'#dadee6', ic:'#be123c', en:'INTRUDER' },
 };
 
+// 2026-07-09: 새 카드 스타일 시안 — 화재만 우선 적용해 미리보기, 확정되면 전체 재난에 적용
+const REF_STYLE_ICON_SVG = `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M20 5C20 5 10 16 10 24C10 30.6 14.5 36 20 36C25.5 36 30 30.6 30 24C30 16 20 5 20 5Z"/>
+  <path d="M20 18C18.5 21 18 24 19 27C19.5 28.5 20 30 20 30" opacity="0.65"/>
+</svg>`;
+const REF_STYLE_DISASTERS = new Set([]); // 시안 보류 — 여기에 key 추가하면 그 재난만 새 스타일 적용
+
 function renderIconGrid() {
   const grid = document.getElementById('icons-grid');
   grid.innerHTML = DISASTERS.map(d => {
     const m = DISASTER_CARD_META[d.key] || { bg:'#f1f5f9', ic:'#475569', en:d.key };
     const ko = d.label.replace(/^[\s\S]*?\s/, '').trim();
+    if (REF_STYLE_DISASTERS.has(d.key)) {
+      return `<div class="disaster-btn disaster-btn-ref" onclick="openDisaster('${d.key}')">
+        <div class="d-icon d-icon-ref">${REF_STYLE_ICON_SVG}</div>
+        <div class="d-label d-label-ref">${ko}</div>
+      </div>`;
+    }
     return `<div class="disaster-btn" onclick="openDisaster('${d.key}')">
       <div class="d-icon" style="background:${m.bg};border:2px solid ${m.ic};">${_getDisasterSvg(d, m.ic)}</div>
       <div class="d-label" style="color:${m.ic};">${ko}</div>
