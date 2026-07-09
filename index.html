@@ -3831,12 +3831,18 @@ function importFromExcel(input) {
         } else {
           const d = DISASTERS.find(function(x) { return x.key === sheetName; });
           if (d) {
+            // 2026-07-08: 배지 기준으로 기존 taskVariants(상황 확정 태그)를 보존 — 엑셀은 variant를
+            // 모르므로 그대로 두면 재업로드 시 태그가 전부 사라짐. 문구가 그대로인 임무만 유지됨.
+            const oldByBadge = {};
+            d.members.forEach(function(ex) { oldByBadge[ex.badge] = ex; });
             // Preserve bc from existing members where not specified
             members.forEach(function(newM, i) {
               if (!newM.bc || newM.bc === '#555555') {
                 var ex = d.members[i];
                 if (ex) newM.bc = ex.bc;
               }
+              const oldM = oldByBadge[newM.badge];
+              newM.taskVariants = (oldM && oldM.taskVariants) || {};
             });
             d.members.splice(0, d.members.length);
             members.forEach(function(m) { d.members.push(m); });
@@ -3900,7 +3906,7 @@ async function sbLoadDisasters() {
   try {
     const { data, error } = await sbClient
       .from('disaster_roles')
-      .select('disaster, shift, group_name, role, badge, bc, disaster_tasks(task_idx, label)')
+      .select('disaster, shift, group_name, role, badge, bc, disaster_tasks(task_idx, label, variant)')
       .order('disaster');
     if (error || !data || !data.length) return false;
     data.forEach(function(r) {
@@ -3909,10 +3915,13 @@ async function sbLoadDisasters() {
       if (shift === 'bms') return;
       // 화재 야간은 별도 하드코딩 배열(FIRE_NIGHT)로, 그 외(주간)는 DISASTERS.members로 라우팅
       const targetArr = (shift === 'night') ? FIRE_NIGHT : null;
-      const tasks = (r.disaster_tasks || [])
-        .sort(function(a, b) { return a.task_idx - b.task_idx; })
-        .map(function(t) { return t.label; });
-      const member = { group: r.group_name, role: r.role, badge: r.badge, bc: r.bc, tasks: tasks };
+      const sortedTasks = (r.disaster_tasks || []).sort(function(a, b) { return a.task_idx - b.task_idx; });
+      const tasks = sortedTasks.map(function(t) { return t.label; });
+      // 2026-07-08: 상황 확정(variant) 태그 — 임무 텍스트(label) 기준으로 보존.
+      // 이 임무의 문구 자체를 고쳐서 저장하면 그 태그는 사라짐(의도된 동작 — 새 텍스트로 재확인 필요).
+      const taskVariants = {};
+      sortedTasks.forEach(function(t) { if (t.variant) taskVariants[t.label] = t.variant; });
+      const member = { group: r.group_name, role: r.role, badge: r.badge, bc: r.bc, tasks: tasks, taskVariants: taskVariants };
       if (targetArr) {
         const idx = targetArr.findIndex(function(m) { return m.badge === r.badge; });
         if (idx >= 0) targetArr[idx] = member;
@@ -3936,10 +3945,12 @@ async function sbLoadDisasters() {
   }
 }
 
+// taskVariants: { [임무 텍스트]: variant } — 넘기지 않으면 전부 공통(variant=null)으로 저장됨
 // 반환값: true(저장 성공) / false(실패 — RLS 권한 없음 포함). 호출부에서 실패 시 사용자에게 알려야 함.
-async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks, shift) {
+async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks, shift, taskVariants) {
   if (!sbClient) return false;
   shift = shift || 'day';
+  taskVariants = taskVariants || {};
   try {
     const { data: roleRow, error: roleErr } = await sbClient
       .from('disaster_roles')
@@ -3952,7 +3963,9 @@ async function sbSaveTasks(disasterKey, badge, groupName, role, bc, tasks, shift
     if (roleErr) { console.error('[Supabase] 역할 저장 오류:', roleErr); return false; }
     await sbClient.from('disaster_tasks').delete().eq('role_id', roleRow.id);
     const { error: taskErr } = await sbClient.from('disaster_tasks').insert(
-      tasks.map(function(label, idx) { return { role_id: roleRow.id, task_idx: idx, label: label }; })
+      tasks.map(function(label, idx) {
+        return { role_id: roleRow.id, task_idx: idx, label: label, variant: taskVariants[label] || null };
+      })
     );
     if (taskErr) { console.error('[Supabase] 임무 저장 오류:', taskErr); return false; }
     console.log('[Supabase] 저장 완료:', disasterKey, shift, badge, tasks.length + '개');
@@ -3987,7 +4000,7 @@ async function sbSyncDisasters(targets) {
       ? FIRE_NIGHT
       : ((DISASTERS.find(function(d) { return d.key === t.key; }) || {}).members || []);
     for (const m of members) {
-      await sbSaveTasks(t.key, m.badge, m.group, m.role, m.bc, m.tasks, t.shift);
+      await sbSaveTasks(t.key, m.badge, m.group, m.role, m.bc, m.tasks, t.shift, m.taskVariants);
       total++;
     }
   }
@@ -4005,12 +4018,12 @@ async function sbSyncAll() {
   for (const d of DISASTERS) {
     if (!d.members) continue;
     for (const m of d.members) {
-      await sbSaveTasks(d.key, m.badge, m.group, m.role, m.bc, m.tasks, 'day');
+      await sbSaveTasks(d.key, m.badge, m.group, m.role, m.bc, m.tasks, 'day', m.taskVariants);
       total++;
     }
   }
   for (const m of FIRE_NIGHT) {
-    await sbSaveTasks('화재', m.badge, m.group, m.role, m.bc, m.tasks, 'night');
+    await sbSaveTasks('화재', m.badge, m.group, m.role, m.bc, m.tasks, 'night', m.taskVariants);
     total++;
   }
   alert('✅ Supabase 전체 동기화 완료: ' + total + '개 역할\ntwin-alarm 다음 발령 시 반영됩니다.');
@@ -4327,7 +4340,10 @@ function openDisaster(key) {
   document.getElementById('detail-title').textContent = d.label + ' 대응';
   if (key === '화재') {
     fireTabbar.style.display = 'flex';
-    tabScenario.style.display = '';
+    // 2026-07-09: 화재 시나리오 메뉴 폐지 — 4개 장소별 임무를 variant 체계로 통합해
+    // 실제 발령(twin-alarm)에 반영되도록 옮겼습니다. 버튼은 항상 숨김(currentFireScenario는
+    // 항상 'general' 유지) — 관련 데이터/함수는 안전하게 죽은 코드로만 남겨둠.
+    tabScenario.style.display = 'none';
     const isGen = currentFireScenario === 'general';
     tabScenario.textContent = isGen ? '＋ 시나리오' : (FIRE_SCENARIOS[currentFireScenario]?.label || '시나리오');
     tabScenario.style.background = isGen ? 'rgba(255,255,255,0.18)' : 'white';
@@ -6306,12 +6322,20 @@ function openTaskEdit() {
   }
   positionEditModal(modal);
 
-  const tasksHtml = m.tasks.map((t,i) => `
+  const tasksHtml = m.tasks.map((t,i) => {
+    const variant = m.taskVariants && m.taskVariants[t];
+    const variantTag = variant
+      ? `<div style="background:#7c3aed;color:white;font-size:9.5px;font-weight:800;
+          padding:0 6px;height:38px;display:flex;align-items:center;flex-shrink:0;white-space:nowrap;"
+          title="상황 확정(${variant})에서만 표시되는 임무 — 문구를 고치면 이 태그가 사라집니다">🏷️ ${variant}</div>`
+      : '';
+    return `
     <div style="display:flex;align-items:center;gap:0;margin-bottom:6px;" id="edit-row-${i}">
       <div data-badge onmousedown="editDragHandleDown(event,this)" ontouchstart="editDragHandleDown(event,this)"
         style="background:${d.color}80;color:white;font-size:11px;font-weight:800;
         padding:0 8px;height:38px;display:flex;align-items:center;flex-shrink:0;
         min-width:28px;justify-content:center;cursor:grab;user-select:none;touch-action:none;">${i+1}</div>
+      ${variantTag}
       <input type="text" value="${t.replace(/"/g,'&quot;')}"
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
         onfocus="setTimeout(()=>this.scrollIntoView({block:'center',behavior:'smooth'}),300)"
@@ -6322,7 +6346,8 @@ function openTaskEdit() {
         style="width:38px;height:38px;background:#dc2626;border:none;
         border-left:2px solid rgba(255,255,255,0.2);
         color:white;font-size:15px;cursor:pointer;flex-shrink:0;">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   modal.innerHTML = `
     <div onclick="event.stopPropagation()" style="background:#f8fafc;width:100%;
@@ -6510,7 +6535,7 @@ function saveTaskEdit() {
   // Supabase에도 저장 (시나리오는 훈련용 임시 구성이라 제외; 주간/야간은 shift로 구분 저장되어 서로 덮어쓰지 않음)
   if (!isScenario) {
     const shift = isNight ? 'night' : 'day';
-    sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks, shift)
+    sbSaveTasks(currentDisaster, m.badge, m.group, m.role, m.bc, newTasks, shift, m.taskVariants)
       .then(function(ok) {
         if (!ok) {
           alert('⚠️ Supabase 저장에 실패했습니다 (권한이 없거나 연결 오류).\n이 화면의 변경 내용은 이 기기에만 남아있고, 다른 사람에게는 반영되지 않았습니다.');
@@ -6591,7 +6616,7 @@ function saveNewRole() {
     return;
   }
 
-  const newMember = { group, role, badge, bc: d.color, tasks: [] };
+  const newMember = { group, role, badge, bc: d.color, tasks: [], taskVariants: {} };
   targetArr.push(newMember);
   const newIdx = targetArr.length - 1;
 
