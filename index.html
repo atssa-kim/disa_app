@@ -2141,7 +2141,7 @@ const DISASTERS = [
         "badge": "상황",
         "bc": "#b91c1c",
         "tasks": [
-          "◇ 1분 이내",
+          "◇ 1분이내 임무 +",
           "┖ Ch1,2 무전기로 보안·시설파트·주차 상황전파 출동요청",
           "┖ 주야간) 상황실 BMS 및 1층 보안근무자 비상백 매고 현장출동",
           "┖ 야간) 전기근무자 현장출동, 운전근무자 상황실 이동 업무보조",
@@ -3140,7 +3140,7 @@ const FIRE_NIGHT = [
     "badge": "통제",
     "bc": "#7f1d1d",
     "tasks": [
-      "◇ 1분 이내",
+      "◇ 1분이내 임무 +",
       "┖ Ch1,2 무전기로 보안·시설파트·주차 상황전파 출동요청",
       "┖ 주야간) 상황실 BMS 및 1층 보안근무자 비상백 매고 현장출동",
       "┖ 야간) 전기근무자 현장출동, 운전근무자 상황실 이동 업무보조",
@@ -4296,7 +4296,7 @@ function switchTab(n) {
 // 화재 상황(주간)/통제(야간) 전용: 1분이내·1분이후·비화재보·화재시 카테고리 분류 —
 // ◇ 그룹헤더 이름으로 판정하며, 비화재보 임무는 임무수행율 계산에서 항상 제외됨(2026-07-08)
 const FIRE_CAT_MAP = {
-  '1분 이내': '1min',
+  '1분이내 임무 +': '1min',
   '1분 이후 소방설비': 'after',
   '비화재보': 'false',
   '화재시 설비연동': 'fire',
@@ -4599,23 +4599,22 @@ function renderMemberList() {
           const subDone = e.subs.filter(function(s) { return !!tasksDone[dkey + '-' + idx + '-' + s.ti]; }).length;
           html +=
             '<div onclick="event.stopPropagation();toggleBranchGroup(\'' + tkey + '\')"' +
-            ' style="display:flex;align-items:center;gap:12px;padding:10px 14px;' +
-            'border-left:4px solid #f59e0b;border-bottom:1px solid #f1f5f9;cursor:pointer;' +
+            ' style="display:flex;align-items:center;gap:12px;margin:8px 10px;padding:12px 14px;' +
+            'border-radius:12px;border:1.5px solid #fbbf24;box-shadow:0 2px 6px rgba(245,158,11,0.14);cursor:pointer;' +
             'background:' + (ok ? '#fefce8' : '#fffbeb') + ';transition:background .15s;">' +
             mkCheckbox(ok, 24, 'onclick="event.stopPropagation();toggleTaskInline(\'' + tkey + '\')"') +
             '<div style="font-size:14px;color:' + (ok ? '#a8a29e' : '#92400e') + ';line-height:1.5;flex:1;' +
             'text-decoration:' + (ok ? 'line-through' : 'none') + ';font-weight:' + (ok ? '400' : '700') + ';">' +
-            '<div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+            '<div style="margin-bottom:5px;">' +
             '<span style="background:#f59e0b;color:white;font-size:10px;font-weight:800;' +
-            'padding:2px 8px;border-radius:8px;letter-spacing:-0.2px;white-space:nowrap;">🔀 ' + e.pk.tag + ' 분기</span>' +
-            '<span style="font-size:10.5px;color:#b45309;font-weight:700;">눌러서 하위 ' + e.subs.length + '단계 ' + (bOpen ? '접기 ▴' : '보기 ▾') + '</span>' +
+            'padding:2px 9px;border-radius:9px;letter-spacing:-0.2px;white-space:nowrap;">🔀 ' + e.pk.tag + ' 분기</span>' +
             '</div>' +
             '<span style="font-size:11px;font-weight:800;margin-right:4px;color:#d97706;">' + numStr + '</span>' +
             e.pk.text + mkEquipBtn(e) + '</div>' +
             '<div style="flex-shrink:0;text-align:center;">' +
             '<div style="font-size:10px;font-weight:800;color:#b45309;background:#fef3c7;' +
             'border:1px solid #fcd34d;border-radius:8px;padding:2px 7px;white-space:nowrap;">' + subDone + '/' + e.subs.length + '</div>' +
-            '<div style="font-size:13px;color:#d97706;margin-top:2px;transition:transform .2s;' +
+            '<div style="font-size:13px;color:#d97706;margin-top:3px;transition:transform .2s;' +
             'transform:rotate(' + (bOpen ? '90deg' : '0deg') + ');">▸</div>' +
             '</div></div>';
           // ── 하위단계 (펼쳤을 때만, 번호 5-1, 5-2…) ──
