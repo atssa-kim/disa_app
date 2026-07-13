@@ -4423,10 +4423,17 @@ function openDisaster(key) {
 // ── 임무 텍스트 분기 판별 ──────────────────────────
 // "◇상황)" / "◇행동)" 접두 = 조건 분기 임무, "┖" 접두 = 분기 하위 단계
 let openBranchKeys = new Set();   // 펼쳐진 분기 아코디언 키
+let openVariantGroups = new Set(); // 펼쳐진 상황변형(K급주방/가스구역 등) 아코디언 키
 
 function toggleBranchGroup(key) {
   if (openBranchKeys.has(key)) openBranchKeys.delete(key);
   else openBranchKeys.add(key);
+  renderMemberList();
+}
+
+function toggleVariantGroup(key) {
+  if (openVariantGroups.has(key)) openVariantGroups.delete(key);
+  else openVariantGroups.add(key);
   renderMemberList();
 }
 
@@ -4579,23 +4586,18 @@ function renderMemberList() {
           'transition:all .2s;">' + (ok ? checkSvg : '') + '</div>';
       };
 
-      const mkVariantBadge = function(v) {
-        if (!v) return '';
-        return '<span style="background:#7c3aed;color:white;font-size:9.5px;font-weight:800;' +
-          'padding:1px 7px;border-radius:7px;margin-left:5px;white-space:nowrap;">🏷️ ' + v + '</span>';
-      };
-
       let tasksHtml = '';
-      visibleTaskItems.forEach(function(e) {
+      const renderEntry = function(e) {
         const tkey = dkey + '-' + idx + '-' + e.ti;
         const ok = !!tasksDone[tkey];
         const numStr = String(e.no).padStart(2, '0');
+        let html = '';
 
         if (e.pk.kind === 'branch') {
           // ── 분기 헤더 행: 클릭 시 하위단계 아코디언 펼침/접힘 ──
           const bOpen = openBranchKeys.has(tkey);
           const subDone = e.subs.filter(function(s) { return !!tasksDone[dkey + '-' + idx + '-' + s.ti]; }).length;
-          tasksHtml +=
+          html +=
             '<div onclick="event.stopPropagation();toggleBranchGroup(\'' + tkey + '\')"' +
             ' style="display:flex;align-items:center;gap:12px;padding:10px 14px;' +
             'border-left:4px solid #f59e0b;border-bottom:1px solid #f1f5f9;cursor:pointer;' +
@@ -4621,7 +4623,7 @@ function renderMemberList() {
             e.subs.forEach(function(s, si) {
               const skey = dkey + '-' + idx + '-' + s.ti;
               const sok = !!tasksDone[skey];
-              tasksHtml +=
+              html +=
                 '<div onclick="event.stopPropagation();toggleTaskInline(\'' + skey + '\')"' +
                 ' style="display:flex;align-items:center;gap:10px;padding:8px 14px 8px 32px;' +
                 'border-left:4px solid #fcd34d;border-bottom:1px solid #f1f5f9;cursor:pointer;' +
@@ -4635,7 +4637,7 @@ function renderMemberList() {
           }
         } else {
           // ── 일반 순차 임무 ──
-          tasksHtml +=
+          html +=
             '<div onclick="event.stopPropagation();toggleTaskInline(\'' + tkey + '\')"' +
             ' style="display:flex;align-items:center;gap:12px;padding:10px 14px;' +
             'border-bottom:1px solid #f1f5f9;cursor:pointer;background:' + (ok ? '#f8fafc' : 'white') + ';' +
@@ -4645,7 +4647,41 @@ function renderMemberList() {
             '<div style="font-size:14px;color:' + (ok ? '#94a3b8' : '#1e293b') + ';line-height:1.5;' +
             'text-decoration:' + (ok ? 'line-through' : 'none') + ';font-weight:' + (ok ? '400' : '500') + ';flex:1;">' +
             '<span style="font-size:11px;font-weight:800;margin-right:4px;color:' + (ok ? '#94a3b8' : barColor) + ';display:inline;">' +
-            numStr + '</span>' + e.pk.text + mkEquipBtn(e) + mkVariantBadge(e.variant) + '</div></div>';
+            numStr + '</span>' + e.pk.text + mkEquipBtn(e) + '</div></div>';
+        }
+        return html;
+      };
+
+      // ── 상황변형(K급주방/가스구역 등) 연속 구간을 하나의 아코디언으로 묶음 ──
+      // (특정 variant 칩으로 이미 필터링된 상태면 단일 variant만 남으므로 그룹핑하지 않고 그대로 표시)
+      const entryGroups = [];
+      visibleTaskItems.forEach(function(e) {
+        const last = entryGroups[entryGroups.length - 1];
+        if (last && last.variant === e.variant) last.items.push(e);
+        else entryGroups.push({ variant: e.variant, items: [e] });
+      });
+
+      entryGroups.forEach(function(g) {
+        if (!g.variant || memberViewFilterVariant !== 'all') {
+          g.items.forEach(function(e) { tasksHtml += renderEntry(e); });
+          return;
+        }
+        const gkey = dkey + '-' + idx + '-var-' + g.variant;
+        const gOpen = openVariantGroups.has(gkey);
+        const gDone = g.items.filter(function(e) { return !!tasksDone[dkey + '-' + idx + '-' + e.ti]; }).length;
+        tasksHtml +=
+          '<div onclick="event.stopPropagation();toggleVariantGroup(\'' + gkey + '\')"' +
+          ' style="display:flex;align-items:center;gap:10px;padding:11px 14px;' +
+          'border-left:4px solid #7c3aed;border-bottom:1px solid #f1f5f9;cursor:pointer;' +
+          'background:#faf5ff;transition:background .15s;">' +
+          '<span style="background:#7c3aed;color:white;font-size:11px;font-weight:800;' +
+          'padding:3px 10px;border-radius:10px;white-space:nowrap;">🏷️ ' + g.variant + '</span>' +
+          '<span style="font-size:12px;color:#6d28d9;font-weight:700;flex:1;">눌러서 임무 ' + g.items.length + '건 ' + (gOpen ? '접기 ▴' : '보기 ▾') + '</span>' +
+          '<span style="font-size:10px;font-weight:800;color:#6d28d9;background:#ede9fe;' +
+          'border:1px solid #d8b4fe;border-radius:8px;padding:2px 8px;white-space:nowrap;">' + gDone + '/' + g.items.length + '</span>' +
+          '</div>';
+        if (gOpen) {
+          g.items.forEach(function(e) { tasksHtml += renderEntry(e); });
         }
       });
       accordionHtml =
