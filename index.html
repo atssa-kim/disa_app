@@ -1106,8 +1106,16 @@ body {
         color:white;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;
         cursor:pointer;white-space:nowrap;">✏️ 수정</button>
     </div>
+    <div id="equip-mode-bar" style="display:flex; gap:6px; padding:8px 12px; background:#eef2fb; flex-shrink:0;">
+      <button data-equip-mode="floor" onclick="setEquipViewMode('floor')"
+        style="flex:1; padding:7px 4px; border-radius:8px; border:1.5px solid #1b4fa8;
+        font-size:12px; font-weight:800; cursor:pointer; background:#1b4fa8; color:white;">🏬 층별-실별</button>
+      <button data-equip-mode="tab" onclick="setEquipViewMode('tab')"
+        style="flex:1; padding:7px 4px; border-radius:8px; border:1.5px solid #1b4fa8;
+        font-size:12px; font-weight:800; cursor:pointer; background:white; color:#475569;">🚨 재난유형별</button>
+    </div>
     <div style="flex:1; display:flex; min-height:0;">
-      <div class="ec-tab-bar" id="equip-tabbar"></div>
+      <div class="ec-tab-bar" id="equip-tabbar" style="display:none;"></div>
       <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-width:0;" id="equip-list-body"></div>
     </div>
   </div>
@@ -4900,11 +4908,8 @@ function openActionPanel() {
       color:white;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;
       cursor:pointer;white-space:nowrap;">✏️ 수정</button>`;
 
-  // 탭바 표시
-  const tabBar = panel.querySelector(':scope > div:nth-child(2)');
-  if (tabBar) tabBar.style.display = '';
   panel.classList.add('open');
-  switchEquipTab(currentEquipTab || 'fire');
+  setEquipViewMode(equipViewMode);
 }
 
 // ── 비상장비 데이터 (PDF 2026.06.25 기준, spec 필드 추가) ──────────────
@@ -4996,23 +5001,20 @@ const EQUIP_DATA = {
     ]},
   ],
 
-  leak: [
-    { cat:'💧 누수 — 수거·이송', items:[
+  flood: [
+    { cat:'💧 누수·수해 — 수거·이송', items:[
       { name:'물통 (대)',              spec:'대',                      qty:'10',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(1) · E26F EMR(1) · E17F EMR(1) · E06F EMR(1) · W35F 공조실(1) · W26F EMR(1) · W17F EMR(1) · W06F EMR(1)' },
       { name:'물통 (소)',              spec:'소',                      qty:'16',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(2) · E26F EMR(2) · E17F EMR(2) · E06F EMR(2) · W35F 공조실(1) · W26F EMR(2) · W17F EMR(1) · W06F EMR(2)' },
       { name:'소형 흡진/흡수기',      spec:'50ℓ',                    qty:'10',  loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1) · E35F 공조실(1) · E26F EMR(1) · E17F EMR(1) · E06F EMR(1) · W35F 공조실(1) · W26F EMR(1) · W17F EMR(1) · W06F EMR(1)' },
       { name:'고무밀대',              spec:'-',                       qty:'20',  loc:'각 층 물탱크실·공조실·EMR 각 2EA' },
       { name:'천막호스',              spec:'외경 24cm',               qty:'8',   loc:'E35F·W35F 공조실(2) · 동·서관 6F/17F/26F EMR(6)' },
     ]},
-    { cat:'💧 누수 — 보양·작업', items:[
+    { cat:'💧 누수·수해 — 보양·작업 (물탱크실 계열)', items:[
       { name:'보양비닐',              spec:'-',                       qty:'10',  loc:'각 층 물탱크실·공조실·EMR' },
       { name:'비닐카바링',            spec:'대·소',                   qty:'28',  loc:'각 층 물탱크실·공조실·EMR (대 17 / 소 11)' },
       { name:'사다리',                spec:'2M',                      qty:'2',   loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1)' },
       { name:'우마',                  spec:'1M',                      qty:'2',   loc:'동관20층 물탱크실(1) · 서관20층 물탱크실(1)' },
     ]},
-  ],
-
-  flood: [
     { cat:'🌀 풍수해 — 배수 펌프', items:[
       { name:'엔진 양수기',           spec:'80φ캄록 / 60ton',        qty:'2',   loc:'냉동기실' },
       { name:'상치형 양수펌프',       spec:'PU-950U / 50φ 캄록·호스',qty:'2',   loc:'냉동기실' },
@@ -5042,7 +5044,7 @@ const EQUIP_DATA = {
       { name:'침수예방 차수판',       spec:'-',                       qty:'5',   loc:'서관B1 선큰(4) · 서관1층 선큰 입구(1)' },
       { name:'모래주머니',            spec:'7KG',                     qty:'521', loc:'동·서관 주차장 입구 모래함 · 서관 샤워식당 선큰 모래함' },
     ]},
-    { cat:'🌀 풍수해 — 보양·작업', items:[
+    { cat:'🌀 풍수해 — 보양·작업 (냉동기실 계열)', items:[
       { name:'보양비닐',              spec:'-',                       qty:'4',   loc:'냉동기실' },
       { name:'비닐카바링',            spec:'대·소',                   qty:'3',   loc:'냉동기실' },
       { name:'사다리',                spec:'2M',                      qty:'1',   loc:'냉동기실' },
@@ -5184,8 +5186,7 @@ let currentEquipTab = 'fire';
 const EQUIP_TABS = [
   { key:'fire',   label:'🔥<br>화재',     color:'#dc2626' },
   { key:'elec',   label:'⚡<br>정전',     color:'#b45309' },
-  { key:'leak',   label:'💧<br>누수',color:'#0891b2' },
-  { key:'flood',  label:'🌀<br>풍수해',   color:'#7c3aed' },
+  { key:'flood',  label:'💧<br>누수·수해', color:'#7c3aed' },
   { key:'snow',   label:'❄️<br>폭설',     color:'#0369a1' },
   { key:'quake',  label:'🌍<br>지진·붕괴',color:'#78716c' },
   { key:'gas',    label:'💨<br>가스누출', color:'#15803d' },
@@ -5193,7 +5194,7 @@ const EQUIP_TABS = [
   { key:'terror', label:'🚨<br>테러',     color:'#be185d' },
   { key:'intru',  label:'🚷<br>침입',     color:'#6d28d9' },
 ];
-const EQUIP_TAB_COLOR = { fire:'#dc2626', elec:'#b45309', leak:'#0891b2', flood:'#7c3aed', snow:'#0369a1', quake:'#78716c', gas:'#15803d', elev:'#b45309', terror:'#be185d', intru:'#6d28d9' };
+const EQUIP_TAB_COLOR = { fire:'#dc2626', elec:'#b45309', flood:'#7c3aed', snow:'#0369a1', quake:'#78716c', gas:'#15803d', elev:'#b45309', terror:'#be185d', intru:'#6d28d9' };
 
 function renderEquipTabs() {
   const bar = document.getElementById('equip-tabbar');
@@ -5213,6 +5214,239 @@ function switchEquipTab(tab) {
   window.equipOpenCats = new Set([0]);   // 탭 전환 시 첫 카테고리 펼침
   renderEquipTabs();
   renderEquipList();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ── 비상장비 층별-실별 보기 ──────────────────────────────────────
+// EQUIP_DATA의 자유서식 loc 문자열(예: "서관B3 운영센터(7) · 동관35층 변전실(1)")을
+// 파싱해 "층 → 실 → 품목" 인덱스를 만든다. 원본 loc 텍스트는 항상 그대로 함께 보여줘서
+// (개수를 층별로 임의로 나눠 표시하지 않음) 실제 위치 확인 시 오해가 없도록 함.
+// ══════════════════════════════════════════════════════════════════
+let equipViewMode = 'floor'; // 'floor' | 'tab'
+let equipOpenFloors = new Set();
+
+function parseEquipSegment(seg) {
+  seg = seg.trim();
+  let note = '';
+  const noteM = seg.match(/\s*(※[^()]*)$/);
+  if (noteM) { note = noteM[1]; seg = seg.slice(0, noteM.index).trim(); }
+
+  let qty = null;
+  const parenM = seg.match(/\(([^()]*)\)\s*$/);
+  if (parenM && /^\d+$/.test(parenM[1].trim())) {
+    qty = parenM[1].trim();
+    seg = seg.slice(0, parenM.index).trim();
+  }
+
+  const BLDG = '(동관|서관|중앙|동·서관)';
+
+  // "동·서관 6F/17F/26F 룸명" — 여러 건물 × 여러 층 조합
+  let m = seg.match(/^(동·서관|동관·서관|서관·동관)\s*((?:\d{1,2}F\/?)+)\s*(.*)$/);
+  if (m) {
+    const floors = m[2].match(/\d{1,2}/g).map(Number);
+    const room = m[3].trim();
+    const out = [];
+    ['동관', '서관'].forEach(b => floors.forEach(f => out.push({ building: b, floor: f, room, qty, note })));
+    return out;
+  }
+
+  // "E35F·W35F 룸명" — E/W 층 토큰이 가운뎃점으로 연결(단일 "E35F 룸명"도 포함)
+  m = seg.match(/^((?:[EW]\d{1,2}F·?)+)\s+(.*)$/);
+  if (m && /^(?:[EW]\d{1,2}F·?)+$/.test(m[1])) {
+    const tokens = m[1].match(/[EW]\d{1,2}F/g);
+    const room = m[2].trim();
+    return tokens.map(t => ({ building: t[0] === 'E' ? '동관' : '서관', floor: Number(t.slice(1, -1)), room, qty, note }));
+  }
+
+  // "(건물) B숫자[F]? 룸명" — 지하층
+  m = seg.match(new RegExp('^' + BLDG + '?\\s*B(\\d{1,2})F?\\s*(.*)$'));
+  if (m) return [{ building: m[1] || '', floor: -Number(m[2]), room: m[3].trim(), qty, note }];
+
+  // "(건물) U.G 룸명" — 지하 공용구역(층번호 없음)
+  m = seg.match(new RegExp('^' + BLDG + '?\\s*U\\.?G\\.?\\s*(.*)$', 'i'));
+  if (m) return [{ building: m[1] || '', floor: 'UG', room: m[2].trim(), qty, note }];
+
+  // "(건물) 27·28·29층 룸명" — 복수 층
+  m = seg.match(new RegExp('^' + BLDG + '?\\s*((?:\\d{1,2}·)+\\d{1,2})층\\s*(.*)$'));
+  if (m) {
+    const floors = m[2].split('·').map(Number);
+    const room = m[3].trim();
+    return floors.map(f => ({ building: m[1] || '', floor: f, room, qty, note }));
+  }
+
+  // "(건물) 숫자층 룸명" — 단일 층
+  m = seg.match(new RegExp('^' + BLDG + '?\\s*(\\d{1,2})층\\s*(.*)$'));
+  if (m) return [{ building: m[1] || '', floor: Number(m[2]), room: m[3].trim(), qty, note }];
+
+  // "각 층 ..." — 전 층 공통
+  if (/^각\s*층/.test(seg)) return [{ building: '', floor: 'ALL', room: seg.replace(/^각\s*층\s*/, '').trim(), qty, note }];
+
+  // 매칭 실패 — 층 정보 없음
+  return [{ building: '', floor: 'ETC', room: seg, qty, note }];
+}
+
+function parseEquipLoc(loc) {
+  if (!loc || loc === '-') return [{ building: '', floor: 'ETC', room: loc || '', qty: null, note: '' }];
+  // " · "(양쪽 공백 있는 가운뎃점)만 구분자로 사용 — "동·서관"/"27·28·29층"처럼 붙어있는
+  // 가운뎃점은 한 표기 내부 구성요소이므로 그대로 유지
+  return loc.split(/\s+·\s+/).flatMap(parseEquipSegment);
+}
+
+function floorSortKey(floor) {
+  if (floor === 'UG') return -0.5;
+  return floor;
+}
+function floorLabel(floor) {
+  if (floor === 'UG') return '지하공용(U.G)';
+  return floor > 0 ? floor + '층' : 'B' + (-floor);
+}
+
+// { key, sortKey, label, rooms: { roomName: [entry...] } } 목록을 반환 (ALL/ETC 제외, 내림차순 정렬)
+// entry: { name, spec, qty(구간별 또는 품목 전체), building, tag(재난유형 아이콘/색), fullLoc(원본 표기) }
+function buildEquipFloorIndex() {
+  const floors = {}; // floorKey(string) -> { sortKey, label, rooms:{} }
+  const allCommon = []; // "각 층" 공통 품목
+  const etc = [];       // 층 정보 없는 품목
+
+  EQUIP_TABS.forEach(function(tabDef) {
+    (EQUIP_DATA[tabDef.key] || []).forEach(function(cat) {
+      cat.items.forEach(function(item) {
+        const parsed = parseEquipLoc(item.loc);
+        parsed.forEach(function(p) {
+          const entry = {
+            name: item.name, spec: item.spec,
+            qty: p.qty || item.qty,
+            building: p.building, room: p.room,
+            tag: tabDef, fullLoc: item.loc,
+          };
+          if (p.floor === 'ALL') { allCommon.push(entry); return; }
+          if (p.floor === 'ETC') { etc.push(entry); return; }
+          const fk = String(p.floor);
+          if (!floors[fk]) floors[fk] = { sortKey: floorSortKey(p.floor), label: floorLabel(p.floor), rooms: {} };
+          const roomKey = (p.building ? p.building + ' ' : '') + (p.room || '기타');
+          if (!floors[fk].rooms[roomKey]) floors[fk].rooms[roomKey] = [];
+          floors[fk].rooms[roomKey].push(entry);
+        });
+      });
+    });
+  });
+
+  const floorList = Object.keys(floors)
+    .map(fk => Object.assign({ key: fk }, floors[fk]))
+    .sort((a, b) => b.sortKey - a.sortKey);
+
+  return { floorList, allCommon, etc };
+}
+
+function toggleEquipFloor(key) {
+  if (equipOpenFloors.has(key)) equipOpenFloors.delete(key);
+  else equipOpenFloors.add(key);
+  renderEquipFloorList();
+}
+
+function renderEquipEntryRow(entry) {
+  const c = entry.tag.color;
+  const qtyTag = entry.qty && entry.qty !== '-'
+    ? `<span style="background:${c}; color:white; font-size:10.5px; font-weight:800;
+        padding:1px 7px; border-radius:6px; margin-left:6px; flex-shrink:0;">×${entry.qty}</span>` : '';
+  const specRow = (entry.spec && entry.spec !== '-')
+    ? `<div style="font-size:10px; color:#9ca3af; margin-top:2px; font-style:italic; word-break:keep-all;">${entry.spec}</div>` : '';
+  const tagChip = `<span style="background:${hexTint(c, 0.85)}; color:${c}; font-size:9.5px; font-weight:800;
+      padding:1px 6px; border-radius:6px; margin-left:6px; flex-shrink:0; white-space:nowrap;">${entry.tag.label.replace('<br>', ' ')}</span>`;
+  return `<div style="padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.05);">
+    <div style="display:flex; align-items:flex-start; gap:8px;">
+      <div style="flex:1; min-width:0;">
+        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:2px;">
+          <span style="font-size:12.5px; font-weight:700; color:#111; word-break:keep-all;">${entry.name}</span>${qtyTag}${tagChip}
+        </div>
+        ${specRow}
+        <div style="font-size:10px; color:#6b7280; margin-top:3px; line-height:1.5; word-break:keep-all;">📍 ${entry.fullLoc}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderEquipFloorList() {
+  const { floorList, allCommon, etc } = buildEquipFloorIndex();
+
+  function roomSection(entries) {
+    // room별로 묶어서 표시
+    const byRoom = {};
+    entries.forEach(e => {
+      const rk = (e.building ? e.building + ' ' : '') + (e.room || '기타');
+      (byRoom[rk] = byRoom[rk] || []).push(e);
+    });
+    return Object.keys(byRoom).map(rk =>
+      `<div style="padding:6px 12px 2px; font-size:11px; font-weight:800; color:#475569;">📌 ${rk}</div>` +
+      byRoom[rk].map(renderEquipEntryRow).join('')
+    ).join('');
+  }
+
+  let html = '';
+
+  if (allCommon.length > 0) {
+    const open = equipOpenFloors.has('ALL');
+    html += `<div class="ec-acc-group" style="margin:8px 10px;">
+      <div class="ec-acc-head" style="background:#0891b2;color:#fff;border-left:none;" onclick="toggleEquipFloor('ALL')">
+        <span class="ec-acc-title">🏢 전 층 공통</span>
+        <span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">${allCommon.length}</span>
+        <span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(${open ? '180deg' : '0deg'})">▾</span>
+      </div>
+      <div class="ec-acc-body" style="${open ? '' : 'display:none;'}">${roomSection(allCommon)}</div>
+    </div>`;
+  }
+
+  floorList.forEach(f => {
+    const open = equipOpenFloors.has(f.key);
+    const count = Object.values(f.rooms).reduce((s, arr) => s + arr.length, 0);
+    html += `<div class="ec-acc-group" style="margin:8px 10px;">
+      <div class="ec-acc-head" style="background:#1b4fa8;color:#fff;border-left:none;" onclick="toggleEquipFloor('${f.key}')">
+        <span class="ec-acc-title">🏬 ${f.label}</span>
+        <span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">${count}</span>
+        <span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(${open ? '180deg' : '0deg'})">▾</span>
+      </div>
+      <div class="ec-acc-body" style="${open ? '' : 'display:none;'}">${Object.keys(f.rooms).map(rk =>
+        `<div style="padding:6px 12px 2px; font-size:11px; font-weight:800; color:#475569;">📌 ${rk}</div>` +
+        f.rooms[rk].map(renderEquipEntryRow).join('')
+      ).join('')}</div>
+    </div>`;
+  });
+
+  if (etc.length > 0) {
+    const open = equipOpenFloors.has('ETC');
+    html += `<div class="ec-acc-group" style="margin:8px 10px;">
+      <div class="ec-acc-head" style="background:#64748b;color:#fff;border-left:none;" onclick="toggleEquipFloor('ETC')">
+        <span class="ec-acc-title">📦 기타(층 미표기)</span>
+        <span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">${etc.length}</span>
+        <span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(${open ? '180deg' : '0deg'})">▾</span>
+      </div>
+      <div class="ec-acc-body" style="${open ? '' : 'display:none;'}">${roomSection(etc)}</div>
+    </div>`;
+  }
+
+  document.getElementById('equip-list-body').innerHTML = html ||
+    `<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>`;
+}
+
+// 층별/재난유형별 보기 전환
+function setEquipViewMode(mode) {
+  equipViewMode = mode;
+  const tabbar = document.getElementById('equip-tabbar');
+  const modeBar = document.getElementById('equip-mode-bar');
+  if (modeBar) {
+    modeBar.querySelectorAll('[data-equip-mode]').forEach(function(btn) {
+      const active = btn.getAttribute('data-equip-mode') === mode;
+      btn.style.background = active ? '#1b4fa8' : 'white';
+      btn.style.color = active ? 'white' : '#475569';
+    });
+  }
+  if (mode === 'floor') {
+    if (tabbar) tabbar.style.display = 'none';
+    renderEquipFloorList();
+  } else {
+    if (tabbar) tabbar.style.display = '';
+    switchEquipTab(currentEquipTab || 'fire');
+  }
 }
 
 function toggleEquipCat(gi) {
@@ -5377,7 +5611,7 @@ function openEquipPanel() {
   panel.style.width  = '100%';
   panel.style.left   = '0';
   panel.classList.add('open');
-  switchEquipTab('fire');
+  setEquipViewMode(equipViewMode);
 }
 
 function closeEquipPanel() {
