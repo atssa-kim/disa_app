@@ -1106,16 +1106,8 @@ body {
         color:white;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;
         cursor:pointer;white-space:nowrap;">✏️ 수정</button>
     </div>
-    <div id="equip-mode-bar" style="display:flex; gap:6px; padding:8px 12px; background:#eef2fb; flex-shrink:0;">
-      <button data-equip-mode="floor" onclick="setEquipViewMode('floor')"
-        style="flex:1; padding:7px 4px; border-radius:8px; border:1.5px solid #1b4fa8;
-        font-size:12px; font-weight:800; cursor:pointer; background:#1b4fa8; color:white;">🏬 층별-실별</button>
-      <button data-equip-mode="tab" onclick="setEquipViewMode('tab')"
-        style="flex:1; padding:7px 4px; border-radius:8px; border:1.5px solid #1b4fa8;
-        font-size:12px; font-weight:800; cursor:pointer; background:white; color:#475569;">🚨 재난유형별</button>
-    </div>
     <div style="flex:1; display:flex; min-height:0;">
-      <div class="ec-tab-bar" id="equip-tabbar" style="display:none;"></div>
+      <div class="ec-tab-bar" id="equip-tabbar"></div>
       <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-width:0;" id="equip-list-body"></div>
     </div>
   </div>
@@ -4909,7 +4901,7 @@ function openActionPanel() {
       cursor:pointer;white-space:nowrap;">✏️ 수정</button>`;
 
   panel.classList.add('open');
-  setEquipViewMode(equipViewMode);
+  switchEquipTab(currentEquipTab || 'fire');
 }
 
 // ── 비상장비 데이터 (PDF 2026.06.25 기준, spec 필드 추가) ──────────────
@@ -5211,19 +5203,19 @@ function renderEquipTabs() {
 
 function switchEquipTab(tab) {
   currentEquipTab = tab;
-  window.equipOpenCats = new Set([0]);   // 탭 전환 시 첫 카테고리 펼침
+  equipOpenFloors = null;   // 탭 전환 시 첫 그룹만 펼친 상태로 재계산
   renderEquipTabs();
   renderEquipList();
 }
 
 // ══════════════════════════════════════════════════════════════════
-// ── 비상장비 층별-실별 보기 ──────────────────────────────────────
+// ── 비상장비 리스트: 재난유형(탭) → 층 → 실 3단 구조 ──────────────
 // EQUIP_DATA의 자유서식 loc 문자열(예: "서관B3 운영센터(7) · 동관35층 변전실(1)")을
-// 파싱해 "층 → 실 → 품목" 인덱스를 만든다. 원본 loc 텍스트는 항상 그대로 함께 보여줘서
-// (개수를 층별로 임의로 나눠 표시하지 않음) 실제 위치 확인 시 오해가 없도록 함.
+// 파싱해 현재 탭(재난유형) 안에서 "층 → 실 → 품목" 인덱스를 만든다. 원본 loc 텍스트는
+// 항상 그대로 함께 보여줘서(개수를 층별로 임의로 나눠 표시하지 않음) 실제 위치 확인 시
+// 오해가 없도록 함.
 // ══════════════════════════════════════════════════════════════════
-let equipViewMode = 'floor'; // 'floor' | 'tab'
-let equipOpenFloors = new Set();
+let equipOpenFloors = null; // null이면 renderEquipList가 첫 그룹을 기본으로 펼침
 
 function parseEquipSegment(seg) {
   seg = seg.trim();
@@ -5301,32 +5293,30 @@ function floorLabel(floor) {
   return floor > 0 ? floor + '층' : 'B' + (-floor);
 }
 
-// { key, sortKey, label, rooms: { roomName: [entry...] } } 목록을 반환 (ALL/ETC 제외, 내림차순 정렬)
-// entry: { name, spec, qty(구간별 또는 품목 전체), building, tag(재난유형 아이콘/색), fullLoc(원본 표기) }
-function buildEquipFloorIndex() {
+// 현재 탭(재난유형) 안에서 { key, sortKey, label, rooms: { roomName: [entry...] } } 목록을 반환
+// (ALL/ETC 제외, 내림차순 정렬). entry: { name, spec, qty, building, room, fullLoc(원본 표기) }
+function buildEquipFloorIndex(tabKey) {
   const floors = {}; // floorKey(string) -> { sortKey, label, rooms:{} }
   const allCommon = []; // "각 층" 공통 품목
   const etc = [];       // 층 정보 없는 품목
 
-  EQUIP_TABS.forEach(function(tabDef) {
-    (EQUIP_DATA[tabDef.key] || []).forEach(function(cat) {
-      cat.items.forEach(function(item) {
-        const parsed = parseEquipLoc(item.loc);
-        parsed.forEach(function(p) {
-          const entry = {
-            name: item.name, spec: item.spec,
-            qty: p.qty || item.qty,
-            building: p.building, room: p.room,
-            tag: tabDef, fullLoc: item.loc,
-          };
-          if (p.floor === 'ALL') { allCommon.push(entry); return; }
-          if (p.floor === 'ETC') { etc.push(entry); return; }
-          const fk = String(p.floor);
-          if (!floors[fk]) floors[fk] = { sortKey: floorSortKey(p.floor), label: floorLabel(p.floor), rooms: {} };
-          const roomKey = (p.building ? p.building + ' ' : '') + (p.room || '기타');
-          if (!floors[fk].rooms[roomKey]) floors[fk].rooms[roomKey] = [];
-          floors[fk].rooms[roomKey].push(entry);
-        });
+  (EQUIP_DATA[tabKey] || []).forEach(function(cat) {
+    cat.items.forEach(function(item) {
+      const parsed = parseEquipLoc(item.loc);
+      parsed.forEach(function(p) {
+        const entry = {
+          name: item.name, spec: item.spec,
+          qty: p.qty || item.qty,
+          building: p.building, room: p.room,
+          fullLoc: item.loc,
+        };
+        if (p.floor === 'ALL') { allCommon.push(entry); return; }
+        if (p.floor === 'ETC') { etc.push(entry); return; }
+        const fk = String(p.floor);
+        if (!floors[fk]) floors[fk] = { sortKey: floorSortKey(p.floor), label: floorLabel(p.floor), rooms: {} };
+        const roomKey = (p.building ? p.building + ' ' : '') + (p.room || '기타');
+        if (!floors[fk].rooms[roomKey]) floors[fk].rooms[roomKey] = [];
+        floors[fk].rooms[roomKey].push(entry);
       });
     });
   });
@@ -5341,23 +5331,32 @@ function buildEquipFloorIndex() {
 function toggleEquipFloor(key) {
   if (equipOpenFloors.has(key)) equipOpenFloors.delete(key);
   else equipOpenFloors.add(key);
-  renderEquipFloorList();
+  renderEquipList();
 }
 
-function renderEquipEntryRow(entry) {
-  const c = entry.tag.color;
+// 비상장비 체크 상태
+const equipChecked = {};
+
+function renderEquipEntryRow(entry, key, c) {
+  const ok = !!equipChecked[key];
   const qtyTag = entry.qty && entry.qty !== '-'
     ? `<span style="background:${c}; color:white; font-size:10.5px; font-weight:800;
         padding:1px 7px; border-radius:6px; margin-left:6px; flex-shrink:0;">×${entry.qty}</span>` : '';
   const specRow = (entry.spec && entry.spec !== '-')
     ? `<div style="font-size:10px; color:#9ca3af; margin-top:2px; font-style:italic; word-break:keep-all;">${entry.spec}</div>` : '';
-  const tagChip = `<span style="background:${hexTint(c, 0.85)}; color:${c}; font-size:9.5px; font-weight:800;
-      padding:1px 6px; border-radius:6px; margin-left:6px; flex-shrink:0; white-space:nowrap;">${entry.tag.label.replace('<br>', ' ')}</span>`;
-  return `<div style="padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.05);">
-    <div style="display:flex; align-items:flex-start; gap:8px;">
+  return `<div onclick="equipChecked['${key}']=!equipChecked['${key}']; renderEquipList();"
+    style="background:${ok ? '#ecfdf3' : 'white'}; padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer;">
+    <div style="display:flex; align-items:flex-start; gap:10px;">
+      <div style="flex-shrink:0; margin-top:2px; width:18px; height:18px; border-radius:5px;
+        border:2px solid ${ok ? c : '#cbd5e1'}; background:${ok ? c : 'white'};
+        display:flex; align-items:center; justify-content:center;">
+        ${ok ? '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+      </div>
       <div style="flex:1; min-width:0;">
         <div style="display:flex; align-items:center; flex-wrap:wrap; gap:2px;">
-          <span style="font-size:12.5px; font-weight:700; color:#111; word-break:keep-all;">${entry.name}</span>${qtyTag}${tagChip}
+          <span style="font-size:12.5px; font-weight:${ok ? '500' : '700'};
+            color:${ok ? '#9ca3af' : '#111'};
+            text-decoration:${ok ? 'line-through' : 'none'}; word-break:keep-all;">${entry.name}</span>${qtyTag}
         </div>
         ${specRow}
         <div style="font-size:10px; color:#6b7280; margin-top:3px; line-height:1.5; word-break:keep-all;">📍 ${entry.fullLoc}</div>
@@ -5366,11 +5365,19 @@ function renderEquipEntryRow(entry) {
   </div>`;
 }
 
-function renderEquipFloorList() {
-  const { floorList, allCommon, etc } = buildEquipFloorIndex();
+function renderEquipList() {
+  const c = EQUIP_TAB_COLOR[currentEquipTab] || '#dc2626';
+  const { floorList, allCommon, etc } = buildEquipFloorIndex(currentEquipTab);
 
+  if (equipOpenFloors === null) {
+    equipOpenFloors = new Set();
+    if (allCommon.length > 0) equipOpenFloors.add('ALL');
+    else if (floorList.length > 0) equipOpenFloors.add(floorList[0].key);
+    else if (etc.length > 0) equipOpenFloors.add('ETC');
+  }
+
+  let globalIdx = 0;
   function roomSection(entries) {
-    // room별로 묶어서 표시
     const byRoom = {};
     entries.forEach(e => {
       const rk = (e.building ? e.building + ' ' : '') + (e.room || '기타');
@@ -5378,148 +5385,43 @@ function renderEquipFloorList() {
     });
     return Object.keys(byRoom).map(rk =>
       `<div style="padding:6px 12px 2px; font-size:11px; font-weight:800; color:#475569;">📌 ${rk}</div>` +
-      byRoom[rk].map(renderEquipEntryRow).join('')
+      byRoom[rk].map(e => renderEquipEntryRow(e, currentEquipTab + '-' + (globalIdx++), c)).join('')
     ).join('');
+  }
+
+  function groupBlock(key, icon, title, count, bodyHtml, headBg) {
+    const open = equipOpenFloors.has(key);
+    return `<div class="ec-acc-group" style="margin:8px 10px;">
+      <div class="ec-acc-head" style="background:${headBg};color:#fff;border-left:none;" onclick="toggleEquipFloor('${key}')">
+        <span class="ec-acc-title">${icon} ${title}</span>
+        <span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">${count}</span>
+        <span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(${open ? '180deg' : '0deg'})">▾</span>
+      </div>
+      <div class="ec-acc-body" style="${open ? '' : 'display:none;'}">${bodyHtml}</div>
+    </div>`;
   }
 
   let html = '';
 
   if (allCommon.length > 0) {
-    const open = equipOpenFloors.has('ALL');
-    html += `<div class="ec-acc-group" style="margin:8px 10px;">
-      <div class="ec-acc-head" style="background:#0891b2;color:#fff;border-left:none;" onclick="toggleEquipFloor('ALL')">
-        <span class="ec-acc-title">🏢 전 층 공통</span>
-        <span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">${allCommon.length}</span>
-        <span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(${open ? '180deg' : '0deg'})">▾</span>
-      </div>
-      <div class="ec-acc-body" style="${open ? '' : 'display:none;'}">${roomSection(allCommon)}</div>
-    </div>`;
+    html += groupBlock('ALL', '🏢', '전 층 공통', allCommon.length, roomSection(allCommon), c);
   }
 
   floorList.forEach(f => {
-    const open = equipOpenFloors.has(f.key);
     const count = Object.values(f.rooms).reduce((s, arr) => s + arr.length, 0);
-    html += `<div class="ec-acc-group" style="margin:8px 10px;">
-      <div class="ec-acc-head" style="background:#1b4fa8;color:#fff;border-left:none;" onclick="toggleEquipFloor('${f.key}')">
-        <span class="ec-acc-title">🏬 ${f.label}</span>
-        <span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">${count}</span>
-        <span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(${open ? '180deg' : '0deg'})">▾</span>
-      </div>
-      <div class="ec-acc-body" style="${open ? '' : 'display:none;'}">${Object.keys(f.rooms).map(rk =>
-        `<div style="padding:6px 12px 2px; font-size:11px; font-weight:800; color:#475569;">📌 ${rk}</div>` +
-        f.rooms[rk].map(renderEquipEntryRow).join('')
-      ).join('')}</div>
-    </div>`;
+    const body = Object.keys(f.rooms).map(rk =>
+      `<div style="padding:6px 12px 2px; font-size:11px; font-weight:800; color:#475569;">📌 ${rk}</div>` +
+      f.rooms[rk].map(e => renderEquipEntryRow(e, currentEquipTab + '-' + (globalIdx++), c)).join('')
+    ).join('');
+    html += groupBlock(f.key, '🏬', f.label, count, body, c);
   });
 
   if (etc.length > 0) {
-    const open = equipOpenFloors.has('ETC');
-    html += `<div class="ec-acc-group" style="margin:8px 10px;">
-      <div class="ec-acc-head" style="background:#64748b;color:#fff;border-left:none;" onclick="toggleEquipFloor('ETC')">
-        <span class="ec-acc-title">📦 기타(층 미표기)</span>
-        <span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">${etc.length}</span>
-        <span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(${open ? '180deg' : '0deg'})">▾</span>
-      </div>
-      <div class="ec-acc-body" style="${open ? '' : 'display:none;'}">${roomSection(etc)}</div>
-    </div>`;
+    html += groupBlock('ETC', '📦', '기타(층 미표기)', etc.length, roomSection(etc), '#64748b');
   }
 
   document.getElementById('equip-list-body').innerHTML = html ||
     `<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>`;
-}
-
-// 층별/재난유형별 보기 전환
-function setEquipViewMode(mode) {
-  equipViewMode = mode;
-  const tabbar = document.getElementById('equip-tabbar');
-  const modeBar = document.getElementById('equip-mode-bar');
-  if (modeBar) {
-    modeBar.querySelectorAll('[data-equip-mode]').forEach(function(btn) {
-      const active = btn.getAttribute('data-equip-mode') === mode;
-      btn.style.background = active ? '#1b4fa8' : 'white';
-      btn.style.color = active ? 'white' : '#475569';
-    });
-  }
-  if (mode === 'floor') {
-    if (tabbar) tabbar.style.display = 'none';
-    renderEquipFloorList();
-  } else {
-    if (tabbar) tabbar.style.display = '';
-    switchEquipTab(currentEquipTab || 'fire');
-  }
-}
-
-function toggleEquipCat(gi) {
-  if (!window.equipOpenCats) window.equipOpenCats = new Set();
-  if (window.equipOpenCats.has(gi)) window.equipOpenCats.delete(gi);
-  else window.equipOpenCats.add(gi);
-  renderEquipList();
-}
-
-// 비상장비 체크 상태
-const equipChecked = {};
-
-function renderEquipList() {
-  const data = EQUIP_DATA[currentEquipTab] || [];
-  const c = EQUIP_TAB_COLOR[currentEquipTab] || '#dc2626';
-  if (!window.equipOpenCats) window.equipOpenCats = new Set([0]);
-
-  let html = '';
-  let globalIdx = 0;
-
-  data.forEach(function(group, gi) {
-    if (group.items.length === 0) return;
-    const open = window.equipOpenCats.has(gi);
-
-    let rows = '';
-    group.items.forEach(function(item, i) {
-      const key = currentEquipTab + '-' + globalIdx;
-      const ok = !!equipChecked[key];
-      const bg = ok ? '#ecfdf3' : (i % 2 === 0 ? hexTint(c, 0.87) : hexTint(c, 0.94));
-      const qtyTag = item.qty && item.qty !== '-'
-        ? `<span style="background:${c}; color:white; font-size:10.5px; font-weight:800;
-            padding:1px 7px; border-radius:6px; margin-left:6px; flex-shrink:0;">×${item.qty}</span>` : '';
-      const specRow = (item.spec && item.spec !== '-')
-        ? `<div style="font-size:10px; color:#9ca3af; margin-top:2px; font-style:italic; word-break:keep-all;">${item.spec}</div>` : '';
-      rows += `<div onclick="equipChecked['${key}']=!equipChecked['${key}']; renderEquipList();"
-        style="background:${bg}; padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer;">
-        <div style="display:flex; align-items:flex-start; gap:10px;">
-          <div style="flex-shrink:0; margin-top:2px; width:18px; height:18px; border-radius:5px;
-            border:2px solid ${ok ? c : '#cbd5e1'}; background:${ok ? c : 'white'};
-            display:flex; align-items:center; justify-content:center;">
-            ${ok ? '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 3.5L3.5 6L9 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
-          </div>
-          <div style="flex:1; min-width:0;">
-            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:2px;">
-              <span style="font-size:12.5px; font-weight:${ok ? '500' : '700'};
-                color:${ok ? '#9ca3af' : '#111'};
-                text-decoration:${ok ? 'line-through' : 'none'}; word-break:keep-all;">${item.name}</span>${qtyTag}
-            </div>
-            ${specRow}
-            ${item.loc && item.loc !== '-' ? `<div style="font-size:10px; color:#6b7280; margin-top:3px; line-height:1.5; word-break:keep-all;">📍 ${item.loc}</div>` : ''}
-          </div>
-        </div>
-      </div>`;
-      globalIdx++;
-    });
-
-    html += '<div class="ec-acc-group" style="margin:8px 10px;">' +
-      '<div class="ec-acc-head" style="background:' + c + ';color:#fff;border-left:none;" onclick="toggleEquipCat(' + gi + ')">' +
-        '<span class="ec-acc-title">' + group.cat + '</span>' +
-        '<span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">' + group.items.length + '</span>' +
-        '<span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(' + (open ? '180deg' : '0deg') + ')">▾</span>' +
-      '</div>' +
-      '<div class="ec-acc-body" style="' + (open ? '' : 'display:none;') + '">' + rows + '</div>' +
-    '</div>';
-  });
-
-  document.getElementById('equip-list-body').innerHTML = html ||
-    `<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>`;
-}
-
-function toggleEquip(key) {
-  equipChecked[key] = !equipChecked[key];
-  renderEquipList();
 }
 
 function showEquipPopup(keyword) {
@@ -5611,7 +5513,7 @@ function openEquipPanel() {
   panel.style.width  = '100%';
   panel.style.left   = '0';
   panel.classList.add('open');
-  setEquipViewMode(equipViewMode);
+  switchEquipTab(currentEquipTab || 'fire');
 }
 
 function closeEquipPanel() {
