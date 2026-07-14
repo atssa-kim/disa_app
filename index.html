@@ -3737,6 +3737,28 @@ const FIRE_SCENARIOS = {
 // [[DATA_BLOCK_END]]
 let currentFireScenario = 'general';
 
+// ── 엑셀 내보내기/가져오기 공용: 분기 기호(◇/┖)를 "구분·분기태그" 컬럼으로 분리 ──
+// 구분: 헤더(◇, 하위단계를 접고펼침) | 하위(┖, 헤더 바로 아래 딸림) | 일반
+// 분기태그: 헤더에서만 사용 — 비우면 배지 없이 제목만 표시("◇임무)" 내부 표기),
+//           "상황"/"행동" 등을 쓰면 "🔀 {태그} 분기" 배지가 붙음(기존 방식과 동일)
+function splitTaskForExcel(rawLabel) {
+  if (/^◇/.test(rawLabel)) {
+    const m = rawLabel.match(/^◇\s*([^)\s]{1,6})\)\s*([\s\S]*)$/);
+    if (m) return { kind: '헤더', tag: m[1] === '임무' ? '' : m[1], text: m[2] };
+    return { kind: '헤더', tag: '상황', text: rawLabel.replace(/^◇\s*/, '') };
+  }
+  if (/^[┖└]/.test(rawLabel)) {
+    return { kind: '하위', tag: '', text: rawLabel.replace(/^[┖└]\s*/, '') };
+  }
+  return { kind: '일반', tag: '', text: rawLabel };
+}
+function buildTaskLabel(kind, tag, text) {
+  text = String(text || '').trim();
+  if (kind === '헤더') return '◇' + (String(tag || '').trim() || '임무') + ') ' + text;
+  if (kind === '하위') return '┖ ' + text;
+  return text;
+}
+
 // ── 엑셀 내보내기 ──────────────────────────────────────
 function exportToExcel() {
   if (!window.XLSX) {
@@ -3744,17 +3766,19 @@ function exportToExcel() {
     return;
   }
   const wb = XLSX.utils.book_new();
-  const HDR = ['그룹', '역할/담당', '배지', '배지색상(bc)', '임무번호', '임무내용'];
-  const COL_W = [{wch:14},{wch:36},{wch:8},{wch:14},{wch:8},{wch:70}];
+  const HDR = ['그룹', '역할/담당', '배지', '배지색상(bc)', '임무번호', '구분', '분기태그', '임무내용', '상황변형'];
+  const COL_W = [{wch:14},{wch:36},{wch:8},{wch:14},{wch:8},{wch:8},{wch:10},{wch:60},{wch:12}];
 
   function membersToRows(members) {
     const rows = [HDR];
     members.forEach(m => {
       if (m.tasks.length === 0) {
-        rows.push([m.group, m.role, m.badge, m.bc || '', '', '']);
+        rows.push([m.group, m.role, m.badge, m.bc || '', '', '', '', '', '']);
       } else {
         m.tasks.forEach((task, i) => {
-          rows.push([m.group, m.role, m.badge, m.bc || '', i + 1, task]);
+          const s = splitTaskForExcel(task);
+          const variant = (m.taskVariants && m.taskVariants[task]) || '';
+          rows.push([m.group, m.role, m.badge, m.bc || '', i + 1, s.kind, s.tag, s.text, variant]);
         });
       }
     });
@@ -3808,6 +3832,7 @@ function importFromExcel(input) {
       const data = new Uint8Array(e.target.result);
       const wb = XLSX.read(data, { type: 'array', codepage: isCsv ? 65001 : undefined });
       let updated = 0;
+      let skippedBlankRole = 0;
       // 실제로 이번 임포트에서 바뀐 재난·근무만 기록 — Supabase 재동기화 시 이 목록만 밀어써서
       // 임포트에 포함 안 된 다른 재난이 옛 데이터로 되돌아가는 걸 방지 (2026-07-07 수정)
       const syncTargets = [];
@@ -3825,15 +3850,22 @@ function importFromExcel(input) {
           const role    = String(row[1] || '').trim();
           const badge   = String(row[2] || '').trim();
           const bc      = String(row[3] || '').trim();
-          const task    = String(row[5] || '').trim();
+          // row[4] 임무번호는 참고용 — 실제 순서는 시트에 적힌 행 순서를 그대로 씀
+          const kind    = String(row[5] || '일반').trim() || '일반';
+          const tag     = String(row[6] || '').trim();
+          const text    = String(row[7] || '').trim();
+          const variant = String(row[8] || '').trim();
 
-          if (!role) return;
+          if (!role) { if (text || group || badge) skippedBlankRole++; return; }
           if (!cur || cur.role !== role) {
             cur = { group: group, role: role, badge: badge,
-                    bc: bc || '#555555', tasks: [] };
+                    bc: bc || '#555555', tasks: [], taskVariants: {} };
             members.push(cur);
           }
-          if (task) cur.tasks.push(task);
+          if (!text) return;
+          const label = buildTaskLabel(kind, tag, text);
+          cur.tasks.push(label);
+          if (variant) cur.taskVariants[label] = variant;
         });
 
         // 시트명 → 시나리오 키 매핑
@@ -3860,18 +3892,13 @@ function importFromExcel(input) {
         } else {
           const d = DISASTERS.find(function(x) { return x.key === sheetName; });
           if (d) {
-            // 2026-07-08: 배지 기준으로 기존 taskVariants(상황 확정 태그)를 보존 — 엑셀은 variant를
-            // 모르므로 그대로 두면 재업로드 시 태그가 전부 사라짐. 문구가 그대로인 임무만 유지됨.
-            const oldByBadge = {};
-            d.members.forEach(function(ex) { oldByBadge[ex.badge] = ex; });
-            // Preserve bc from existing members where not specified
+            // 상황변형(I열)을 시트에서 직접 읽어오므로 옛 taskVariants 보존 로직은 더 이상 필요 없음
+            // (엑셀이 이제 variant까지 담당) — bc만 비어있으면 같은 순서의 기존 멤버 값을 이어받음
             members.forEach(function(newM, i) {
               if (!newM.bc || newM.bc === '#555555') {
                 var ex = d.members[i];
                 if (ex) newM.bc = ex.bc;
               }
-              const oldM = oldByBadge[newM.badge];
-              newM.taskVariants = (oldM && oldM.taskVariants) || {};
             });
             d.members.splice(0, d.members.length);
             members.forEach(function(m) { d.members.push(m); });
@@ -3887,7 +3914,11 @@ function importFromExcel(input) {
         renderIconGrid();
         if (typeof renderProcGrid === 'function') renderProcGrid();
         if (currentDisaster) renderMemberList();
-        alert(updated + '개 시트 데이터를 가져왔습니다.\n앱에 적용되었습니다.');
+        let msg = updated + '개 시트 데이터를 가져왔습니다.\n앱에 적용되었습니다.';
+        if (skippedBlankRole > 0) {
+          msg += '\n\n⚠️ B열(역할/담당)이 비어 있어 ' + skippedBlankRole + '개 행을 건너뛰었습니다.\n내용이 있는데 건너뛰었다면 B열을 채우고 다시 업로드하세요.';
+        }
+        alert(msg);
         if (syncTargets.length > 0) {
           sbSyncDisasters(syncTargets).catch(function(e) { console.error('[Supabase] 임포트 동기화 오류:', e); });
         }
