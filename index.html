@@ -5203,8 +5203,15 @@ function renderEquipTabs() {
 
 function switchEquipTab(tab) {
   currentEquipTab = tab;
-  equipOpenFloors = null;   // 탭 전환 시 첫 그룹만 펼친 상태로 재계산
+  currentEquipZone = null;  // 탭 전환 시 구역(동관/서관/지하/옥외) 선택도 재계산
+  equipOpenFloors = null;   // 첫 그룹만 펼친 상태로 재계산
   renderEquipTabs();
+  renderEquipList();
+}
+
+function selectEquipZone(zone) {
+  currentEquipZone = zone;
+  equipOpenFloors = null;
   renderEquipList();
 }
 
@@ -5216,6 +5223,31 @@ function switchEquipTab(tab) {
 // 오해가 없도록 함.
 // ══════════════════════════════════════════════════════════════════
 let equipOpenFloors = null; // null이면 renderEquipList가 첫 그룹을 기본으로 펼침
+let currentEquipZone = null; // '동관'|'서관'|'지하'|'옥외' — null이면 renderEquipList가 첫 구역을 자동 선택
+
+// 위치 세그먼트의 building/room 텍스트로부터 구역(동관/서관/지하/옥외)을 판정.
+// building이 명시적으로 동관/서관이면 그대로, 그 외(중앙·공용 지하)는 실외 키워드가
+// 있으면 옥외, 없으면 지하로 분류 — PDF 원본의 "동서관" 컬럼(동관/서관/지하/옥외) 구조와 동일.
+function equipZoneOf(building, room) {
+  if (building === '동관') return '동관';
+  if (building === '서관') return '서관';
+  if (/외곽|초소|옥외|주차장/.test(room || '')) return '옥외';
+  return '지하';
+}
+
+// 현재 탭에서 구역별 품목 수 반환 (0인 구역은 메뉴에서 비활성화)
+function buildEquipZoneCounts(tabKey) {
+  const counts = { 동관: 0, 서관: 0, 지하: 0, 옥외: 0 };
+  (EQUIP_DATA[tabKey] || []).forEach(function(cat) {
+    cat.items.forEach(function(item) {
+      parseEquipLoc(item.loc).forEach(function(p) {
+        if (p.floor === 'ALL') { counts['동관']++; counts['서관']++; return; }
+        counts[equipZoneOf(p.building, p.room)]++;
+      });
+    });
+  });
+  return counts;
+}
 
 function parseEquipSegment(seg) {
   seg = seg.trim();
@@ -5293,11 +5325,12 @@ function floorLabel(floor) {
   return floor > 0 ? floor + '층' : 'B' + (-floor);
 }
 
-// 현재 탭(재난유형) 안에서 { key, sortKey, label, rooms: { roomName: [entry...] } } 목록을 반환
+// 현재 탭(재난유형) + 구역(동관/서관/지하/옥외) 안에서
+// { key, sortKey, label, rooms: { roomName: [entry...] } } 목록을 반환
 // (ALL/ETC 제외, 내림차순 정렬). entry: { name, spec, qty, building, room, fullLoc(원본 표기) }
-function buildEquipFloorIndex(tabKey) {
+function buildEquipFloorIndex(tabKey, zone) {
   const floors = {}; // floorKey(string) -> { sortKey, label, rooms:{} }
-  const allCommon = []; // "각 층" 공통 품목
+  const allCommon = []; // "각 층" 공통 품목 (동관/서관 구역에서만 표시)
   const etc = [];       // 층 정보 없는 품목
 
   (EQUIP_DATA[tabKey] || []).forEach(function(cat) {
@@ -5310,7 +5343,11 @@ function buildEquipFloorIndex(tabKey) {
           building: p.building, room: p.room,
           fullLoc: item.loc,
         };
-        if (p.floor === 'ALL') { allCommon.push(entry); return; }
+        if (p.floor === 'ALL') {
+          if (zone === '동관' || zone === '서관') allCommon.push(entry);
+          return;
+        }
+        if (equipZoneOf(p.building, p.room) !== zone) return;
         if (p.floor === 'ETC') { etc.push(entry); return; }
         const fk = String(p.floor);
         if (!floors[fk]) floors[fk] = { sortKey: floorSortKey(p.floor), label: floorLabel(p.floor), rooms: {} };
@@ -5365,9 +5402,47 @@ function renderEquipEntryRow(entry, key, c) {
   </div>`;
 }
 
+const EQUIP_ZONES = [
+  { key:'동관', icon:'🏢' }, { key:'서관', icon:'🏬' }, { key:'지하', icon:'🅿️' }, { key:'옥외', icon:'🌳' },
+];
+
+function renderEquipZoneBar(counts) {
+  const c = EQUIP_TAB_COLOR[currentEquipTab] || '#dc2626';
+  return '<div style="display:flex; gap:6px; padding:10px 10px 4px;">' +
+    EQUIP_ZONES.map(function(z) {
+      const n = counts[z.key] || 0;
+      const active = z.key === currentEquipZone;
+      const disabled = n === 0;
+      const bg = disabled ? '#f1f5f9' : (active ? c : 'white');
+      const fg = disabled ? '#cbd5e1' : (active ? 'white' : '#475569');
+      const border = disabled ? '#e2e8f0' : (active ? c : '#cbd5e1');
+      return '<div' + (disabled ? '' : ' onclick="selectEquipZone(\'' + z.key + '\')"') +
+        ' style="flex:1; text-align:center; padding:8px 4px; border-radius:10px; border:1.5px solid ' + border + ';' +
+        ' background:' + bg + '; color:' + fg + '; font-size:12px; font-weight:800;' +
+        ' cursor:' + (disabled ? 'default' : 'pointer') + '; white-space:nowrap;">' +
+        z.icon + ' ' + z.key + '<div style="font-size:9.5px; font-weight:700; opacity:0.85; margin-top:1px;">' + n + '개</div></div>';
+    }).join('') +
+  '</div>';
+}
+
 function renderEquipList() {
   const c = EQUIP_TAB_COLOR[currentEquipTab] || '#dc2626';
-  const { floorList, allCommon, etc } = buildEquipFloorIndex(currentEquipTab);
+  const zoneCounts = buildEquipZoneCounts(currentEquipTab);
+
+  if (!currentEquipZone || !zoneCounts[currentEquipZone]) {
+    currentEquipZone = EQUIP_ZONES.find(function(z) { return zoneCounts[z.key] > 0; });
+    currentEquipZone = currentEquipZone ? currentEquipZone.key : null;
+  }
+
+  const zoneBarHtml = renderEquipZoneBar(zoneCounts);
+
+  if (!currentEquipZone) {
+    document.getElementById('equip-list-body').innerHTML = zoneBarHtml +
+      '<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>';
+    return;
+  }
+
+  const { floorList, allCommon, etc } = buildEquipFloorIndex(currentEquipTab, currentEquipZone);
 
   if (equipOpenFloors === null) {
     equipOpenFloors = new Set();
@@ -5385,7 +5460,7 @@ function renderEquipList() {
     });
     return Object.keys(byRoom).map(rk =>
       `<div style="padding:6px 12px 2px; font-size:11px; font-weight:800; color:#475569;">📌 ${rk}</div>` +
-      byRoom[rk].map(e => renderEquipEntryRow(e, currentEquipTab + '-' + (globalIdx++), c)).join('')
+      byRoom[rk].map(e => renderEquipEntryRow(e, currentEquipTab + '-' + currentEquipZone + '-' + (globalIdx++), c)).join('')
     ).join('');
   }
 
@@ -5420,8 +5495,8 @@ function renderEquipList() {
     html += groupBlock('ETC', '📦', '기타(층 미표기)', etc.length, roomSection(etc), '#64748b');
   }
 
-  document.getElementById('equip-list-body').innerHTML = html ||
-    `<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>`;
+  document.getElementById('equip-list-body').innerHTML = zoneBarHtml + (html ||
+    `<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>`);
 }
 
 function showEquipPopup(keyword) {
