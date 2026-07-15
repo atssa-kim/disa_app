@@ -5248,25 +5248,21 @@ function renderEquipTabs() {
 
 function switchEquipTab(tab) {
   currentEquipTab = tab;
-  currentEquipZone = null;  // 탭 전환 시 구역(동관/서관/지하/옥외)·층 선택 초기화
-  currentEquipFloor = null;
+  currentEquipZone = null;  // 탭 전환 시 구역(동관/서관/지하/옥외) 선택 초기화
+  equipOpenGroups = null;   // 아코디언 전개 상태도 재계산(기본 전체 전개)
   renderEquipTabs();
   renderEquipList();
 }
 
 function selectEquipZone(zone) {
   currentEquipZone = zone;
-  currentEquipFloor = null;
+  equipOpenGroups = null;
   renderEquipList();
 }
 
-function selectEquipFloor(key) {
-  currentEquipFloor = key;
-  renderEquipList();
-}
-
-function backToEquipFloorMenu() {
-  currentEquipFloor = null;
+function toggleEquipGroup(key) {
+  if (equipOpenGroups.has(key)) equipOpenGroups.delete(key);
+  else equipOpenGroups.add(key);
   renderEquipList();
 }
 
@@ -5277,13 +5273,14 @@ function backToEquipFloorMenu() {
 // 항상 그대로 함께 보여줘서(개수를 층별로 임의로 나눠 표시하지 않음) 실제 위치 확인 시
 // 오해가 없도록 함.
 // ══════════════════════════════════════════════════════════════════
-let currentEquipZone = null;  // '동관'|'서관'|'지하'|'옥외' — null이면 renderEquipList가 첫 구역을 자동 선택
-let currentEquipFloor = null; // 층 메뉴에서 선택한 층 key — null이면 층 메뉴(목록)를 보여줌
+let currentEquipZone = null; // '동관'|'서관'|'지하'|'옥외' — null이면 renderEquipList가 첫 구역을 자동 선택
+let equipOpenGroups = null;  // 아코디언(층+위치) 전개 상태 Set — null이면 전체 전개로 새로 계산
 
-// 위치 세그먼트의 building/room 텍스트로부터 구역(동관/서관/지하/옥외)을 판정.
-// building이 명시적으로 동관/서관이면 그대로, 그 외(중앙·공용 지하)는 실외 키워드가
-// 있으면 옥외, 없으면 지하로 분류 — PDF 원본의 "동서관" 컬럼(동관/서관/지하/옥외) 구조와 동일.
-function equipZoneOf(building, room) {
+// 위치 세그먼트의 building/floor/room 텍스트로부터 구역(동관/서관/지하/옥외)을 판정.
+// B1~B3·U.G(지하층)는 동/서관 소속과 무관하게 모두 "지하"로 분류. 지상층은 동관/서관
+// 명시가 있으면 그대로, 그 외(중앙·옥외)는 실외 키워드가 있으면 옥외, 없으면 지하.
+function equipZoneOf(building, floor, room) {
+  if (floor === 'UG' || (typeof floor === 'number' && floor < 0)) return '지하';
   if (building === '동관') return '동관';
   if (building === '서관') return '서관';
   if (building === '옥외') return '옥외';
@@ -5298,7 +5295,7 @@ function buildEquipZoneCounts(tabKey) {
     cat.items.forEach(function(item) {
       parseEquipLoc(item.loc).forEach(function(p) {
         if (p.floor === 'ALL') { counts['동관']++; counts['서관']++; return; }
-        counts[equipZoneOf(p.building, p.room)]++;
+        counts[equipZoneOf(p.building, p.floor, p.room)]++;
       });
     });
   });
@@ -5403,7 +5400,7 @@ function buildEquipFloorIndex(tabKey, zone) {
           if (zone === '동관' || zone === '서관') allCommon.push(entry);
           return;
         }
-        if (equipZoneOf(p.building, p.room) !== zone) return;
+        if (equipZoneOf(p.building, p.floor, p.room) !== zone) return;
         if (p.floor === 'ETC') { etc.push(entry); return; }
         const fk = String(p.floor);
         if (!floors[fk]) floors[fk] = { sortKey: floorSortKey(p.floor), label: floorLabel(p.floor), rooms: {} };
@@ -5473,58 +5470,52 @@ function renderEquipZoneBar(counts) {
   }).join('');
 }
 
-// 선택된 구역(zone) 안의 층 목록을 "메뉴"로 그린다 — 재난별/구역별 메뉴와 같은 드릴다운 방식.
-// 층 하나를 클릭하면 그 층의 위치-장비명-수량 상세 목록으로 이동한다(renderEquipFloorDetail).
-function renderEquipFloorMenu(tabKey, zone) {
+// 선택된 구역(zone) 안의 품목을 "층 · 위치" 단위 아코디언으로 그린다 — 기본 전체 전개,
+// 헤더 클릭으로 개별 접기/펼치기 가능.
+function renderEquipZoneAccordion(tabKey, zone) {
   const { floorList, allCommon, etc } = buildEquipFloorIndex(tabKey, zone);
-  const menu = [];
-  if (allCommon.length) menu.push({ key:'ALL', icon:'🏢', label:'전 층 공통', count: allCommon.length });
-  floorList.forEach(f => menu.push({ key: f.key, icon:'🏬', label: f.label, count: Object.values(f.rooms).reduce((s,a)=>s+a.length,0) }));
-  if (etc.length) menu.push({ key:'ETC', icon:'📦', label:'기타(층 미표기)', count: etc.length });
+  const groups = [];
 
-  if (menu.length === 0) {
+  function byRoom(entries) {
+    const m = {};
+    entries.forEach(e => { const rk = (e.building ? e.building + ' ' : '') + (e.room || '기타'); (m[rk] = m[rk] || []).push(e); });
+    return m;
+  }
+
+  if (allCommon.length) {
+    const m = byRoom(allCommon);
+    Object.keys(m).forEach(rk => groups.push({ key: 'ALL-' + rk, label: '전 층 공통 · ' + rk, items: m[rk] }));
+  }
+  floorList.forEach(f => {
+    Object.keys(f.rooms).forEach(rk => groups.push({ key: f.key + '-' + rk, label: f.label + ' · ' + rk, items: f.rooms[rk] }));
+  });
+  if (etc.length) {
+    const m = byRoom(etc);
+    Object.keys(m).forEach(rk => groups.push({ key: 'ETC-' + rk, label: '기타(층 미표기) · ' + rk, items: m[rk] }));
+  }
+
+  if (equipOpenGroups === null) {
+    equipOpenGroups = new Set(groups.map(g => g.key)); // 기본: 전부 전개
+  }
+
+  if (groups.length === 0) {
     return '<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>';
   }
 
   const c = EQUIP_TAB_COLOR[tabKey] || '#dc2626';
-  return '<div style="padding:8px 10px;">' + menu.map(function(f) {
-    return `<div onclick="selectEquipFloor('${f.key}')"
-      style="display:flex; align-items:center; gap:10px; padding:13px 14px; margin-bottom:7px;
-      background:white; border-radius:12px; border:1.5px solid #e2e8f0; cursor:pointer;
-      box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-      <span style="font-size:17px;">${f.icon}</span>
-      <span style="flex:1; font-size:13.5px; font-weight:800; color:#1e293b;">${f.label}</span>
-      <span style="background:${c}; color:white; font-size:11px; font-weight:800;
-        padding:2px 9px; border-radius:999px;">${f.count}개</span>
-      <span style="color:#cbd5e1; font-size:14px;">›</span>
-    </div>`;
-  }).join('') + '</div>';
-}
-
-// 선택된 층의 위치-장비명-수량 상세 목록(뒤로가기 포함).
-function renderEquipFloorDetail(tabKey, zone, floorKey) {
-  const { floorList, allCommon, etc } = buildEquipFloorIndex(tabKey, zone);
-  let title = '', rooms = {};
-  if (floorKey === 'ALL') { title = '전 층 공통'; allCommon.forEach(e => { const rk = (e.building?e.building+' ':'')+(e.room||'기타'); (rooms[rk]=rooms[rk]||[]).push(e); }); }
-  else if (floorKey === 'ETC') { title = '기타(층 미표기)'; etc.forEach(e => { const rk = (e.building?e.building+' ':'')+(e.room||'기타'); (rooms[rk]=rooms[rk]||[]).push(e); }); }
-  else { const f = floorList.find(f => f.key === floorKey); if (f) { title = f.label; rooms = f.rooms; } }
-
-  const c = EQUIP_TAB_COLOR[tabKey] || '#dc2626';
   let globalIdx = 0;
-  const body = Object.keys(rooms).map(rk =>
-    `<div style="padding:6px 12px 2px; font-size:11px; font-weight:800; color:#475569;">📌 ${rk}</div>` +
-    rooms[rk].map(e => renderEquipEntryRow(e, tabKey + '-' + zone + '-' + floorKey + '-' + (globalIdx++), c)).join('')
-  ).join('');
-
-  return `<div style="display:flex; align-items:center; gap:8px; padding:10px 12px; background:${c}; color:white;">
-      <button onclick="backToEquipFloorMenu()"
-        style="background:rgba(255,255,255,.22); border:none; color:white; font-size:14px;
-        width:26px; height:26px; border-radius:50%; cursor:pointer; flex-shrink:0;">‹</button>
-      <span style="font-size:13.5px; font-weight:800;">🏬 ${title}</span>
-    </div>
-    <div style="background:white; margin:8px 10px; border-radius:12px; overflow:hidden;
-      border:1px solid #e2e8f0; box-shadow:0 1px 4px rgba(0,0,0,0.06);">${body ||
-      '<div style="padding:20px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>'}</div>`;
+  return groups.map(function(g) {
+    const open = equipOpenGroups.has(g.key);
+    const body = g.items.map(e => renderEquipEntryRow(e, tabKey + '-' + zone + '-' + g.key + '-' + (globalIdx++), c)).join('');
+    return `<div class="ec-acc-group" style="margin:8px 10px;">
+      <div class="ec-acc-head" style="background:${c};color:#fff;border-left:none;" onclick="toggleEquipGroup('${g.key}')">
+        <span class="ec-acc-title">🏬 ${g.label}</span>
+        <span class="ec-acc-count" style="color:rgba(255,255,255,0.85)">${g.items.length}</span>
+        <span class="ec-acc-arrow" style="color:rgba(255,255,255,0.9);transform:rotate(${open ? '180deg' : '0deg'})">▾</span>
+      </div>
+      <div class="ec-acc-body" style="${open ? '' : 'display:none;'}">${body}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderEquipList() {
@@ -5533,20 +5524,14 @@ function renderEquipList() {
   if (!currentEquipZone || !zoneCounts[currentEquipZone]) {
     currentEquipZone = EQUIP_ZONES.find(function(z) { return zoneCounts[z.key] > 0; });
     currentEquipZone = currentEquipZone ? currentEquipZone.key : null;
-    currentEquipFloor = null;
+    equipOpenGroups = null;
   }
 
   renderEquipZoneBar(zoneCounts);
 
-  if (!currentEquipZone) {
-    document.getElementById('equip-list-body').innerHTML =
-      '<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>';
-    return;
-  }
-
-  document.getElementById('equip-list-body').innerHTML = currentEquipFloor
-    ? renderEquipFloorDetail(currentEquipTab, currentEquipZone, currentEquipFloor)
-    : renderEquipFloorMenu(currentEquipTab, currentEquipZone);
+  document.getElementById('equip-list-body').innerHTML = currentEquipZone
+    ? renderEquipZoneAccordion(currentEquipTab, currentEquipZone)
+    : '<div style="padding:30px; text-align:center; color:#aaa;">표시할 항목이 없습니다.</div>';
 }
 
 function showEquipPopup(keyword) {
