@@ -6712,7 +6712,7 @@ function openTaskDirect(idx, dkey) {
 
 // ── 임무 수정 모달 ────────────────────────────────────
 // 표준 배지 어휘 (2026-07-06 twin-alarm과 통일) — 임무 수정/역할 추가 시 이 안에서만 선택 가능
-const BADGE_OPTIONS = ['총괄','통제','상황','출동','대응','대응1','대응2','유도','유도1','유도2','응급','방호','경계','복구','지원','지원1','지원2'];
+const BADGE_OPTIONS = ['총괄','통제','상황','출동','대응','대응1','대응2','대응3','대응4','유도','유도1','유도2','유도3','유도4','지원','지원1','지원2','지원3','지원4','응급','방호','경계','복구'];
 
 function badgeSelectHtml(id, currentBadge) {
   const opts = BADGE_OPTIONS.includes(currentBadge) ? BADGE_OPTIONS : [currentBadge, ...BADGE_OPTIONS];
