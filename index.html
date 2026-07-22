@@ -3761,6 +3761,10 @@ function buildTaskLabel(kind, tag, text) {
 }
 
 // ── 엑셀 내보내기 ──────────────────────────────────────
+// Excel 시트명은 \ / ? * [ ] 문자와 31자 초과를 허용하지 않음 (예: '태풍/홍수')
+function sanitizeSheetName(name) {
+  return String(name).replace(/[\\/?*[\]:]/g, '_').slice(0, 31);
+}
 function exportToExcel() {
   if (!window.XLSX) {
     alert('SheetJS 라이브러리를 불러오는 중입니다. 인터넷 연결 후 다시 시도하세요.');
@@ -3789,7 +3793,7 @@ function exportToExcel() {
   DISASTERS.forEach(d => {
     const ws = XLSX.utils.aoa_to_sheet(membersToRows(d.members));
     ws['!cols'] = COL_W;
-    XLSX.utils.book_append_sheet(wb, ws, d.key);
+    XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(d.key));
   });
 
   const wsNight = XLSX.utils.aoa_to_sheet(membersToRows(FIRE_NIGHT));
@@ -3891,7 +3895,7 @@ function importFromExcel(input) {
             updated++;
           }
         } else {
-          const d = DISASTERS.find(function(x) { return x.key === sheetName; });
+          const d = DISASTERS.find(function(x) { return sanitizeSheetName(x.key) === sheetName; });
           if (d) {
             // 상황변형(I열)을 시트에서 직접 읽어오므로 옛 taskVariants 보존 로직은 더 이상 필요 없음
             // (엑셀이 이제 variant까지 담당) — bc만 비어있으면 같은 순서의 기존 멤버 값을 이어받음
