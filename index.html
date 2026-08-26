@@ -2225,22 +2225,6 @@ const DISASTERS = [
       },
       {
         "group": "대응반",
-        "role": "🧯 소화조 (기계파트)",
-        "badge": "대응",
-        "bc": "#ef4444",
-        "tasks": [
-          "비상장비_방화복Set·공기호흡기·무전기·헤드랜턴",
-          "무전기로 비상용승강기 운행자 요청 : 비상용승강기등을 이용하여 신속하게 출동",
-          "행동) 승강장에서 투입전 비상장구 확인 \r\n무전) \"상황실 소화조 3명 현장진입하여 소화활동 하겠음\"",
-          "소화조장은 조원의 장비 확인 후 투입 (공기호흡기 양압모드)",
-          "화재 소화 : 소화전을 전개하여 소화 (진입시 무상 > 소화시 봉상)",
-          "소방관 진압대원 현장도착시 정보제공",
-          "상황실 보고 : 소방대원 도착하여 인계하였으며 대피하겠음",
-          "대피 : 계단이나 비상용승강기를 이용하여 대피하고 대피완료 후 상황실 보고"
-        ]
-      },
-      {
-        "group": "대응반",
         "role": "🧯 인명구조조 (보안파트)",
         "badge": "응급",
         "bc": "#b91c1c",
@@ -3333,22 +3317,6 @@ const FIRE_SCENARIOS = {
       },
       {
         "group": "대응반",
-        "role": "🧯 소화조 (기계파트)",
-        "badge": "대응",
-        "bc": "#ef4444",
-        "tasks": [
-          "비상장비_방화복Set·공기호흡기·무전기·헤드랜턴",
-          "무전기로 비상용승강기 운행자 요청 : 비상용승강기등을 이용하여 신속하게 출동",
-          "행동) 승강장에서 투입전 비상장구 확인 \r\n무전) \"상황실 소화조 3명 현장진입하여 소화활동 하겠음\"",
-          "소화조장은 조원의 장비 확인 후 투입 (공기호흡기 양압모드)",
-          "화재 소화 : 소화전을 전개하여 소화 (진입시 무상 > 소화시 봉상)",
-          "소방관 진압대원 현장도착시 정보제공",
-          "상황실 보고 : 소방대원 도착하여 인계하였으며 대피하겠음",
-          "대피 : 계단이나 비상용승강기를 이용하여 대피하고 대피완료 후 상황실 보고"
-        ]
-      },
-      {
-        "group": "대응반",
         "role": "🧯 인명구조조 (보안파트)",
         "badge": "응급",
         "bc": "#b91c1c",
@@ -3466,21 +3434,6 @@ const FIRE_SCENARIOS = {
       },
       {
         "group": "대응반",
-        "role": "🧯 소화조 (기계파트)",
-        "badge": "대응",
-        "bc": "#ef4444",
-        "tasks": [
-          "공기호흡기 착용 — CO₂ 농도 위험 (질식)",
-          "가스 방출 확인 (경보음·방출 표시등)",
-          "가스 방출 실패 시 CO₂·분말 소화기 투입",
-          "방출 후 10분 경과 후 공기호흡기 착용 진입",
-          "잔불 확인 및 재발화 감시",
-          "환기 후 정상화 확인",
-          "소방관 도착 시 정보 제공"
-        ]
-      },
-      {
-        "group": "대응반",
         "role": "🪜 인명구조조 (보안파트)",
         "badge": "응급",
         "bc": "#b91c1c",
@@ -3563,21 +3516,6 @@ const FIRE_SCENARIOS = {
           "수계 소화 시 감전 주의 — 절연 확인 후 사용",
           "화재 진압 상황 상황실 보고",
           "UPS 벤더 도착 시 기술 정보 제공"
-        ]
-      },
-      {
-        "group": "대응반",
-        "role": "🧯 소화조 (기계파트)",
-        "badge": "대응",
-        "bc": "#ef4444",
-        "tasks": [
-          "공기호흡기 착용 — 오프가스 질식·폭발 위험",
-          "CO₂ 또는 ABC 분말 소화기 사용",
-          "수계 소화 시 절연 확인 후 사용 (감전 주의)",
-          "열폭주 모듈 분리 — 전문업체 협조 시",
-          "환기 실시 (오프가스 제거)",
-          "잔불 및 재발화 감시",
-          "소방관 도착 시 정보 제공"
         ]
       },
       {
@@ -3670,20 +3608,6 @@ const FIRE_SCENARIOS = {
       },
       {
         "group": "대응반",
-        "role": "🧯 소화조 (기계파트)",
-        "badge": "대응",
-        "bc": "#ef4444",
-        "tasks": [
-          "공기호흡기 착용 — 지하 밀폐 공간 연기 위험",
-          "소화전 활용 차량화재 진압",
-          "차량 연료 폭발 위험 — 안전거리 확보",
-          "전기차 화재 시 대량 주수·배터리 냉각 (장시간 소요)",
-          "방화셔터 폐쇄 상태 유지",
-          "소방관 도착 시 정보 제공"
-        ]
-      },
-      {
-        "group": "대응반",
         "role": "🪜 인명구조조 (보안파트)",
         "badge": "응급",
         "bc": "#b91c1c",
@@ -3744,7 +3668,7 @@ let currentFireScenario = 'general';
 //           "상황"/"행동" 등을 쓰면 "🔀 {태그} 분기" 배지가 붙음(기존 방식과 동일)
 function splitTaskForExcel(rawLabel) {
   if (/^◇/.test(rawLabel)) {
-    const m = rawLabel.match(/^◇\s*([^)\s]{1,6})\)\s*([\s\S]*)$/);
+    const m = rawLabel.match(/^◇\s*([^)\s]{1,12})\)\s*([\s\S]*)$/);
     if (m) return { kind: '헤더', tag: m[1] === '임무' ? '' : m[1], text: m[2] };
     return { kind: '헤더', tag: '상황', text: rawLabel.replace(/^◇\s*/, '') };
   }
@@ -4488,9 +4412,22 @@ function toggleVariantGroup(key) {
   renderMemberList();
 }
 
+// innerHTML에 DB/Excel에서 온 문자열을 꽂기 전에 항상 통과시켜야 함 — 안 그러면
+// 임무명/역할명/배지 등에 <script>나 onerror= 같은 게 그대로 저장·실행되는 저장형 XSS가 됨
+// (2026-07-20 코드 리뷰로 발견: 이 파일에 이스케이프 함수가 아예 없었음)
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function parseTaskKind(text) {
   if (/^◇/.test(text)) {
-    const m = text.match(/^◇\s*([^)\s]{1,6})\)\s*([\s\S]*)$/);
+    const m = text.match(/^◇\s*([^)\s]{1,12})\)\s*([\s\S]*)$/);
     return { kind: 'branch', tag: m ? m[1] : '상황', text: m ? m[2] : text.replace(/^◇\s*/, '') };
   }
   if (/^[┖└]/.test(text)) {
@@ -4659,10 +4596,10 @@ function renderMemberList() {
             (e.pk.tag === '임무' ? '' :
               '<div style="margin-bottom:5px;">' +
               '<span style="background:#f59e0b;color:white;font-size:10px;font-weight:800;' +
-              'padding:2px 9px;border-radius:9px;letter-spacing:-0.2px;white-space:nowrap;">🔀 ' + e.pk.tag + ' 분기</span>' +
+              'padding:2px 9px;border-radius:9px;letter-spacing:-0.2px;white-space:nowrap;">🔀 ' + escapeHtml(e.pk.tag) + ' 분기</span>' +
               '</div>') +
             '<span style="font-size:11px;font-weight:800;margin-right:4px;color:#d97706;">' + numStr + '</span>' +
-            e.pk.text + mkEquipBtn(e) + '</div>' +
+            escapeHtml(e.pk.text) + mkEquipBtn(e) + '</div>' +
             '<div style="flex-shrink:0;text-align:center;">' +
             '<div style="font-size:10px;font-weight:800;color:#b45309;background:#fef3c7;' +
             'border:1px solid #fcd34d;border-radius:8px;padding:2px 7px;white-space:nowrap;">' + subDone + '/' + e.subs.length + '</div>' +
@@ -4683,7 +4620,7 @@ function renderMemberList() {
                 '<div style="font-size:13px;color:' + (sok ? '#94a3b8' : '#1e293b') + ';line-height:1.5;flex:1;' +
                 'text-decoration:' + (sok ? 'line-through' : 'none') + ';font-weight:' + (sok ? '400' : '500') + ';">' +
                 '<span style="font-size:11px;font-weight:800;margin-right:4px;color:' + (sok ? '#94a3b8' : '#d97706') + ';">' +
-                e.no + '-' + (si + 1) + '</span>' + s.pk.text + mkEquipBtn(s) + '</div></div>';
+                e.no + '-' + (si + 1) + '</span>' + escapeHtml(s.pk.text) + mkEquipBtn(s) + '</div></div>';
             });
           }
         } else {
@@ -4698,7 +4635,7 @@ function renderMemberList() {
             '<div style="font-size:14px;color:' + (ok ? '#94a3b8' : '#1e293b') + ';line-height:1.5;' +
             'text-decoration:' + (ok ? 'line-through' : 'none') + ';font-weight:' + (ok ? '400' : '500') + ';flex:1;">' +
             '<span style="font-size:11px;font-weight:800;margin-right:4px;color:' + (ok ? '#94a3b8' : barColor) + ';display:inline;">' +
-            numStr + '</span>' + e.pk.text + mkEquipBtn(e) + '</div></div>';
+            numStr + '</span>' + escapeHtml(e.pk.text) + mkEquipBtn(e) + '</div></div>';
         }
         return html;
       };
@@ -4726,7 +4663,7 @@ function renderMemberList() {
           'border-left:4px solid #7c3aed;border-bottom:1px solid #f1f5f9;cursor:pointer;' +
           'background:#faf5ff;transition:background .15s;">' +
           '<span style="background:#7c3aed;color:white;font-size:11px;font-weight:800;' +
-          'padding:3px 10px;border-radius:10px;white-space:nowrap;">🏷️ ' + g.variant + '</span>' +
+          'padding:3px 10px;border-radius:10px;white-space:nowrap;">🏷️ ' + escapeHtml(g.variant) + '</span>' +
           '<span style="font-size:12px;color:#6d28d9;font-weight:700;flex:1;">눌러서 임무 ' + g.items.length + '건 ' + (gOpen ? '접기 ▴' : '보기 ▾') + '</span>' +
           '<span style="font-size:10px;font-weight:800;color:#6d28d9;background:#ede9fe;' +
           'border:1px solid #d8b4fe;border-radius:8px;padding:2px 8px;white-space:nowrap;">' + gDone + '/' + g.items.length + '</span>' +
@@ -4765,13 +4702,13 @@ function renderMemberList() {
           display:flex;align-items:center;justify-content:center;
           font-size:10px;font-weight:900;color:white;flex-shrink:0;
           box-shadow:0 3px 8px ${m.bc}66;
-          letter-spacing:-0.3px;text-align:center;line-height:1.2;">${m.badge}</div>
+          letter-spacing:-0.3px;text-align:center;line-height:1.2;">${escapeHtml(m.badge)}</div>
 
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:700;color:#0f172a;
             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
             letter-spacing:-0.2px;margin-bottom:4px;">
-            ${m.role.replace(/^[^\s—–-]+[\s—–-]+/, '')}
+            ${escapeHtml(m.role.replace(/^[^\s—–-]+[\s—–-]+/, ''))}
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
             <div style="flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;">
@@ -5359,6 +5296,11 @@ function parseEquipSegment(seg) {
   m = seg.match(new RegExp('^' + BLDG + '?\\s*(\\d{1,2})층\\s*(.*)$'));
   if (m) return [{ building: m[1] || '', floor: Number(m[2]), room: m[3].trim(), qty, note }];
 
+  // "(건물) 숫자F 룸명" — "층" 대신 "F"로 표기된 단일 층 (예: "동관 3F 창고").
+  // 위의 "동·서관 xF/yF" · "E35F·W35F" 패턴이 먼저 걸러지므로 여기선 순수 단일 건물+F만 매칭.
+  m = seg.match(new RegExp('^' + BLDG + '?\\s*(\\d{1,2})F\\s*(.*)$', 'i'));
+  if (m) return [{ building: m[1] || '', floor: Number(m[2]), room: m[3].trim(), qty, note }];
+
   // "각 층 ..." — 전 층 공통
   if (/^각\s*층/.test(seg)) return [{ building: '', floor: 'ALL', room: seg.replace(/^각\s*층\s*/, '').trim(), qty, note }];
 
@@ -5431,7 +5373,7 @@ function renderEquipEntryRow(entry, key, c) {
     ? `<span style="background:${c}; color:white; font-size:10.5px; font-weight:800;
         padding:1px 7px; border-radius:6px; margin-left:6px; flex-shrink:0;">×${entry.qty}</span>` : '';
   const specRow = (entry.spec && entry.spec !== '-')
-    ? `<div style="font-size:10px; color:#9ca3af; margin-top:2px; font-style:italic; word-break:keep-all;">${entry.spec}</div>` : '';
+    ? `<div style="font-size:10px; color:#9ca3af; margin-top:2px; font-style:italic; word-break:keep-all;">${escapeHtml(entry.spec)}</div>` : '';
   return `<div onclick="equipChecked['${key}']=!equipChecked['${key}']; renderEquipList();"
     style="background:${ok ? '#ecfdf3' : 'white'}; padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer;">
     <div style="display:flex; align-items:flex-start; gap:10px;">
@@ -5444,10 +5386,10 @@ function renderEquipEntryRow(entry, key, c) {
         <div style="display:flex; align-items:center; flex-wrap:wrap; gap:2px;">
           <span style="font-size:12.5px; font-weight:${ok ? '500' : '700'};
             color:${ok ? '#9ca3af' : '#111'};
-            text-decoration:${ok ? 'line-through' : 'none'}; word-break:keep-all;">${entry.name}</span>${qtyTag}
+            text-decoration:${ok ? 'line-through' : 'none'}; word-break:keep-all;">${escapeHtml(entry.name)}</span>${qtyTag}
         </div>
         ${specRow}
-        <div style="font-size:10px; color:#6b7280; margin-top:3px; line-height:1.5; word-break:keep-all;">📍 ${entry.fullLoc}</div>
+        <div style="font-size:10px; color:#6b7280; margin-top:3px; line-height:1.5; word-break:keep-all;">📍 ${escapeHtml(entry.fullLoc)}</div>
       </div>
     </div>
   </div>`;
@@ -5574,15 +5516,15 @@ function showEquipPopup(keyword) {
     matches.forEach(function(item) {
       itemsHtml +=
         '<div style="padding:12px 0;border-bottom:1px solid #f1f5f9;">' +
-        '<div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:6px;">' + item.name + '</div>' +
-        '<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:800;padding:2px 10px;border-radius:20px;">수량 ' + item.qty + '개</span>' +
-        '<div style="font-size:12px;color:#64748b;line-height:1.6;margin-top:6px;">📍 ' + item.loc + '</div>' +
+        '<div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:6px;">' + escapeHtml(item.name) + '</div>' +
+        '<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:800;padding:2px 10px;border-radius:20px;">수량 ' + escapeHtml(item.qty) + '개</span>' +
+        '<div style="font-size:12px;color:#64748b;line-height:1.6;margin-top:6px;">📍 ' + escapeHtml(item.loc) + '</div>' +
         '</div>';
     });
   } else {
     itemsHtml = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px;">' +
       '비상장비 리스트에서 일치하는 항목을 찾을 수 없습니다.<br>' +
-      '<span style="font-size:11px;margin-top:4px;display:block;">' + keyword + '</span></div>';
+      '<span style="font-size:11px;margin-top:4px;display:block;">' + escapeHtml(keyword) + '</span></div>';
   }
 
   modal.innerHTML =
@@ -5590,7 +5532,7 @@ function showEquipPopup(keyword) {
     'width:100%;max-width:420px;max-height:75vh;display:flex;flex-direction:column;' +
     'overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
     '<div style="background:#1b4fa8;padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;">' +
-    '<div style="font-size:14px;font-weight:800;color:white;flex:1;">🧰 ' + keyword + '</div>' +
+    '<div style="font-size:14px;font-weight:800;color:white;flex:1;">🧰 ' + escapeHtml(keyword) + '</div>' +
     '<button onclick="document.getElementById(\'equip-popup-modal\').style.display=\'none\'" ' +
     'style="background:rgba(255,255,255,0.2);border:none;color:white;width:28px;height:28px;' +
     'border-radius:50%;font-size:16px;cursor:pointer;line-height:1;">✕</button>' +
@@ -6721,7 +6663,7 @@ const BADGE_OPTIONS = ['총괄','통제','상황','출동','대응','대응1','�
 function badgeSelectHtml(id, currentBadge) {
   const opts = BADGE_OPTIONS.includes(currentBadge) ? BADGE_OPTIONS : [currentBadge, ...BADGE_OPTIONS];
   return '<select id="' + id + '" style="padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:inherit;color:#1e293b;background:white;">' +
-    opts.map(function(b) { return '<option value="' + b + '"' + (b === currentBadge ? ' selected' : '') + '>' + b + '</option>'; }).join('') +
+    opts.map(function(b) { return '<option value="' + escapeHtml(b) + '"' + (b === currentBadge ? ' selected' : '') + '>' + escapeHtml(b) + '</option>'; }).join('') +
     '</select>';
 }
 
@@ -6742,10 +6684,10 @@ function variantSelectHtml(id, currentVariant, options) {
   const others = options.filter(function(v) { return v !== currentVariant; });
   const opts = currentVariant ? ['', currentVariant].concat(others) : [''].concat(others);
   const optionsHtml = opts.map(function(v) {
-    const label = v === '' ? '공통' : ('🏷️ ' + v);
-    return '<option value="' + v.replace(/"/g,'&quot;') + '"' + (v === currentVariant ? ' selected' : '') + '>' + label + '</option>';
+    const label = v === '' ? '공통' : ('🏷️ ' + escapeHtml(v));
+    return '<option value="' + escapeHtml(v) + '"' + (v === currentVariant ? ' selected' : '') + '>' + label + '</option>';
   }).join('');
-  return '<select id="' + id + '" onchange="onVariantSelectChange(this)" data-prev="' + (currentVariant || '').replace(/"/g,'&quot;') + '"' +
+  return '<select id="' + id + '" onchange="onVariantSelectChange(this)" data-prev="' + escapeHtml(currentVariant || '') + '"' +
     ' style="padding:0 6px;height:38px;border:1.5px solid #e2e8f0;border-left:none;font-size:10.5px;' +
     'font-family:inherit;color:' + (currentVariant ? '#7c3aed' : '#94a3b8') + ';background:white;flex-shrink:0;max-width:88px;">' +
     optionsHtml +
@@ -6848,9 +6790,9 @@ function openTaskEdit() {
         style="padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;cursor:pointer;
         border:1px solid #cbd5e1;background:white;color:#475569;">공통 ${variantCounts[''] || 0}</button>
       ${variantKeys.map(v => `
-      <button onclick="applyEditFilter('${v}')" data-filter-chip="${v}"
+      <button onclick="applyEditFilter('${escapeHtml(v)}')" data-filter-chip="${escapeHtml(v)}"
         style="padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;cursor:pointer;
-        border:1px solid #c4b5fd;background:white;color:#7c3aed;">🏷️ ${v} ${variantCounts[v]}</button>
+        border:1px solid #c4b5fd;background:white;color:#7c3aed;">🏷️ ${escapeHtml(v)} ${variantCounts[v]}</button>
       `).join('')}
     </div>`;
 
@@ -6866,7 +6808,7 @@ function openTaskEdit() {
         <div style="flex:1;font-size:14px;font-weight:900;color:white;
           letter-spacing:-0.3px;">✏️ 임무 수정</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;
-          flex-shrink:0;">${m.role.replace(/^[^\s—–-]+[\s—–-]+/,'')}</div>
+          flex-shrink:0;">${escapeHtml(m.role.replace(/^[^\s—–-]+[\s—–-]+/,''))}</div>
         <button onclick="closeTaskEdit()" style="background:rgba(0,0,0,0.25);border:none;
           color:white;width:28px;height:28px;border-radius:50%;font-size:16px;
           cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">✕</button>
@@ -7346,7 +7288,7 @@ function renderTaskList() {
       </div>
       <div class="t-body">
         <div class="t-num">${numHtml}</div>
-        <div class="t-text" style="${pk.kind==='branch' && !ok ? 'color:#92400e;font-weight:700;' : ''}">${pk.text}</div>
+        <div class="t-text" style="${pk.kind==='branch' && !ok ? 'color:#92400e;font-weight:700;' : ''}">${escapeHtml(pk.text)}</div>
       </div>
     </div>`;
   }).join('');
@@ -8002,7 +7944,7 @@ function renderAuthStatusLine() {
     ? '전체 재난 수정 가능 (마스터)'
     : (myDisasters.size ? [...myDisasters].join('·') + ' 담당' : '담당 재난 없음 — 관리자에게 문의');
   el.innerHTML =
-    '<span style="flex:1;">👤 ' + currentAuthUser.email + '<br><span style="color:#94a3b8;">' + scope + '</span></span>' +
+    '<span style="flex:1;">👤 ' + escapeHtml(currentAuthUser.email) + '<br><span style="color:#94a3b8;">' + scope + '</span></span>' +
     '<div style="display:flex;gap:6px;">' +
     '<button onclick="openChangePasswordModal()" style="background:#f1f5f9;color:#475569;border:none;' +
     'border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">비밀번호 변경</button>' +
@@ -8447,9 +8389,9 @@ function renderContactEditModal(tab) {
     return `<div style="background:white;border-radius:12px;padding:12px;margin-bottom:8px;
       border:1.5px solid #e2e8f0;" id="crow-${realIdx}">
       <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
-        <input value="${c.icon}" style="width:40px;text-align:center;padding:6px;
+        <input value="${escapeHtml(c.icon)}" style="width:40px;text-align:center;padding:6px;
           border:1.5px solid #e2e8f0;border-radius:8px;font-size:16px;" id="ci-icon-${realIdx}">
-        <input value="${c.name}" placeholder="이름" style="flex:1;padding:7px 10px;
+        <input value="${escapeHtml(c.name)}" placeholder="이름" style="flex:1;padding:7px 10px;
           border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;"
           id="ci-name-${realIdx}">
         <button onclick="deleteContact(${realIdx})"
@@ -8457,10 +8399,10 @@ function renderContactEditModal(tab) {
           color:#dc2626;font-size:16px;cursor:pointer;flex-shrink:0;">✕</button>
       </div>
       <div style="display:flex;gap:6px;">
-        <input value="${c.num}" placeholder="전화번호" style="flex:1;padding:7px 10px;
+        <input value="${escapeHtml(c.num)}" placeholder="전화번호" style="flex:1;padding:7px 10px;
           border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;"
           id="ci-num-${realIdx}">
-        <input value="${c.sub}" placeholder="설명" style="flex:1;padding:7px 10px;
+        <input value="${escapeHtml(c.sub)}" placeholder="설명" style="flex:1;padding:7px 10px;
           border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;"
           id="ci-sub-${realIdx}">
       </div>
@@ -8544,13 +8486,13 @@ function renderEmergencyFromData() {
     items.forEach(c => {
       if (c.sect && c.sect !== lastSect) {
         const bgStyle = c.sectBg ? ` style="background:${c.sectBg}"` : '';
-        html += `<div class="ec-section-header"${bgStyle}>${c.sect}</div>`;
+        html += `<div class="ec-section-header"${bgStyle}>${escapeHtml(c.sect)}</div>`;
         lastSect = c.sect;
       }
-      html += `<div class="ec-card" onclick="callNum('${c.num}')">
-        <div class="ec-icon" style="background:${c.bg};">${c.icon}</div>
-        <div class="ec-info"><div class="ec-name">${c.name}</div><div class="ec-sub">${c.sub}</div></div>
-        <div class="ec-num">${c.num}</div>
+      html += `<div class="ec-card" onclick="callNum('${escapeHtml(c.num)}')">
+        <div class="ec-icon" style="background:${c.bg};">${escapeHtml(c.icon)}</div>
+        <div class="ec-info"><div class="ec-name">${escapeHtml(c.name)}</div><div class="ec-sub">${escapeHtml(c.sub)}</div></div>
+        <div class="ec-num">${escapeHtml(c.num)}</div>
       </div>`;
     });
     pane.innerHTML = html;
@@ -8612,7 +8554,7 @@ function renderEquipEditModal(tab) {
   const rows = cats.map((cat, ci) => {
     const items = cat.items.map((item, ii) => `
       <div style="display:flex;gap:5px;margin-bottom:6px;align-items:center;">
-        <input value="${item.name.replace(/"/g,'&quot;')}" placeholder="장비명"
+        <input value="${escapeHtml(item.name)}" placeholder="장비명"
           style="flex:2;min-width:0;padding:7px 8px;border:1.5px solid #e2e8f0;
           border-radius:8px;font-size:12px;font-family:inherit;color:#1e293b;"
           id="en-${ci}-${ii}">
@@ -8625,7 +8567,7 @@ function renderEquipEditModal(tab) {
           color:#dc2626;font-size:15px;cursor:pointer;flex-shrink:0;">✕</button>
       </div>
       <div style="margin-bottom:10px;">
-        <input value="${item.loc.replace(/"/g,'&quot;')}" placeholder="보관 위치"
+        <input value="${escapeHtml(item.loc)}" placeholder="보관 위치"
           style="width:100%;padding:7px 8px;border:1.5px solid #e2e8f0;
           border-radius:8px;font-size:11px;font-family:inherit;color:#475569;"
           id="el-${ci}-${ii}">
@@ -8634,7 +8576,7 @@ function renderEquipEditModal(tab) {
     return `<div style="background:white;border-radius:12px;padding:12px;margin-bottom:10px;
       border:1.5px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
       <div style="font-size:12px;font-weight:800;color:#1e293b;margin-bottom:10px;
-        padding-bottom:6px;border-bottom:1.5px solid #f1f5f9;">${cat.cat}</div>
+        padding-bottom:6px;border-bottom:1.5px solid #f1f5f9;">${escapeHtml(cat.cat)}</div>
       <div>${items}</div>
       <button onclick="addEquipItem('${tab}',${ci})"
         style="width:100%;padding:8px;background:#f8fafc;border:1.5px dashed #cbd5e1;
