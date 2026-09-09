@@ -3224,6 +3224,142 @@ const FIRE_NIGHT = [
 
 // 2026-07-08: 상황실(BMS) 메뉴 삭제 — 세부 절차 내용은 FIRE_NIGHT의 '통제' 역할 임무로 병합됨
 
+// 정전 야간 (2026-09-08 twin-alarm과 동일 내용으로 신설 — scripts/migrations/update-jeongjeon-260908.ts 참고)
+const JEONGJEON_NIGHT = [
+  {
+    "group": "야간대응",
+    "role": "🌙 상황실 (조장)",
+    "badge": "상황(야간)",
+    "bc": "#78350f",
+    "tasks": [
+      "정전 상황 접수 후 조별 출동 지시 (전화·무전·카톡)",
+      "승강기 갇힘 사고 유무, 에스컬레이터 전도 사고 유무 파악",
+      "비상발전기 가동 여부 확인",
+      "정전 상황 및 1차 피해 현황(한전 정전 여부, 승강기 갇힘, 에스컬레이터 전도 사고) 총괄관리자 1차 보고",
+      "◇승강기 갇힘 사고 발생 시",
+      "┖ 지원반 소방조 오티스 상주 직원 출동 요청 및 갇힘 승객 심리케어, 구출 후 보고",
+      "┖ 갇힘 호기, 갇힘 층, 갇힘 인원 파악",
+      "┖ 갇힘 호기 별 오티스 출동 시간, 구출 시간, 갇힘 시간, 갇힘 인원, 인적사항 파악",
+      "◇에스컬레이터 전도 사고 발생 시",
+      "┖ 지원반 소방조 전도 사고 피해 인원, 인적사항 파악 보고",
+      "◇전체 정전 시",
+      "┖ 지원반 소방조 비상방송 송출(정전)",
+      "마포 종합상황실 신고 여부 총괄관리자 확인 (☎ 1661-8182)",
+      "◇마포 종합상황실 신고 확정 시",
+      "┖ 상황실 조장 마포 종합상황실 최초 신고",
+      "전기, 기계, 소방 주요설비 이상 유무 접수 및 취합",
+      "운영(주차정산, 스피드게이트) 가동 유무 접수 및 취합",
+      "시설 및 운영 전체 피해 현황 취합 후 총괄관리자 2차 보고",
+      "총괄관리자 정전 조치 상황 수시 보고",
+      "복전 후 전기, 기계, 소방, 자동제어, 주차정산, 스피드게이트 등 설비 이상유무 확인 지시(전화·무전·카톡)",
+      "◇전체 복전 시",
+      "┖ 지원반 소방조 비상방송 송출(복전)",
+      "◇마포 종합상황실 신고한 경우",
+      "┖ 상황실 조장 마포 종합상황실 최종 보고 (☎ 1661-8182)"
+    ]
+  },
+  {
+    "group": "야간대응",
+    "role": "🌙 통제자 (전기파트장)",
+    "badge": "통제(야간)",
+    "bc": "#92400e",
+    "tasks": [
+      "각 수변전실 이동, 정전 범위(한전/구내) 파악 지시(전화·무전·카톡)",
+      "UPS 이상유무 파악 지시(전화·무전·카톡)",
+      "◇승강기 갇힘 사고 발생 시",
+      "┖ 승강기 갇힘 호기, 갇힘 층, 갇힘 인원 보고 받고 진행상황 체크",
+      "┖ 구출 예상 시간 및 진행상황 보고받고 총괄관리자(센터장) 보고",
+      "◇에스컬레이터 전도 사고 발생 시",
+      "┖ 에스컬레이터 전도 사고 내용 보고 받고 진행상황 체크",
+      "┖ 피해자 피해 여부 파악하여 총괄관리자(센터장) 보고",
+      "◇전체 정전 시",
+      "┖ 대응조 비상발전기 가동 여부 확인 지시(전화·무전·카톡)",
+      "┖ 대응조 각 ATS반 이동하여 ATS 절체 상태 확인 지시(전화·무전·카톡)",
+      "┖ 대응조 각 수변전실 이동 분기 VCB 차단 지시",
+      "◇구내 전기설비 소손 시",
+      "┖ 업체 수배하여 긴급 복구 실시(임시 조치 가능 시 운영센터 자체 조치)",
+      "피해 범위 파악 후 복구 우선순위 결정",
+      "피해 범위, 복구 우선순위, 복구 예상시간 상황실, 총괄관리자 보고(전화·무전·카톡)",
+      "◇전체 정전 후 복전 시",
+      "┖ 통제자(전기파트장) 지하1층 수전실 이동",
+      "┖ 통제자(전기파트장) 계전기 RESET 및 메인 VCB 투입",
+      "┖ 대응조 분기 VCB 투입 지시",
+      "전체 수변전실 복전 상태 확인 지시(전화·무전·카톡)",
+      "ATS 절체 복구 상태 확인 지시(전화·무전·카톡)",
+      "비상발전기 정지 여부 확인 지시(전화·무전·카톡)",
+      "복전 후 UPS 이상유무 파악 지시(전화·무전·카톡)",
+      "전체 전기시설물 이상유무 파악 보고 받고 최종 피해 총괄관리자 최종 보고",
+      "원인 분석 및 재발방지 대책 수립"
+    ]
+  },
+  {
+    "group": "야간대응",
+    "role": "🌙 대응2조 (기계파트)",
+    "badge": "대응2(야간)",
+    "bc": "#92400e",
+    "tasks": [
+      "중앙 지하3층 냉동기실 이동 냉동기 가동 상태 확인",
+      "중앙 지하3층 보일러실 이동 보일러 가동 상태 확인",
+      "중앙 지하3층 정화조 운전반실 이동 정화조 가동 상태 확인",
+      "동관, 서관 옥탑 냉각탑 및 스크롤냉동기 가동 상태 확인",
+      "복전 후 중앙 지하3층 냉동기실 이동 냉동기 재가동",
+      "복전 후 중앙 지하3층 보일러실 이동 보일러 재가동",
+      "복전 후 중앙 지하3층 정화조 운전반실 이동 정화조 가동 상태 확인",
+      "복전 후 동관, 서관 옥탑 냉각탑 및 스크롤냉동기 가동 상태 확인 및 동작",
+      "복전 후 자동제어 서버 및 공조기 가동상태 확인 및 이상 시 현장 출동 리셋 조치",
+      "복전 후 냉온수기, 항온항습기, AHU 가동 유무 확인 및 이상 시 현장 출동 리셋 조치"
+    ]
+  },
+  {
+    "group": "야간대응",
+    "role": "🌙 대응3조 (소방파트)",
+    "badge": "대응3(야간)",
+    "bc": "#92400e",
+    "tasks": [
+      "상황실 내 수신기 등 소방설비 및 CCTV 이상 유무 확인,승강기 가동 상태 확인",
+      "상황실 내 비상조명등 점등상태 확인 및 미점등시 현장확인",
+      "현장 소화펌프,제연휀 동력제어반등 비상전원 투입상태 점검",
+      "현장 수동조작함,방화셔터등 기타 소방설비 비상전원 투입상태 점검",
+      "◇승강기 갇힘 사고 발생 시",
+      "┖ 승강기 갇힘 호기, 갇힘 층, 갇힘 인원 파악 후 OTIS 상주 직원 출동 요청",
+      "┖ 갇힘 승객 심리케어",
+      "◇에스컬레이터 전도 사고 발생 시",
+      "┖ 에스컬레이터 전도 사고 내용 파악 후 피해 여부 확인",
+      "┖ 119 신고 필요 여부 확인하여 119 출동 요청",
+      "◇전체 정전 시",
+      "┖ 전체 정전 확인 시 비상방송 송출",
+      "상황실 복전 후 수신기 등 소방설비 및 CCTV 이상 유무 확인",
+      "상황실 내 비상조명등 점등상태 확인 및 미점등시 현장확인",
+      "현장 소화펌프,제연휀 동력제어반등 상용전원 투입상태 점검",
+      "현장 수동조작함,방화셔터등 기타 소방설비 상용전원 투입상태 점검"
+    ]
+  },
+  {
+    "group": "야간대응",
+    "role": "🌙 지원1조 (보안파트)",
+    "badge": "지원1(야간)",
+    "bc": "#6b3a2a",
+    "tasks": [
+      "정전 시 동관, 서관 승강기 탑승 통제 및 비상계단 유도",
+      "무전기로 현재 상황 상황실 지속 보고"
+    ]
+  },
+  {
+    "group": "야간대응",
+    "role": "🌙 지원2조 (주차파트)",
+    "badge": "지원2(야간)",
+    "bc": "#6b3a2a",
+    "tasks": [
+      "정전으로 출차 불가 시 고객 안내 및 상황실 보고",
+      "주차 차단기 바 수동 조작 및 입출차 수동 운영"
+    ]
+  }
+];
+
+// 재난별 야간 임무 배열 매핑 — 이 맵에 등록된 재난만 상세화면에 주간/야간 탭이 뜸(화재 외 재난으로
+// 확장할 때는 여기에 새 배열을 하나 추가하면 됨). 2026-09-08 정전 추가.
+const NIGHT_MEMBERS = { '화재': FIRE_NIGHT, '정전': JEONGJEON_NIGHT };
+
 const FIRE_SCENARIOS = {
   "general": {
     "label": "일반화재",
@@ -3720,9 +3856,12 @@ function exportToExcel() {
     XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(d.key));
   });
 
-  const wsNight = XLSX.utils.aoa_to_sheet(membersToRows(FIRE_NIGHT));
-  wsNight['!cols'] = COL_W;
-  XLSX.utils.book_append_sheet(wb, wsNight, '화재_야간');
+  // 주/야간 지원 재난(NIGHT_MEMBERS에 등록된 것) 전부 "{재난}_야간" 시트로 내보냄
+  Object.keys(NIGHT_MEMBERS).forEach(function(key) {
+    const wsNight = XLSX.utils.aoa_to_sheet(membersToRows(NIGHT_MEMBERS[key]));
+    wsNight['!cols'] = COL_W;
+    XLSX.utils.book_append_sheet(wb, wsNight, sanitizeSheetName(key + '_야간'));
+  });
 
   // 화재 시나리오별 시트
   const SCENARIO_SHEETS = [
@@ -3805,11 +3944,14 @@ function importFromExcel(input) {
           '화재_지하주차장':'parking',
         };
 
-        if (sheetName === '화재_야간') {
-          FIRE_NIGHT.splice(0, FIRE_NIGHT.length);
-          members.forEach(function(m) { FIRE_NIGHT.push(m); });
+        // "{재난키}_야간" 시트 → NIGHT_MEMBERS[재난키]로 라우팅 (화재_야간, 정전_야간 등)
+        const nightKey = Object.keys(NIGHT_MEMBERS).find(function(k) { return sanitizeSheetName(k + '_야간') === sheetName; });
+        if (nightKey) {
+          const arr = NIGHT_MEMBERS[nightKey];
+          arr.splice(0, arr.length);
+          members.forEach(function(m) { arr.push(m); });
           updated++;
-          syncTargets.push({ key: '화재', shift: 'night' });
+          syncTargets.push({ key: nightKey, shift: 'night' });
         } else if (SHEET_TO_SCENARIO[sheetName]) {
           const scenKey = SHEET_TO_SCENARIO[sheetName];
           const sc = FIRE_SCENARIOS[scenKey];
@@ -3902,8 +4044,11 @@ async function sbLoadDisasters() {
       const shift = r.shift || 'day';
       // 2026-07-08: 상황실(BMS) 메뉴 삭제 — 남아있는 옛 shift='bms' 행은 무시(어느 배열에도 안 들어감)
       if (shift === 'bms') return;
-      // 화재 야간은 별도 하드코딩 배열(FIRE_NIGHT)로, 그 외(주간)는 DISASTERS.members로 라우팅
-      const targetArr = (shift === 'night') ? FIRE_NIGHT : null;
+      // 야간은 NIGHT_MEMBERS에 등록된 재난별 하드코딩 배열로, 그 외(주간)는 DISASTERS.members로 라우팅.
+      // disa_app에 야간 메뉴가 아직 없는 재난의 야간 행은(다른 도구가 만들었더라도) 여기서 무시 —
+      // 안 그러면 아래 주간 경로로 새어 들어가 주간 members 배열을 오염시킴.
+      if (shift === 'night' && !NIGHT_MEMBERS[r.disaster]) return;
+      const targetArr = (shift === 'night') ? NIGHT_MEMBERS[r.disaster] : null;
       const sortedTasks = (r.disaster_tasks || []).sort(function(a, b) { return a.task_idx - b.task_idx; });
       const tasks = sortedTasks.map(function(t) { return t.label; });
       // 2026-07-08: 상황 확정(variant) 태그 — 임무 텍스트(label) 기준으로 보존.
@@ -4007,7 +4152,7 @@ async function sbSyncDisasters(targets) {
   let total = 0;
   for (const t of targets) {
     const members = (t.shift === 'night')
-      ? FIRE_NIGHT
+      ? (NIGHT_MEMBERS[t.key] || [])
       : ((DISASTERS.find(function(d) { return d.key === t.key; }) || {}).members || []);
     for (const m of members) {
       await sbSaveTasks(t.key, m.badge, m.group, m.role, m.bc, m.tasks, t.shift, m.taskVariants);
@@ -4032,9 +4177,11 @@ async function sbSyncAll() {
       total++;
     }
   }
-  for (const m of FIRE_NIGHT) {
-    await sbSaveTasks('화재', m.badge, m.group, m.role, m.bc, m.tasks, 'night', m.taskVariants);
-    total++;
+  for (const [key, arr] of Object.entries(NIGHT_MEMBERS)) {
+    for (const m of arr) {
+      await sbSaveTasks(key, m.badge, m.group, m.role, m.bc, m.tasks, 'night', m.taskVariants);
+      total++;
+    }
   }
   alert('✅ Supabase 전체 동기화 완료: ' + total + '개 역할\ntwin-alarm 다음 발령 시 반영됩니다.');
 }
@@ -4297,8 +4444,9 @@ function isFireCatRole(dkey, m) {
 
 function getProgress(dkey, idx) {
   let tasks, m;
-  if (dkey === '화재_야간') {
-    m = FIRE_NIGHT[idx];
+  if (dkey.endsWith('_야간') && NIGHT_MEMBERS[dkey.slice(0, -'_야간'.length)]) {
+    const arr = NIGHT_MEMBERS[dkey.slice(0, -'_야간'.length)];
+    m = arr[idx];
     tasks = m ? m.tasks : [];
   } else if (dkey.startsWith('화재_') && FIRE_SCENARIOS[dkey.slice(3)]) {
     const sc = FIRE_SCENARIOS[dkey.slice(3)];
@@ -4360,9 +4508,11 @@ function openDisaster(key) {
   // 화재: 탭바 표시 및 상태 업데이트
   const fireTabbar  = document.getElementById('fire-tabbar');
   const tabScenario = document.getElementById('tab-scenario');
+  const btnEvac     = document.getElementById('btn-evac');
   document.getElementById('detail-title').textContent = d.label + ' 대응';
   if (key === '화재') {
     fireTabbar.style.display = 'flex';
+    btnEvac.style.display = '';
     // 2026-07-09: 화재 시나리오 메뉴 폐지 — 4개 장소별 임무를 variant 체계로 통합해
     // 실제 발령(twin-alarm)에 반영되도록 옮겼습니다. 버튼은 항상 숨김(currentFireScenario는
     // 항상 'general' 유지) — 관련 데이터/함수는 안전하게 죽은 코드로만 남겨둠.
@@ -4374,7 +4524,6 @@ function openDisaster(key) {
     tabScenario.style.borderColor = isGen ? 'rgba(255,255,255,0.5)' : 'white';
     const btnDay = document.getElementById('btn-day');
     const btnNight = document.getElementById('btn-night');
-    const btnEvac = document.getElementById('btn-evac');
     if (isGen) {
       [btnDay, btnNight, btnEvac].forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = ''; });
       setShift('day'); currentShift = 'day';
@@ -4384,6 +4533,15 @@ function openDisaster(key) {
         b.style.opacity = '0.5'; b.style.pointerEvents = 'none';
       });
     }
+  } else if (NIGHT_MEMBERS[key]) {
+    // 화재 외 주/야간 지원 재난(2026-09-08 정전부터) — 시나리오·대피방송 없이 주간/야간 탭만 노출
+    fireTabbar.style.display = 'flex';
+    btnEvac.style.display = 'none';
+    tabScenario.style.display = 'none';
+    const btnDay = document.getElementById('btn-day');
+    const btnNight = document.getElementById('btn-night');
+    [btnDay, btnNight].forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = ''; });
+    setShift('day'); currentShift = 'day';
   } else {
     fireTabbar.style.display = 'none';
     tabScenario.style.display = 'none';
@@ -4448,9 +4606,9 @@ function renderMemberList() {
   // 시나리오 / 야간 / 일반 분기
   const members = isScenario
     ? FIRE_SCENARIOS[currentFireScenario].members
-    : (currentDisaster === '화재'
-        ? (currentShift === 'night' ? FIRE_NIGHT : d.members)
-        : d.members);
+    : (currentShift === 'night' && NIGHT_MEMBERS[currentDisaster])
+        ? NIGHT_MEMBERS[currentDisaster]
+        : d.members;
 
   const groupColors = {
     // 화재 주간 — 레드 계열 단계별
@@ -4490,9 +4648,9 @@ function renderMemberList() {
 
   const dkey = isScenario
     ? '화재_' + currentFireScenario
-    : (currentDisaster === '화재'
-        ? (currentShift === 'night' ? '화재_야간' : currentDisaster)
-        : currentDisaster);
+    : (currentShift === 'night' && NIGHT_MEMBERS[currentDisaster])
+        ? currentDisaster + '_야간'
+        : currentDisaster;
 
   let html = '';
 
@@ -6629,9 +6787,9 @@ function openTask(idx, dkeyOverride) {
   taskViewFilterVariant = 'all';
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
-  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isNight    = !isScenario && !!NIGHT_MEMBERS[currentDisaster] && currentShift === 'night';
   const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[idx]
-          : isNight    ? FIRE_NIGHT[idx]
+          : isNight    ? NIGHT_MEMBERS[currentDisaster][idx]
           : d.members[idx];
   const shiftLabel = isScenario ? FIRE_SCENARIOS[currentFireScenario].label
                    : isNight    ? '야간' : '주간';
@@ -6670,7 +6828,7 @@ function badgeSelectHtml(id, currentBadge) {
 // 이 재난(주/야 구분)에 이미 쓰이고 있는 variant 이름 전부 모으기 — 배지가 달라도 같은 상황 이름을
 // 재사용하도록(예: 화재의 '가스구역'을 통제·출동·총괄 등 여러 배지에서 똑같이 쓰게) 유도하기 위함
 function getDisasterVariantOptions(disasterKey, isNight) {
-  const members = isNight ? FIRE_NIGHT : ((DISASTERS.find(function(x) { return x.key === disasterKey; }) || {}).members || []);
+  const members = isNight ? (NIGHT_MEMBERS[disasterKey] || []) : ((DISASTERS.find(function(x) { return x.key === disasterKey; }) || {}).members || []);
   const set = new Set();
   members.forEach(function(m) {
     if (!m.taskVariants) return;
@@ -6734,9 +6892,9 @@ function openTaskEdit() {
   }
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
-  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isNight    = !isScenario && !!NIGHT_MEMBERS[currentDisaster] && currentShift === 'night';
   const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
-          : isNight    ? FIRE_NIGHT[currentMemberIdx]
+          : isNight    ? NIGHT_MEMBERS[currentDisaster][currentMemberIdx]
           :               d.members[currentMemberIdx];
 
   // #app 직속으로 생성 (task-panel은 transform이 걸려 있어 position:fixed가 안 먹음 → 키보드 대응 불가)
@@ -6901,7 +7059,7 @@ function addEditTask() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const color = d ? d.color : '#1d4ed8';
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
-  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isNight    = !isScenario && !!NIGHT_MEMBERS[currentDisaster] && currentShift === 'night';
   const variantSelect = isScenario ? '' : variantSelectHtml('edit-variant-' + i, '', getDisasterVariantOptions(currentDisaster, isNight));
   const div = document.createElement('div');
   div.id = `edit-row-${i}`;
@@ -6986,9 +7144,9 @@ function deleteEditTask(i) {
 function saveTaskEdit() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
-  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isNight    = !isScenario && !!NIGHT_MEMBERS[currentDisaster] && currentShift === 'night';
   const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
-          : isNight    ? FIRE_NIGHT[currentMemberIdx]
+          : isNight    ? NIGHT_MEMBERS[currentDisaster][currentMemberIdx]
           :               d.members[currentMemberIdx];
 
   // 살아있는 input 값만 수집 — 같은 줄의 상황(variant) 드롭다운도 같이 읽어서 텍스트에 매칭
@@ -7021,7 +7179,7 @@ function saveTaskEdit() {
 
   // localStorage에 저장 (key: "재난키-멤버인덱스")
   const storageKey = (isScenario ? '화재_' + currentFireScenario
-                   : isNight    ? '화재_야간'
+                   : isNight    ? currentDisaster + '_야간'
                    : currentDisaster)
                    + '-' + currentMemberIdx;
   customTasks[storageKey] = newTasks;
@@ -7110,8 +7268,8 @@ function saveNewRole() {
   if (!group || !role) { alert('그룹명과 역할명을 입력하세요.'); return; }
 
   const d = DISASTERS.find(x=>x.key===currentDisaster);
-  const isNight = currentDisaster === '화재' && currentShift === 'night';
-  const targetArr = isNight ? FIRE_NIGHT : d.members;
+  const isNight = !!NIGHT_MEMBERS[currentDisaster] && currentShift === 'night';
+  const targetArr = isNight ? NIGHT_MEMBERS[currentDisaster] : d.members;
   if (targetArr.some(m => m.badge === badge)) {
     alert(`'${badge}' 배지는 이미 이 재난(${isNight ? '야간' : '주간'})에 사용 중입니다. 다른 배지를 선택하거나 기존 역할을 수정하세요.`);
     return;
@@ -7135,8 +7293,8 @@ function deleteCurrentRole() {
     return;
   }
   const d = DISASTERS.find(x=>x.key===currentDisaster);
-  const isNight = currentDisaster === '화재' && currentShift === 'night';
-  const targetArr = isNight ? FIRE_NIGHT : d.members;
+  const isNight = !!NIGHT_MEMBERS[currentDisaster] && currentShift === 'night';
+  const targetArr = isNight ? NIGHT_MEMBERS[currentDisaster] : d.members;
   const m = targetArr[currentMemberIdx];
   if (!m) return;
   if (!confirm(`'${m.role}' 역할을 삭제할까요?\n삭제된 임무는 복구할 수 없습니다.`)) return;
@@ -7144,7 +7302,7 @@ function deleteCurrentRole() {
   const shift = isNight ? 'night' : 'day';
   const badge = m.badge;
   targetArr.splice(currentMemberIdx, 1);
-  delete customTasks[(isNight ? '화재_야간' : currentDisaster) + '-' + currentMemberIdx];
+  delete customTasks[(isNight ? currentDisaster + '_야간' : currentDisaster) + '-' + currentMemberIdx];
   saveCustomTasks();
 
   closeTaskEdit();
@@ -7160,8 +7318,8 @@ function deleteCurrentRole() {
 
 function resetTaskEdit() {
   if (!confirm('이 조원의 임무를 원래대로 초기화할까요?')) return;
-  const isNight = currentDisaster === '화재' && currentShift === 'night';
-  const storageKey = (isNight ? '화재_야간' : currentDisaster)
+  const isNight = !!NIGHT_MEMBERS[currentDisaster] && currentShift === 'night';
+  const storageKey = (isNight ? currentDisaster + '_야간' : currentDisaster)
                    + '-' + currentMemberIdx;
   delete customTasks[storageKey];
   saveCustomTasks();
@@ -7172,12 +7330,12 @@ function resetTaskEdit() {
 function renderTaskList() {
   const d = DISASTERS.find(x=>x.key===currentDisaster);
   const isScenario = currentDisaster === '화재' && currentFireScenario !== 'general';
-  const isNight    = !isScenario && currentDisaster === '화재' && currentShift === 'night';
+  const isNight    = !isScenario && !!NIGHT_MEMBERS[currentDisaster] && currentShift === 'night';
   const m = isScenario ? FIRE_SCENARIOS[currentFireScenario].members[currentMemberIdx]
-          : isNight    ? FIRE_NIGHT[currentMemberIdx]
+          : isNight    ? NIGHT_MEMBERS[currentDisaster][currentMemberIdx]
           : d.members[currentMemberIdx];
   const dkey = isScenario ? '화재_' + currentFireScenario
-             : isNight    ? '화재_야간'
+             : isNight    ? currentDisaster + '_야간'
              : currentDisaster;
   const {done,total,pct} = getProgress(dkey, currentMemberIdx);
   const c = pct===100 ? '#22c55e' : d.color;
@@ -7659,11 +7817,15 @@ function buildDataBlock() {
   Object.entries(FIRE_SCENARIOS).forEach(function([k, v]) {
     scenarios[k] = { label: v.label, members: v.members };
   });
+  // NIGHT_MEMBERS를 통째로 직렬화 — 원래는 FIRE_NIGHT 하나만 있었지만(2026-09-08 정전 추가로
+  // 재난별 배열 여러 개를 다루게 되면서) 개별 상수 이름 대신 이 맵 하나로 저장/복원함.
+  // (별도 FIRE_NIGHT/JEONGJEON_NIGHT 상수는 최초 시드 값일 뿐이고, 저장 후 재로드부터는
+  // NIGHT_MEMBERS만 있어도 전체 코드가 정상 동작하도록 위에서 전부 NIGHT_MEMBERS[key]로 참조함)
   return [
     '// [[DATA_BLOCK_START]]',
     'const DISASTERS = ' + JSON.stringify(DISASTERS, null, 2) + ';',
     '',
-    'const FIRE_NIGHT = ' + JSON.stringify(FIRE_NIGHT, null, 2) + ';',
+    'const NIGHT_MEMBERS = ' + JSON.stringify(NIGHT_MEMBERS, null, 2) + ';',
     '',
     'const FIRE_SCENARIOS = ' + JSON.stringify(scenarios, null, 2) + ';',
     '// [[DATA_BLOCK_END]]'
@@ -8727,8 +8889,9 @@ window.addEventListener('popstate', function(e) {
     const tasks = customTasks[storageKey];
     if (!Array.isArray(tasks) || tasks.length === 0) return;
 
-    if (dkey === '화재_야간') {
-      if (FIRE_NIGHT[idx]) FIRE_NIGHT[idx].tasks = tasks;
+    if (dkey.endsWith('_야간') && NIGHT_MEMBERS[dkey.slice(0, -'_야간'.length)]) {
+      const arr = NIGHT_MEMBERS[dkey.slice(0, -'_야간'.length)];
+      if (arr[idx]) arr[idx].tasks = tasks;
     } else if (dkey.startsWith('화재_') && FIRE_SCENARIOS[dkey.slice(3)]) {
       const sc = FIRE_SCENARIOS[dkey.slice(3)];
       if (sc.members && sc.members[idx]) sc.members[idx].tasks = tasks;
