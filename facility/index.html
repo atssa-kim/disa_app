@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>시설현황 | 트윈타워</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; padding:0; background:#eef1f6; font-family:'Noto Sans KR',sans-serif; color:#1e293b; }
+  button, input, select { font-family:inherit; }
+  #app { max-width: 720px; margin: 0 auto; min-height: 100vh; background:#eef1f6; padding-bottom: 40px; }
+
+  header.hdr {
+    background: linear-gradient(180deg,#1b2a4a,#0f1c34); color:white;
+    padding: 14px 16px; display:flex; align-items:center; gap: 10px;
+    position: sticky; top:0; z-index: 50;
+  }
+  header.hdr .back { cursor:pointer; font-size:20px; padding:4px 8px; opacity:0.85; }
+  header.hdr .title { font-size:16px; font-weight:900; flex:1; }
+
+  #auth-line {
+    display:flex; align-items:center; gap:8px; padding:8px 16px; background:#0f1c34; color:#cbd5e1;
+    font-size:11.5px;
+  }
+  #auth-line button {
+    background:#1b4fa8; color:white; border:none; border-radius:8px; padding:6px 12px;
+    font-size:11.5px; font-weight:700; cursor:pointer;
+  }
+  #auth-line .sec { background:#f1f5f9; color:#334155; }
+
+  .cat-tabs { display:flex; gap:8px; padding:12px 14px 4px; overflow-x:auto; }
+  .cat-tab {
+    flex-shrink:0; padding:9px 14px; border-radius:10px; font-size:12.5px; font-weight:700;
+    background:white; border:1.5px solid #dbe2ee; color:#475569; cursor:pointer; white-space:nowrap;
+  }
+  .cat-tab.active { background:#1b4fa8; border-color:#1b4fa8; color:white; }
+  .cat-tab-add {
+    flex-shrink:0; padding:9px 14px; border-radius:10px; font-size:12.5px; font-weight:700;
+    background:#eef1f6; border:1.5px dashed #94a3b8; color:#64748b; cursor:pointer; white-space:nowrap;
+  }
+
+  #content { padding: 6px 14px 20px; }
+  .empty-msg { text-align:center; color:#94a3b8; font-size:13px; padding:60px 20px; }
+
+  .floor-card {
+    background:white; border-radius:14px; margin-bottom:12px; overflow:hidden;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.08);
+  }
+  .floor-head {
+    display:flex; align-items:center; gap:8px; padding:13px 14px; cursor:pointer;
+    font-weight:800; font-size:13.5px; color:#1e293b;
+  }
+  .floor-head .cnt { font-size:11px; font-weight:700; color:#94a3b8; }
+  .floor-head .chev { margin-left:auto; transition: transform 0.15s; color:#94a3b8; }
+  .floor-head.open .chev { transform: rotate(180deg); }
+
+  .floor-body { display:none; border-top:1px solid #eef1f6; }
+  .floor-body.open { display:block; }
+
+  .drawing-row { padding: 10px 14px; display:flex; gap:8px; overflow-x:auto; background:#f8fafc; }
+  .drawing-thumb {
+    flex-shrink:0; width:96px; height:72px; border-radius:8px; object-fit:cover; cursor:pointer;
+    border:1px solid #dbe2ee; background:#fff;
+  }
+
+  table.item-tbl { width:100%; border-collapse:collapse; font-size:11.5px; }
+  table.item-tbl th {
+    background:#f8fafc; color:#64748b; font-weight:700; text-align:left; padding:7px 8px;
+    border-bottom:1px solid #eef1f6; white-space:nowrap;
+  }
+  table.item-tbl td { padding:7px 8px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+  table.item-tbl tr:last-child td { border-bottom:none; }
+  .muted { color:#94a3b8; }
+  .edit-btns { white-space:nowrap; }
+  .edit-btns span { cursor:pointer; padding:2px 5px; font-size:12px; }
+
+  .fab {
+    position:fixed; right:18px; bottom:22px; z-index:40;
+    background:#1b4fa8; color:white; border:none; border-radius:26px; padding:13px 18px;
+    font-size:13px; font-weight:800; box-shadow:0 4px 14px rgba(27,79,168,0.4); cursor:pointer;
+  }
+
+  .modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(11,37,69,0.55); z-index:200;
+    align-items:flex-end; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal-sheet {
+    background:white; width:100%; max-width:720px; border-radius:18px 18px 0 0; padding:20px;
+    max-height:88vh; overflow-y:auto;
+  }
+  .modal-sheet h3 { margin:0 0 14px; font-size:15px; font-weight:900; }
+  .field { margin-bottom:10px; }
+  .field label { display:block; font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; }
+  .field input, .field select {
+    width:100%; padding:10px 11px; border-radius:9px; border:1.5px solid #dbe2ee; font-size:13px;
+  }
+  .modal-actions { display:flex; gap:8px; margin-top:16px; }
+  .modal-actions button {
+    flex:1; padding:12px; border-radius:10px; border:none; font-size:13px; font-weight:800; cursor:pointer;
+  }
+  .btn-primary { background:#1b4fa8; color:white; }
+  .btn-cancel { background:#f1f5f9; color:#475569; }
+  .btn-danger { background:#fee2e2; color:#b91c1c; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hdr">
+    <div class="back" onclick="location.href='../index.html'">←</div>
+    <div class="title">🏢 시설현황</div>
+  </header>
+  <div id="auth-line"></div>
+  <div class="cat-tabs" id="cat-tabs"></div>
+  <div id="content"><div class="empty-msg">불러오는 중…</div></div>
+</div>
+
+<!-- 항목 추가/편집 모달 -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal-sheet">
+    <h3 id="item-modal-title">항목 추가</h3>
+    <div class="field"><label>건물(동관/서관/중앙/공통)</label><input id="f-building" placeholder="예: 서관"></div>
+    <div class="field"><label>층</label><input id="f-floor" placeholder="예: 서관 36층"></div>
+    <div class="field"><label>실내기 위치 / 항목명</label><input id="f-name" placeholder="예: 서관 36층 EMR실"></div>
+    <div class="field"><label>실외기 위치</label><input id="f-location" placeholder="예: 서관 36층 스크롤실 앞"></div>
+    <div class="field"><label>수량</label><input id="f-qty" placeholder="1"></div>
+    <div class="field"><label>모델명</label><input id="f-spec" placeholder="예: PUQ2900F9SF"></div>
+    <div class="field"><label>차단기 위치</label><input id="f-breaker" placeholder=""></div>
+    <div class="field"><label>담당사</label><input id="f-vendor" placeholder=""></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeItemModal()">취소</button>
+      <button class="btn-primary" onclick="submitItemModal()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 카테고리 추가 모달 -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal-sheet">
+    <h3>새 카테고리 추가</h3>
+    <div class="field"><label>재난유형</label>
+      <select id="c-disaster">
+        <option value="">공통(재난 무관)</option>
+        <option value="화재">화재</option>
+        <option value="정전">정전</option>
+        <option value="누수">누수</option>
+        <option value="태풍/홍수">태풍/홍수</option>
+        <option value="폭설">폭설</option>
+        <option value="지진">지진</option>
+        <option value="가스누출">가스누출</option>
+        <option value="승강기">승강기</option>
+        <option value="테러">테러</option>
+      </select>
+    </div>
+    <div class="field"><label>카테고리명</label><input id="c-label" placeholder="예: 주방용자동소화장치 설치현황 및 도면"></div>
+    <div class="field"><label>아이콘(이모지 1개)</label><input id="c-icon" placeholder="🧯"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCatModal()">취소</button>
+      <button class="btn-primary" onclick="submitCatModal()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 도면 추가 모달 -->
+<div class="modal-overlay" id="drawing-modal">
+  <div class="modal-sheet">
+    <h3>도면 추가</h3>
+    <div class="field"><label>제목</label><input id="d-title" placeholder="예: 실외기실 위치_B1층"></div>
+    <div class="field"><label>건물</label><input id="d-building" placeholder="예: 공통"></div>
+    <div class="field"><label>층</label><input id="d-floor" placeholder="예: 지하1층"></div>
+    <div class="field"><label>이미지 파일</label><input id="d-file" type="file" accept="image/*"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeDrawingModal()">취소</button>
+      <button class="btn-primary" onclick="submitDrawingModal()">업로드</button>
+    </div>
+  </div>
+</div>
+
+<!-- 로그인 모달 -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal-sheet">
+    <h3>관리자 로그인</h3>
+    <div class="field"><label>이메일</label><input id="login-email" type="email"></div>
+    <div class="field"><label>비밀번호</label><input id="login-pw" type="password"></div>
+    <div id="login-error" style="display:none;color:#dc2626;font-size:11.5px;margin-bottom:8px;">로그인 실패 — 이메일/비밀번호를 확인하세요.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeLoginModal()">취소</button>
+      <button class="btn-primary" onclick="submitLogin()">로그인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Supabase (disa_app 메인 페이지와 동일 프로젝트) ──────────────
+const SB_URL = 'https://hzqesdprnlpzaomaeswx.supabase.co';
+const SB_KEY = 'sb_publishable_sX0tbsqpy2zdB-6n062V7g_0zzX1LHS';
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+let categories = [];
+let activeCategoryId = null;
+let items = [];
+let drawings = [];
+let openFloors = new Set();
+let currentUser = null;
+let isAdmin = false;
+let editingItemId = null;
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ── 인증 ──────────────────────────────────────────
+async function initAuth() {
+  const { data } = await sb.auth.getSession();
+  currentUser = data.session ? data.session.user : null;
+  if (currentUser) await refreshAdminFlag();
+  renderAuthLine();
+  sb.auth.onAuthStateChange((_e, session) => {
+    currentUser = session ? session.user : null;
+    (currentUser ? refreshAdminFlag() : Promise.resolve()).then(() => {
+      if (!currentUser) isAdmin = false;
+      renderAuthLine();
+      renderContent();
+    });
+  });
+}
+async function refreshAdminFlag() {
+  const { data } = await sb.from('app_admins').select('user_id').eq('user_id', currentUser.id).maybeSingle();
+  isAdmin = !!data;
+}
+function renderAuthLine() {
+  const el = document.getElementById('auth-line');
+  if (!currentUser) {
+    el.innerHTML = '<span style="flex:1;">🔒 로그인하지 않음 — 조회만 가능</span><button onclick="openLoginModal()">관리자 로그인</button>';
+  } else {
+    el.innerHTML = '<span style="flex:1;">👤 ' + escapeHtml(currentUser.email) + (isAdmin ? ' · 편집 가능' : ' · 편집 권한 없음') + '</span>' +
+      '<button class="sec" onclick="logout()">로그아웃</button>';
+  }
+}
+function openLoginModal() {
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pw').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-modal').classList.add('open');
+}
+function closeLoginModal() { document.getElementById('login-modal').classList.remove('open'); }
+async function submitLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error || !data.session) { document.getElementById('login-error').style.display = 'block'; return; }
+  currentUser = data.session.user;
+  await refreshAdminFlag();
+  renderAuthLine();
+  closeLoginModal();
+  renderContent();
+}
+async function logout() { await sb.auth.signOut(); currentUser = null; isAdmin = false; renderAuthLine(); renderContent(); }
+
+// ── 카테고리 ──────────────────────────────────────
+async function loadCategories() {
+  const { data, error } = await sb.from('facility_categories').select('*').eq('active', true).order('sort_order');
+  if (error) { console.error(error); return; }
+  categories = data || [];
+  renderCatTabs();
+  if (categories.length && activeCategoryId == null) {
+    activeCategoryId = categories[0].id;
+  }
+  await loadCategoryData();
+}
+function renderCatTabs() {
+  const el = document.getElementById('cat-tabs');
+  el.innerHTML = categories.map(c =>
+    '<div class="cat-tab' + (c.id === activeCategoryId ? ' active' : '') + '" onclick="selectCategory(' + c.id + ')">' +
+      (c.icon || '📁') + ' ' + escapeHtml(c.label) + '</div>'
+  ).join('') + (isAdmin ? '<div class="cat-tab-add" onclick="openCatModal()">+ 카테고리</div>' : '');
+}
+async function selectCategory(id) {
+  activeCategoryId = id;
+  renderCatTabs();
+  await loadCategoryData();
+}
+function openCatModal() {
+  document.getElementById('c-disaster').value = '';
+  document.getElementById('c-label').value = '';
+  document.getElementById('c-icon').value = '';
+  document.getElementById('cat-modal').classList.add('open');
+}
+function closeCatModal() { document.getElementById('cat-modal').classList.remove('open'); }
+async function submitCatModal() {
+  const label = document.getElementById('c-label').value.trim();
+  if (!label) { alert('카테고리명을 입력하세요.'); return; }
+  const disaster = document.getElementById('c-disaster').value || null;
+  const icon = document.getElementById('c-icon').value.trim() || '📁';
+  const { data, error } = await sb.from('facility_categories')
+    .insert({ disaster, label, icon, sort_order: categories.length * 10 })
+    .select('*').single();
+  if (error) { alert('추가 실패: ' + error.message); return; }
+  categories.push(data);
+  activeCategoryId = data.id;
+  closeCatModal();
+  renderCatTabs();
+  await loadCategoryData();
+}
+
+// ── 항목 + 도면 로드/렌더 ──────────────────────────
+async function loadCategoryData() {
+  if (activeCategoryId == null) { items = []; drawings = []; renderContent(); return; }
+  document.getElementById('content').innerHTML = '<div class="empty-msg">불러오는 중…</div>';
+  const [itemsRes, drawingsRes] = await Promise.all([
+    sb.from('facility_items').select('*').eq('category_id', activeCategoryId).order('sort_order'),
+    sb.from('facility_drawings').select('*').eq('category_id', activeCategoryId).order('sort_order'),
+  ]);
+  items = itemsRes.data || [];
+  drawings = (drawingsRes.data || []).map(d => ({
+    ...d,
+    url: sb.storage.from('facility-drawings').getPublicUrl(d.storage_path).data.publicUrl,
+  }));
+  openFloors = new Set();
+  renderContent();
+}
+
+function drawingsForFloor(floor) {
+  return drawings.filter(d => d.floor === floor || (d.floor === '1층' && (floor === '서관 1층' || floor === '동관 1층')));
+}
+
+function renderContent() {
+  const el = document.getElementById('content');
+  if (!categories.length) {
+    el.innerHTML = '<div class="empty-msg">등록된 시설현황 카테고리가 없습니다.' + (isAdmin ? '<br>상단 "+ 카테고리"로 추가하세요.' : '') + '</div>';
+    return;
+  }
+  if (!items.length && !drawings.length) {
+    el.innerHTML = '<div class="empty-msg">이 카테고리에 등록된 항목/도면이 없습니다.' + (isAdmin ? '<br>아래 + 버튼으로 추가하세요.' : '') + '</div>';
+    renderFab();
+    return;
+  }
+  const floors = [];
+  for (const it of items) { if (!floors.includes(it.floor)) floors.push(it.floor); }
+  for (const d of drawings) {
+    const f = (d.floor === '1층') ? null : d.floor;
+    if (f && !floors.includes(f)) floors.push(f);
+  }
+
+  el.innerHTML = floors.map(floor => {
+    const floorItems = items.filter(it => it.floor === floor);
+    const floorDrawings = drawingsForFloor(floor);
+    const isOpen = openFloors.has(floor);
+    const drawingHtml = floorDrawings.length ? (
+      '<div class="drawing-row">' +
+        floorDrawings.map(d => '<img class="drawing-thumb" src="' + d.url + '" alt="' + escapeHtml(d.title) + '" onclick="openImgZoom(\'' + d.url + '\',\'' + escapeHtml(d.title).replace(/'/g,"\\'") + '\')">').join('') +
+      '</div>'
+    ) : '';
+    const rows = floorItems.map(it => {
+      const attrs = it.attrs || {};
+      const editBtns = isAdmin ? (
+        '<td class="edit-btns"><span onclick="openItemModal(' + it.id + ')">✏️</span><span onclick="deleteItem(' + it.id + ')">🗑</span></td>'
+      ) : '';
+      return '<tr>' +
+        '<td>' + escapeHtml(it.building || '') + '</td>' +
+        '<td>' + escapeHtml(it.location || '') + '</td>' +
+        '<td>' + escapeHtml(it.qty || '') + '</td>' +
+        '<td>' + escapeHtml(it.name || '') + '</td>' +
+        '<td>' + escapeHtml(it.spec || '') + '</td>' +
+        '<td class="muted">' + escapeHtml(attrs.breaker || '') + '</td>' +
+        '<td class="muted">' + escapeHtml(attrs.vendor || '') + '</td>' +
+        editBtns +
+      '</tr>';
+    }).join('');
+    const table = floorItems.length ? (
+      '<table class="item-tbl"><thead><tr>' +
+        '<th>건물</th><th>실외기 위치</th><th>수량</th><th>실내기 위치</th><th>모델명</th><th>차단기 위치</th><th>담당사</th>' + (isAdmin ? '<th></th>' : '') +
+      '</tr></thead><tbody>' + rows + '</tbody></table>'
+    ) : '';
+    return '<div class="floor-card">' +
+      '<div class="floor-head' + (isOpen ? ' open' : '') + '" onclick="toggleFloor(\'' + floor.replace(/'/g,"\\'") + '\')">' +
+        '<span>' + escapeHtml(floor) + '</span><span class="cnt">' + floorItems.length + '건</span><span class="chev">▾</span>' +
+      '</div>' +
+      '<div class="floor-body' + (isOpen ? ' open' : '') + '">' + drawingHtml + table + '</div>' +
+    '</div>';
+  }).join('');
+
+  renderFab();
+}
+
+function toggleFloor(floor) {
+  if (openFloors.has(floor)) openFloors.delete(floor); else openFloors.add(floor);
+  renderContent();
+}
+
+function renderFab() {
+  let fab = document.getElementById('fab-add');
+  if (fab) fab.remove();
+  if (!isAdmin || activeCategoryId == null) return;
+  fab = document.createElement('div');
+  fab.id = 'fab-add';
+  fab.innerHTML =
+    '<button class="fab" style="right:150px;" onclick="openDrawingModal()">📐 도면 추가</button>' +
+    '<button class="fab" onclick="openItemModal(null)">+ 항목 추가</button>';
+  document.body.appendChild(fab);
+}
+
+// ── 항목 추가/편집/삭제 ──────────────────────────
+function openItemModal(id) {
+  editingItemId = id;
+  const f = id ? items.find(it => it.id === id) : null;
+  document.getElementById('item-modal-title').textContent = id ? '항목 편집' : '항목 추가';
+  document.getElementById('f-building').value = f ? (f.building || '') : '';
+  document.getElementById('f-floor').value = f ? (f.floor || '') : '';
+  document.getElementById('f-name').value = f ? (f.name || '') : '';
+  document.getElementById('f-location').value = f ? (f.location || '') : '';
+  document.getElementById('f-qty').value = f ? (f.qty || '') : '1';
+  document.getElementById('f-spec').value = f ? (f.spec || '') : '';
+  document.getElementById('f-breaker').value = f && f.attrs ? (f.attrs.breaker || '') : '';
+  document.getElementById('f-vendor').value = f && f.attrs ? (f.attrs.vendor || '') : '';
+  document.getElementById('item-modal').classList.add('open');
+}
+function closeItemModal() { document.getElementById('item-modal').classList.remove('open'); }
+async function submitItemModal() {
+  const payload = {
+    category_id: activeCategoryId,
+    building: document.getElementById('f-building').value.trim(),
+    floor: document.getElementById('f-floor').value.trim(),
+    name: document.getElementById('f-name').value.trim(),
+    location: document.getElementById('f-location').value.trim(),
+    qty: document.getElementById('f-qty').value.trim(),
+    spec: document.getElementById('f-spec').value.trim(),
+    attrs: {
+      breaker: document.getElementById('f-breaker').value.trim() || null,
+      vendor: document.getElementById('f-vendor').value.trim() || null,
+    },
+  };
+  if (!payload.floor || !payload.name) { alert('층과 실내기 위치는 필수입니다.'); return; }
+  let error;
+  if (editingItemId) {
+    ({ error } = await sb.from('facility_items').update(payload).eq('id', editingItemId));
+  } else {
+    payload.sort_order = items.length;
+    ({ error } = await sb.from('facility_items').insert(payload));
+  }
+  if (error) { alert('저장 실패: ' + error.message); return; }
+  closeItemModal();
+  await loadCategoryData();
+}
+async function deleteItem(id) {
+  if (!confirm('이 항목을 삭제할까요?')) return;
+  const { error } = await sb.from('facility_items').delete().eq('id', id);
+  if (error) { alert('삭제 실패: ' + error.message); return; }
+  await loadCategoryData();
+}
+
+// ── 도면 추가 ──────────────────────────────────
+function openDrawingModal() {
+  document.getElementById('d-title').value = '';
+  document.getElementById('d-building').value = '';
+  document.getElementById('d-floor').value = '';
+  document.getElementById('d-file').value = '';
+  document.getElementById('drawing-modal').classList.add('open');
+}
+function closeDrawingModal() { document.getElementById('drawing-modal').classList.remove('open'); }
+async function submitDrawingModal() {
+  const title = document.getElementById('d-title').value.trim();
+  const building = document.getElementById('d-building').value.trim();
+  const floor = document.getElementById('d-floor').value.trim();
+  const file = document.getElementById('d-file').files[0];
+  if (!title || !floor || !file) { alert('제목, 층, 이미지 파일은 필수입니다.'); return; }
+  const ext = file.name.split('.').pop();
+  const path = 'cat' + activeCategoryId + '/' + Date.now() + '.' + ext;
+  const { error: upErr } = await sb.storage.from('facility-drawings').upload(path, file, { contentType: file.type });
+  if (upErr) { alert('업로드 실패: ' + upErr.message); return; }
+  const { error } = await sb.from('facility_drawings').insert({
+    category_id: activeCategoryId, title, building, floor, storage_path: path, sort_order: drawings.length,
+  });
+  if (error) { alert('등록 실패: ' + error.message); return; }
+  closeDrawingModal();
+  await loadCategoryData();
+}
+
+// ── 이미지 라이트박스 (disa_app 메인 페이지와 동일 UX) ──────
+function openImgZoom(src, alt) {
+  document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+  let lb = document.getElementById('img-lightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'img-lightbox';
+    lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow:hidden;-webkit-overflow-scrolling:touch;';
+    lb.innerHTML =
+      '<div style="width:100%;display:flex;justify-content:flex-end;padding:12px 14px;flex-shrink:0;">' +
+        '<button onclick="closeImgZoom()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;font-size:22px;width:38px;height:38px;border-radius:50%;cursor:pointer;">✕</button>' +
+      '</div>' +
+      '<div id="lb-img-wrap" style="flex:1;width:100%;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:flex-start;justify-content:center;padding:0 8px 20px;">' +
+        '<img id="lb-img" src="" alt="" style="max-width:none;width:100%;height:auto;display:block;border-radius:8px;touch-action:pan-x pan-y pinch-zoom;">' +
+      '</div>' +
+      '<div style="color:rgba(255,255,255,0.5);font-size:11px;padding-bottom:16px;flex-shrink:0;">두 손가락으로 확대 · ✕로 닫기</div>';
+    lb.addEventListener('click', e => { if (e.target === lb) closeImgZoom(); });
+    document.body.appendChild(lb);
+  }
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lb-img').alt = alt || '';
+  lb.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeImgZoom() {
+  const lb = document.getElementById('img-lightbox');
+  if (lb) lb.style.display = 'none';
+  document.body.style.overflow = '';
+  document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+}
+
+// ── 초기화 ──────────────────────────────────────
+initAuth();
+loadCategories();
+</script>
+</body>
+</html>
