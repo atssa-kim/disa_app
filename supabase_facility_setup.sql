@@ -13,7 +13,7 @@
 create table if not exists public.facility_categories (
   id bigint generated always as identity primary key,
   disaster text,                 -- '화재'|'정전'|'누수'|... (twin-alarm/disa_app 재난 키 재사용) / null=공통
-  label text not null,           -- 화면 표시명, 예: "실외기 현황 및 도면"
+  label text not null,           -- 화면 표시명, 예: "실외기 현황"
   icon text,                     -- emoji 1개
   sort_order int not null default 0,
   active boolean not null default true,

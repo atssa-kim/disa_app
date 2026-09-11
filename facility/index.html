@@ -30,16 +30,28 @@
   }
   #auth-line .sec { background:#f1f5f9; color:#334155; }
 
-  .cat-tabs { display:flex; gap:8px; padding:12px 14px 4px; overflow-x:auto; }
-  .cat-tab {
-    flex-shrink:0; padding:9px 14px; border-radius:10px; font-size:12.5px; font-weight:700;
-    background:white; border:1.5px solid #dbe2ee; color:#475569; cursor:pointer; white-space:nowrap;
+  .cat-tabs { padding:12px 14px 4px; }
+  .cat-dropdown { position:relative; }
+  .cat-dropdown-btn {
+    display:flex; align-items:center; gap:8px; padding:11px 14px; border-radius:12px;
+    background:white; border:1.5px solid #dbe2ee; color:#1e293b; font-size:13.5px; font-weight:800;
+    cursor:pointer; user-select:none;
   }
-  .cat-tab.active { background:#1b4fa8; border-color:#1b4fa8; color:white; }
-  .cat-tab-add {
-    flex-shrink:0; padding:9px 14px; border-radius:10px; font-size:12.5px; font-weight:700;
-    background:#eef1f6; border:1.5px dashed #94a3b8; color:#64748b; cursor:pointer; white-space:nowrap;
+  .cat-dropdown-btn .chev { margin-left:auto; color:#94a3b8; transition: transform 0.15s; }
+  .cat-dropdown-btn.open .chev { transform: rotate(180deg); }
+  .cat-dropdown-list {
+    display:none; position:absolute; left:0; right:0; top:calc(100% + 6px); background:white;
+    border-radius:12px; border:1.5px solid #dbe2ee; box-shadow:0 10px 28px rgba(15,23,42,0.14);
+    z-index:60; overflow:hidden;
   }
+  .cat-dropdown-list.open { display:block; }
+  .cat-dropdown-item {
+    padding:12px 14px; font-size:13px; font-weight:700; color:#475569; cursor:pointer;
+    border-bottom:1px solid #f1f5f9;
+  }
+  .cat-dropdown-item:last-child { border-bottom:none; }
+  .cat-dropdown-item.active { background:#eef4ff; color:#1b4fa8; }
+  .cat-dropdown-item-add { color:#1b4fa8; }
 
   #content { padding: 6px 14px 20px; }
   .empty-msg { text-align:center; color:#94a3b8; font-size:13px; padding:60px 20px; }
@@ -264,19 +276,47 @@ async function loadCategories() {
   const { data, error } = await sb.from('facility_categories').select('*').eq('active', true).order('sort_order');
   if (error) { console.error(error); return; }
   categories = data || [];
-  renderCatTabs();
   if (categories.length && activeCategoryId == null) {
     activeCategoryId = categories[0].id;
   }
+  renderCatTabs();
   await loadCategoryData();
 }
 function renderCatTabs() {
   const el = document.getElementById('cat-tabs');
-  el.innerHTML = categories.map(c =>
-    '<div class="cat-tab' + (c.id === activeCategoryId ? ' active' : '') + '" onclick="selectCategory(' + c.id + ')">' +
-      (c.icon || '📁') + ' ' + escapeHtml(c.label) + '</div>'
-  ).join('') + (isAdmin ? '<div class="cat-tab-add" onclick="openCatModal()">+ 카테고리</div>' : '');
+  const current = categories.find(c => c.id === activeCategoryId);
+  const currentLabel = current ? ((current.icon || '📁') + ' ' + escapeHtml(current.label)) : '카테고리 선택';
+  el.innerHTML =
+    '<div class="cat-dropdown">' +
+      '<div class="cat-dropdown-btn" onclick="toggleCatDropdown(event)">' +
+        '<span>' + currentLabel + '</span><span class="chev">▾</span>' +
+      '</div>' +
+      '<div class="cat-dropdown-list">' +
+        categories.map(c =>
+          '<div class="cat-dropdown-item' + (c.id === activeCategoryId ? ' active' : '') + '" onclick="selectCategory(' + c.id + ')">' +
+            (c.icon || '📁') + ' ' + escapeHtml(c.label) +
+          '</div>'
+        ).join('') +
+        (isAdmin ? '<div class="cat-dropdown-item cat-dropdown-item-add" onclick="closeCatDropdown();openCatModal()">+ 카테고리 추가</div>' : '') +
+      '</div>' +
+    '</div>';
 }
+function toggleCatDropdown(e) {
+  e.stopPropagation();
+  const open = !document.querySelector('.cat-dropdown-list').classList.contains('open');
+  document.querySelector('.cat-dropdown-btn').classList.toggle('open', open);
+  document.querySelector('.cat-dropdown-list').classList.toggle('open', open);
+}
+function closeCatDropdown() {
+  const btn = document.querySelector('.cat-dropdown-btn');
+  const list = document.querySelector('.cat-dropdown-list');
+  if (btn) btn.classList.remove('open');
+  if (list) list.classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const dd = document.querySelector('.cat-dropdown');
+  if (dd && !dd.contains(e.target)) closeCatDropdown();
+});
 async function selectCategory(id) {
   activeCategoryId = id;
   renderCatTabs();
