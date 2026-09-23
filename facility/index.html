@@ -3,6 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script>
+/* ── 접근 제어: 트윈알람(twin-alarm) 로그인 세션 필수 (disa_app/index.html과 동일 로직) ── */
+(function(){
+  var TWIN_ALARM_URL = 'https://atssa-kim.github.io/twin-alarm/';
+  var ok = false;
+  try {
+    var raw = localStorage.getItem('tt_user_session');
+    var user = raw ? JSON.parse(raw) : null;
+    ok = !!(user && user.empNo);
+  } catch (e) { ok = false; }
+  if (!ok) {
+    location.replace(TWIN_ALARM_URL);
+    document.write('<!--');
+  }
+})();
+</script>
 <title>시설현황 | 트윈타워</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

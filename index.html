@@ -6,6 +6,27 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+/* ── 접근 제어: 트윈알람(twin-alarm) 로그인 세션 필수 ──────────────────
+   twin-alarm과 disa_app은 둘 다 atssa-kim.github.io 아래에서 서빙되므로(오리진 동일)
+   twin-alarm이 로그인 시 localStorage에 저장하는 'tt_user_session'을 이 페이지에서도
+   그대로 읽을 수 있다. 이 값이 없으면(트윈알람 미로그인) 즉시 트윈알람으로 보낸다 —
+   document.write로 이 문서를 바꿔치기하는 방식은 파싱 도중엔 뒤쪽 원본 태그가
+   이어서 파싱되어 버려 안전하지 않으므로, 리다이렉트로 아예 렌더링 자체를 막는다. */
+(function(){
+  var TWIN_ALARM_URL = 'https://atssa-kim.github.io/twin-alarm/';
+  var ok = false;
+  try {
+    var raw = localStorage.getItem('tt_user_session');
+    var user = raw ? JSON.parse(raw) : null;
+    ok = !!(user && user.empNo);
+  } catch (e) { ok = false; }
+  if (!ok) {
+    location.replace(TWIN_ALARM_URL);
+    document.write('<!--'); // 리다이렉트 완료 전까지 이후 문서 파싱·스크립트 실행 차단
+  }
+})();
+</script>
 <title>트윈타워 재난대응 메뉴얼</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1009,6 +1030,12 @@ body {
         transition:all .2s;letter-spacing:-0.3px;">
         📋 보고예시
       </div>
+      <div id="msgtab-manual" onclick="switchMsgTab('manual')"
+        style="flex:1;padding:9px 4px;text-align:center;font-size:13px;font-weight:800;
+        cursor:pointer;color:#94a3b8;background:transparent;border-radius:8px;border:2px solid #475569;
+        transition:all .2s;letter-spacing:-0.3px;">
+        📎 첨부매뉴얼
+      </div>
     </div>
     <!-- 문자작성 탭 -->
     <div id="msgpane-compose" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 100px; display:block;">
@@ -1070,6 +1097,25 @@ body {
 
     <!-- 보고예시 탭 -->
     <div id="msgpane-example" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 40px; display:none;"></div>
+
+    <!-- 첨부매뉴얼 탭 -->
+    <div id="msgpane-manual" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 12px 40px; display:none;">
+      <div style="background:white; border-radius:12px; padding:20px 16px; box-shadow:0 2px 8px rgba(0,0,0,.08); text-align:center;">
+        <div style="font-size:34px; margin-bottom:10px;">📄</div>
+        <div style="font-size:14px; font-weight:800; color:#1e293b; margin-bottom:4px;">트윈타워운영센터 사고보고 프로세스</div>
+        <div style="font-size:11.5px; color:#94a3b8; margin-bottom:18px;">Ver 25.08.08 (26.09.23 개정) · 에스앤아이 코퍼레이션</div>
+        <a href="manuals/사고보고프로세스.pdf" target="_blank" rel="noopener"
+          style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%;
+          padding:13px; background:#1d4ed8; color:white; border-radius:12px; font-size:13.5px; font-weight:900;
+          text-decoration:none; box-shadow:0 2px 8px rgba(29,78,216,.35); box-sizing:border-box;">
+          📥 PDF 열기 / 다운로드
+        </a>
+      </div>
+      <div style="font-size:11px; color:#94a3b8; text-align:center; margin-top:10px; line-height:1.6;">
+        사고 보고 체계(Level 1~3), 보고 프로세스, 화재감지기 동작 시 대응요령이 담긴<br>
+        운영센터 공식 매뉴얼입니다.
+      </div>
+    </div>
 
   </div><!-- /msg-modal -->
 
@@ -5909,13 +5955,15 @@ function closeMsgModal() {
   // 스크롤 초기화 — 다음 열기 때 깨끗하게
   const compose = document.getElementById('msgpane-compose');
   const example = document.getElementById('msgpane-example');
+  const manual  = document.getElementById('msgpane-manual');
   if (compose) compose.scrollTop = 0;
   if (example) example.scrollTop = 0;
+  if (manual)  manual.scrollTop = 0;
 }
 
 // ── 비상문자 탭 전환 ──────────────────────────────
 function switchMsgTab(tab) {
-  ['example','compose'].forEach(t => {
+  ['example','compose','manual'].forEach(t => {
     const tabEl  = document.getElementById('msgtab-' + t);
     const paneEl = document.getElementById('msgpane-' + t);
     if (!tabEl || !paneEl) return;
