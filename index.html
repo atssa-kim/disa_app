@@ -1034,7 +1034,7 @@ body {
         style="flex:1;padding:9px 4px;text-align:center;font-size:13px;font-weight:800;
         cursor:pointer;color:#94a3b8;background:transparent;border-radius:8px;border:2px solid #475569;
         transition:all .2s;letter-spacing:-0.3px;">
-        📎 첨부매뉴얼
+        📎 사고보고 프로세스
       </div>
     </div>
     <!-- 문자작성 탭 -->
@@ -1098,22 +1098,26 @@ body {
     <!-- 보고예시 탭 -->
     <div id="msgpane-example" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 40px; display:none;"></div>
 
-    <!-- 첨부매뉴얼 탭 -->
-    <div id="msgpane-manual" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 12px 40px; display:none;">
-      <div style="background:white; border-radius:12px; padding:20px 16px; box-shadow:0 2px 8px rgba(0,0,0,.08); text-align:center;">
-        <div style="font-size:34px; margin-bottom:10px;">📄</div>
-        <div style="font-size:14px; font-weight:800; color:#1e293b; margin-bottom:4px;">트윈타워운영센터 사고보고 프로세스</div>
-        <div style="font-size:11.5px; color:#94a3b8; margin-bottom:18px;">Ver 25.08.08 (26.09.23 개정) · 에스앤아이 코퍼레이션</div>
-        <a href="manuals/사고보고프로세스.pdf" target="_blank" rel="noopener"
-          style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%;
-          padding:13px; background:#1d4ed8; color:white; border-radius:12px; font-size:13.5px; font-weight:900;
-          text-decoration:none; box-shadow:0 2px 8px rgba(29,78,216,.35); box-sizing:border-box;">
-          📥 PDF 열기 / 다운로드
-        </a>
+    <!-- 사고보고 프로세스 탭 -->
+    <div id="msgpane-manual" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 30px; display:none;">
+      <div style="background:white; border-radius:10px; padding:10px 12px; margin-bottom:10px;
+        box-shadow:0 2px 8px rgba(0,0,0,.08);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="flex:1;">
+            <div style="font-size:13px; font-weight:800; color:#1e293b;">트윈타워운영센터 사고보고 프로세스</div>
+            <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">Ver 25.08.08 (26.09.23 개정) · 에스앤아이 코퍼레이션</div>
+          </div>
+          <a href="manuals/사고보고프로세스.pdf" target="_blank" rel="noopener"
+            style="flex-shrink:0; display:flex; align-items:center; gap:4px; padding:9px 12px;
+            background:#1d4ed8; color:white; border-radius:8px; font-size:12px; font-weight:800;
+            text-decoration:none; white-space:nowrap;">
+            📥 새 창
+          </a>
+        </div>
       </div>
-      <div style="font-size:11px; color:#94a3b8; text-align:center; margin-top:10px; line-height:1.6;">
-        사고 보고 체계(Level 1~3), 보고 프로세스, 화재감지기 동작 시 대응요령이 담긴<br>
-        운영센터 공식 매뉴얼입니다.
+      <div style="background:#1e293b; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.08);">
+        <iframe src="manuals/사고보고프로세스.pdf" title="트윈타워운영센터 사고보고 프로세스"
+          style="width:100%; height:65vh; border:none; display:block; background:white;"></iframe>
       </div>
     </div>
 
@@ -5913,7 +5917,7 @@ function openMsgModal(type, el) {
   const title  = document.getElementById('msg-title');
 
   const bg = type === 'initial' ? '#1d4ed8' : '#dc2626';
-  const titleText = type === 'initial' ? '📨 비상문자 보고' : '📨 비상문자 보고 예시 (화재발생시)';
+  const titleText = type === 'initial' ? '📨 사고보고 프로세스' : '📨 비상문자 보고 예시 (화재발생시)';
   header.style.background = bg;
   title.textContent = titleText;
 
