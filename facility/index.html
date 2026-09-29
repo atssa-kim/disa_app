@@ -72,20 +72,22 @@
   #content { padding: 6px 14px 20px; }
   .empty-msg { text-align:center; color:#94a3b8; font-size:13px; padding:60px 20px; }
 
-  .floor-card {
-    background:white; border-radius:14px; margin-bottom:12px; overflow:hidden;
+  .floor-chips {
+    display:flex; gap:8px; overflow-x:auto; padding:2px 2px 10px; -webkit-overflow-scrolling:touch;
+  }
+  .floor-chip {
+    flex-shrink:0; display:flex; align-items:center; gap:6px; padding:10px 14px; border-radius:10px;
+    background:white; border:1.5px solid #dbe2ee; color:#475569; cursor:pointer; white-space:nowrap;
+    font-size:13px; font-weight:800;
+  }
+  .floor-chip .cnt { font-size:11px; font-weight:700; color:#94a3b8; }
+  .floor-chip.active { background:#1b4fa8; border-color:#1b4fa8; color:white; }
+  .floor-chip.active .cnt { color:rgba(255,255,255,0.75); }
+
+  .floor-panel {
+    background:white; border-radius:14px; overflow:hidden;
     box-shadow: 0 1px 3px rgba(15,23,42,0.08);
   }
-  .floor-head {
-    display:flex; align-items:center; gap:8px; padding:13px 14px; cursor:pointer;
-    font-weight:800; font-size:13.5px; color:#1e293b;
-  }
-  .floor-head .cnt { font-size:11px; font-weight:700; color:#94a3b8; }
-  .floor-head .chev { margin-left:auto; transition: transform 0.15s; color:#94a3b8; }
-  .floor-head.open .chev { transform: rotate(180deg); }
-
-  .floor-body { display:none; border-top:1px solid #eef1f6; }
-  .floor-body.open { display:block; }
 
   .drawing-row { padding: 10px 14px; display:flex; gap:8px; overflow-x:auto; background:#f8fafc; }
   .drawing-thumb {
@@ -230,7 +232,7 @@ let categories = [];
 let activeCategoryId = null;
 let items = [];
 let drawings = [];
-let openFloors = new Set();
+let activeFloor = null;
 let currentUser = null;
 let isAdmin = false;
 let editingItemId = null;
@@ -374,7 +376,7 @@ async function loadCategoryData() {
     ...d,
     url: sb.storage.from('facility-drawings').getPublicUrl(d.storage_path).data.publicUrl,
   }));
-  openFloors = new Set();
+  activeFloor = null;
   renderContent();
 }
 
@@ -400,49 +402,53 @@ function renderContent() {
     if (f && !floors.includes(f)) floors.push(f);
   }
 
-  el.innerHTML = floors.map(floor => {
-    const floorItems = items.filter(it => it.floor === floor);
-    const floorDrawings = drawingsForFloor(floor);
-    const isOpen = openFloors.has(floor);
-    const drawingHtml = floorDrawings.length ? (
-      '<div class="drawing-row">' +
-        floorDrawings.map(d => '<img class="drawing-thumb" src="' + d.url + '" alt="' + escapeHtml(d.title) + '" onclick="openImgZoom(\'' + d.url + '\',\'' + escapeHtml(d.title).replace(/'/g,"\\'") + '\')">').join('') +
-      '</div>'
+  if (activeFloor == null || !floors.includes(activeFloor)) activeFloor = floors[0];
+
+  const chipsHtml = '<div class="floor-chips">' +
+    floors.map(floor => {
+      const cnt = items.filter(it => it.floor === floor).length;
+      return '<div class="floor-chip' + (floor === activeFloor ? ' active' : '') + '" onclick="selectFloor(\'' + floor.replace(/'/g,"\\'") + '\')">' +
+        '<span>' + escapeHtml(floor) + '</span><span class="cnt">' + cnt + '건</span>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+
+  const floorItems = items.filter(it => it.floor === activeFloor);
+  const floorDrawings = drawingsForFloor(activeFloor);
+  const drawingHtml = floorDrawings.length ? (
+    '<div class="drawing-row">' +
+      floorDrawings.map(d => '<img class="drawing-thumb" src="' + d.url + '" alt="' + escapeHtml(d.title) + '" onclick="openImgZoom(\'' + d.url + '\',\'' + escapeHtml(d.title).replace(/'/g,"\\'") + '\')">').join('') +
+    '</div>'
+  ) : '';
+  const rows = floorItems.map(it => {
+    const attrs = it.attrs || {};
+    const editBtns = isAdmin ? (
+      '<td class="edit-btns"><span onclick="openItemModal(' + it.id + ')">✏️</span><span onclick="deleteItem(' + it.id + ')">🗑</span></td>'
     ) : '';
-    const rows = floorItems.map(it => {
-      const attrs = it.attrs || {};
-      const editBtns = isAdmin ? (
-        '<td class="edit-btns"><span onclick="openItemModal(' + it.id + ')">✏️</span><span onclick="deleteItem(' + it.id + ')">🗑</span></td>'
-      ) : '';
-      return '<tr>' +
-        '<td>' + escapeHtml(it.building || '') + '</td>' +
-        '<td>' + escapeHtml(it.location || '') + '</td>' +
-        '<td>' + escapeHtml(it.qty || '') + '</td>' +
-        '<td>' + escapeHtml(it.name || '') + '</td>' +
-        '<td>' + escapeHtml(it.spec || '') + '</td>' +
-        '<td class="muted">' + escapeHtml(attrs.breaker || '') + '</td>' +
-        '<td class="muted">' + escapeHtml(attrs.vendor || '') + '</td>' +
-        editBtns +
-      '</tr>';
-    }).join('');
-    const table = floorItems.length ? (
-      '<table class="item-tbl"><thead><tr>' +
-        '<th>건물</th><th>실외기 위치</th><th>수량</th><th>실내기 위치</th><th>모델명</th><th>차단기 위치</th><th>담당사</th>' + (isAdmin ? '<th></th>' : '') +
-      '</tr></thead><tbody>' + rows + '</tbody></table>'
-    ) : '';
-    return '<div class="floor-card">' +
-      '<div class="floor-head' + (isOpen ? ' open' : '') + '" onclick="toggleFloor(\'' + floor.replace(/'/g,"\\'") + '\')">' +
-        '<span>' + escapeHtml(floor) + '</span><span class="cnt">' + floorItems.length + '건</span><span class="chev">▾</span>' +
-      '</div>' +
-      '<div class="floor-body' + (isOpen ? ' open' : '') + '">' + drawingHtml + table + '</div>' +
-    '</div>';
+    return '<tr>' +
+      '<td>' + escapeHtml(it.building || '') + '</td>' +
+      '<td>' + escapeHtml(it.location || '') + '</td>' +
+      '<td>' + escapeHtml(it.qty || '') + '</td>' +
+      '<td>' + escapeHtml(it.name || '') + '</td>' +
+      '<td>' + escapeHtml(it.spec || '') + '</td>' +
+      '<td class="muted">' + escapeHtml(attrs.breaker || '') + '</td>' +
+      '<td class="muted">' + escapeHtml(attrs.vendor || '') + '</td>' +
+      editBtns +
+    '</tr>';
   }).join('');
+  const table = floorItems.length ? (
+    '<table class="item-tbl"><thead><tr>' +
+      '<th>건물</th><th>실외기 위치</th><th>수량</th><th>실내기 위치</th><th>모델명</th><th>차단기 위치</th><th>담당사</th>' + (isAdmin ? '<th></th>' : '') +
+    '</tr></thead><tbody>' + rows + '</tbody></table>'
+  ) : '<div class="empty-msg">이 층에 등록된 항목이 없습니다.</div>';
+
+  el.innerHTML = chipsHtml + '<div class="floor-panel">' + drawingHtml + table + '</div>';
 
   renderFab();
 }
 
-function toggleFloor(floor) {
-  if (openFloors.has(floor)) openFloors.delete(floor); else openFloors.add(floor);
+function selectFloor(floor) {
+  activeFloor = floor;
   renderContent();
 }
 
