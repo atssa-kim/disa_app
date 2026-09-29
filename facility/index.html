@@ -263,7 +263,7 @@ function renderAuthLine() {
   if (!currentUser) {
     el.innerHTML = '<span style="flex:1;">🔒 로그인하지 않음 — 조회만 가능</span><button onclick="openLoginModal()">관리자 로그인</button>';
   } else {
-    el.innerHTML = '<span style="flex:1;">👤 ' + escapeHtml(currentUser.email) + (isAdmin ? ' · 편집 가능' : ' · 편집 권한 없음') + '</span>' +
+    el.innerHTML = '<span style="flex:1;">👤 ' + (isAdmin ? '편집 가능' : '편집 권한 없음') + '</span>' +
       '<button class="sec" onclick="logout()">로그아웃</button>';
   }
 }
