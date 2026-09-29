@@ -47,42 +47,33 @@
   #auth-line .sec { background:#f1f5f9; color:#334155; }
 
   .cat-tabs { padding:12px 14px 4px; }
-  .cat-dropdown { position:relative; }
-  .cat-dropdown-btn {
-    display:flex; align-items:center; gap:8px; padding:11px 14px; border-radius:12px;
-    background:white; border:1.5px solid #dbe2ee; color:#1e293b; font-size:13.5px; font-weight:800;
-    cursor:pointer; user-select:none;
+
+  /* ── 트리 메뉴: 카테고리(부모) → 층(자식, 세로 목록) ── */
+  .tree-cat { margin-bottom:8px; border-radius:12px; overflow:hidden; border:1.5px solid #dbe2ee; background:white; }
+  .tree-cat-head {
+    display:flex; align-items:center; gap:8px; padding:12px 14px;
+    font-size:13.5px; font-weight:800; color:#1e293b; cursor:pointer; user-select:none;
   }
-  .cat-dropdown-btn .chev { margin-left:auto; color:#94a3b8; transition: transform 0.15s; }
-  .cat-dropdown-btn.open .chev { transform: rotate(180deg); }
-  .cat-dropdown-list {
-    display:none; position:absolute; left:0; right:0; top:calc(100% + 6px); background:white;
-    border-radius:12px; border:1.5px solid #dbe2ee; box-shadow:0 10px 28px rgba(15,23,42,0.14);
-    z-index:60; overflow:hidden;
+  .tree-cat-head .chev { margin-left:auto; color:#94a3b8; transition: transform 0.15s; }
+  .tree-cat-head.open .chev { transform: rotate(180deg); }
+  .tree-cat-head.open { background:#eef4ff; color:#1b4fa8; border-bottom:1px solid #dbe2ee; }
+  .tree-floor-list { padding:4px 0; }
+  .tree-floor-item {
+    display:flex; align-items:center; gap:8px; padding:10px 14px 10px 28px;
+    font-size:12.5px; font-weight:700; color:#475569; cursor:pointer; border-top:1px solid #f1f5f9;
   }
-  .cat-dropdown-list.open { display:block; }
-  .cat-dropdown-item {
-    padding:12px 14px; font-size:13px; font-weight:700; color:#475569; cursor:pointer;
-    border-bottom:1px solid #f1f5f9;
+  .tree-floor-item::before { content:'└'; color:#cbd5e1; font-size:11px; }
+  .tree-floor-item .cnt { margin-left:auto; font-size:11px; font-weight:700; color:#94a3b8; }
+  .tree-floor-item.active { background:#1b4fa8; color:white; }
+  .tree-floor-item.active::before { color:rgba(255,255,255,0.6); }
+  .tree-floor-item.active .cnt { color:rgba(255,255,255,0.75); }
+  .tree-cat-add {
+    padding:11px 14px; border-radius:12px; border:1.5px dashed #94a3b8; background:#eef1f6;
+    color:#64748b; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center;
   }
-  .cat-dropdown-item:last-child { border-bottom:none; }
-  .cat-dropdown-item.active { background:#eef4ff; color:#1b4fa8; }
-  .cat-dropdown-item-add { color:#1b4fa8; }
 
   #content { padding: 6px 14px 20px; }
   .empty-msg { text-align:center; color:#94a3b8; font-size:13px; padding:60px 20px; }
-
-  .floor-chips {
-    display:flex; gap:8px; overflow-x:auto; padding:2px 2px 10px; -webkit-overflow-scrolling:touch;
-  }
-  .floor-chip {
-    flex-shrink:0; display:flex; align-items:center; gap:6px; padding:10px 14px; border-radius:10px;
-    background:white; border:1.5px solid #dbe2ee; color:#475569; cursor:pointer; white-space:nowrap;
-    font-size:13px; font-weight:800;
-  }
-  .floor-chip .cnt { font-size:11px; font-weight:700; color:#94a3b8; }
-  .floor-chip.active { background:#1b4fa8; border-color:#1b4fa8; color:white; }
-  .floor-chip.active .cnt { color:rgba(255,255,255,0.75); }
 
   .floor-panel {
     background:white; border-radius:14px; overflow:hidden;
@@ -230,6 +221,7 @@ const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
 let categories = [];
 let activeCategoryId = null;
+let expandedCategoryId = null; // 트리에서 층 목록이 펼쳐진 카테고리 (activeCategoryId와 항상 동기화됨)
 let items = [];
 let drawings = [];
 let activeFloor = null;
@@ -289,57 +281,75 @@ async function submitLogin() {
 }
 async function logout() { await sb.auth.signOut(); currentUser = null; isAdmin = false; renderAuthLine(); renderContent(); }
 
-// ── 카테고리 ──────────────────────────────────────
+// ── 카테고리(트리 메뉴) ──────────────────────────────
 async function loadCategories() {
   const { data, error } = await sb.from('facility_categories').select('*').eq('active', true).order('sort_order');
   if (error) { console.error(error); return; }
   categories = data || [];
-  if (categories.length && activeCategoryId == null) {
-    activeCategoryId = categories[0].id;
-  }
-  renderCatTabs();
-  await loadCategoryData();
+  renderTree();
+  renderContent();
 }
-function renderCatTabs() {
+
+// ── 트리 메뉴 렌더 — 카테고리(부모)를 클릭하면 그 카테고리의 층 목록(자식)이
+// 세로로 펼쳐지고, 층을 클릭하면 아래 #content에 해당 층 현황이 표시된다. ──
+function renderTree() {
   const el = document.getElementById('cat-tabs');
-  const current = categories.find(c => c.id === activeCategoryId);
-  const currentLabel = current ? ((current.icon || '📁') + ' ' + escapeHtml(current.label)) : '카테고리 선택';
-  el.innerHTML =
-    '<div class="cat-dropdown">' +
-      '<div class="cat-dropdown-btn" onclick="toggleCatDropdown(event)">' +
-        '<span>' + currentLabel + '</span><span class="chev">▾</span>' +
+  if (!categories.length) {
+    el.innerHTML = isAdmin ? '<div class="tree-cat-add" onclick="openCatModal()">+ 카테고리 추가</div>' : '';
+    return;
+  }
+  el.innerHTML = categories.map(cat => {
+    const isOpen = cat.id === expandedCategoryId;
+    let floorListHtml = '';
+    if (isOpen) {
+      const floors = [];
+      for (const it of items) { if (!floors.includes(it.floor)) floors.push(it.floor); }
+      for (const d of drawings) {
+        const f = (d.floor === '1층') ? null : d.floor;
+        if (f && !floors.includes(f)) floors.push(f);
+      }
+      floorListHtml = floors.length ? (
+        '<div class="tree-floor-list">' +
+          floors.map(floor => {
+            const cnt = items.filter(it => it.floor === floor).length;
+            return '<div class="tree-floor-item' + (floor === activeFloor ? ' active' : '') + '" onclick="event.stopPropagation();selectFloorInTree(\'' + floor.replace(/'/g,"\\'") + '\')">' +
+              '<span>' + escapeHtml(floor) + '</span><span class="cnt">' + cnt + '건</span>' +
+            '</div>';
+          }).join('') +
+        '</div>'
+      ) : ('<div class="tree-floor-list"><div class="empty-msg" style="padding:16px;">등록된 항목/도면이 없습니다.' + (isAdmin ? '<br>아래 + 버튼으로 추가하세요.' : '') + '</div></div>');
+    }
+    return '<div class="tree-cat">' +
+      '<div class="tree-cat-head' + (isOpen ? ' open' : '') + '" onclick="toggleCategory(' + cat.id + ')">' +
+        '<span>' + (cat.icon || '📁') + ' ' + escapeHtml(cat.label) + '</span><span class="chev">▾</span>' +
       '</div>' +
-      '<div class="cat-dropdown-list">' +
-        categories.map(c =>
-          '<div class="cat-dropdown-item' + (c.id === activeCategoryId ? ' active' : '') + '" onclick="selectCategory(' + c.id + ')">' +
-            (c.icon || '📁') + ' ' + escapeHtml(c.label) +
-          '</div>'
-        ).join('') +
-        (isAdmin ? '<div class="cat-dropdown-item cat-dropdown-item-add" onclick="closeCatDropdown();openCatModal()">+ 카테고리 추가</div>' : '') +
-      '</div>' +
+      floorListHtml +
     '</div>';
+  }).join('') + (isAdmin ? '<div class="tree-cat-add" onclick="openCatModal()">+ 카테고리 추가</div>' : '');
 }
-function toggleCatDropdown(e) {
-  e.stopPropagation();
-  const open = !document.querySelector('.cat-dropdown-list').classList.contains('open');
-  document.querySelector('.cat-dropdown-btn').classList.toggle('open', open);
-  document.querySelector('.cat-dropdown-list').classList.toggle('open', open);
-}
-function closeCatDropdown() {
-  const btn = document.querySelector('.cat-dropdown-btn');
-  const list = document.querySelector('.cat-dropdown-list');
-  if (btn) btn.classList.remove('open');
-  if (list) list.classList.remove('open');
-}
-document.addEventListener('click', (e) => {
-  const dd = document.querySelector('.cat-dropdown');
-  if (dd && !dd.contains(e.target)) closeCatDropdown();
-});
-async function selectCategory(id) {
+
+async function toggleCategory(id) {
+  if (expandedCategoryId === id) {
+    // 이미 펼쳐진 카테고리를 다시 클릭 → 접기
+    expandedCategoryId = null;
+    activeCategoryId = null;
+    items = []; drawings = []; activeFloor = null;
+    renderTree();
+    renderContent();
+    return;
+  }
+  expandedCategoryId = id;
   activeCategoryId = id;
-  renderCatTabs();
+  activeFloor = null;
   await loadCategoryData();
 }
+
+function selectFloorInTree(floor) {
+  activeFloor = floor;
+  renderTree();
+  renderContent();
+}
+
 function openCatModal() {
   document.getElementById('c-disaster').value = '';
   document.getElementById('c-label').value = '';
@@ -357,15 +367,16 @@ async function submitCatModal() {
     .select('*').single();
   if (error) { alert('추가 실패: ' + error.message); return; }
   categories.push(data);
+  expandedCategoryId = data.id;
   activeCategoryId = data.id;
+  activeFloor = null;
   closeCatModal();
-  renderCatTabs();
   await loadCategoryData();
 }
 
 // ── 항목 + 도면 로드/렌더 ──────────────────────────
 async function loadCategoryData() {
-  if (activeCategoryId == null) { items = []; drawings = []; renderContent(); return; }
+  if (activeCategoryId == null) { items = []; drawings = []; renderTree(); renderContent(); return; }
   document.getElementById('content').innerHTML = '<div class="empty-msg">불러오는 중…</div>';
   const [itemsRes, drawingsRes] = await Promise.all([
     sb.from('facility_items').select('*').eq('category_id', activeCategoryId).order('sort_order'),
@@ -376,7 +387,7 @@ async function loadCategoryData() {
     ...d,
     url: sb.storage.from('facility-drawings').getPublicUrl(d.storage_path).data.publicUrl,
   }));
-  activeFloor = null;
+  renderTree();
   renderContent();
 }
 
@@ -387,31 +398,26 @@ function drawingsForFloor(floor) {
 function renderContent() {
   const el = document.getElementById('content');
   if (!categories.length) {
-    el.innerHTML = '<div class="empty-msg">등록된 시설현황 카테고리가 없습니다.' + (isAdmin ? '<br>상단 "+ 카테고리"로 추가하세요.' : '') + '</div>';
-    return;
-  }
-  if (!items.length && !drawings.length) {
-    el.innerHTML = '<div class="empty-msg">이 카테고리에 등록된 항목/도면이 없습니다.' + (isAdmin ? '<br>아래 + 버튼으로 추가하세요.' : '') + '</div>';
+    el.innerHTML = '<div class="empty-msg">등록된 시설현황 카테고리가 없습니다.' + (isAdmin ? '<br>위 "+ 카테고리 추가"로 추가하세요.' : '') + '</div>';
     renderFab();
     return;
   }
-  const floors = [];
-  for (const it of items) { if (!floors.includes(it.floor)) floors.push(it.floor); }
-  for (const d of drawings) {
-    const f = (d.floor === '1층') ? null : d.floor;
-    if (f && !floors.includes(f)) floors.push(f);
+  if (expandedCategoryId == null) {
+    el.innerHTML = '<div class="empty-msg">위에서 카테고리를 선택하세요.</div>';
+    renderFab();
+    return;
   }
-
-  if (activeFloor == null || !floors.includes(activeFloor)) activeFloor = floors[0];
-
-  const chipsHtml = '<div class="floor-chips">' +
-    floors.map(floor => {
-      const cnt = items.filter(it => it.floor === floor).length;
-      return '<div class="floor-chip' + (floor === activeFloor ? ' active' : '') + '" onclick="selectFloor(\'' + floor.replace(/'/g,"\\'") + '\')">' +
-        '<span>' + escapeHtml(floor) + '</span><span class="cnt">' + cnt + '건</span>' +
-      '</div>';
-    }).join('') +
-  '</div>';
+  if (!items.length && !drawings.length) {
+    // 안내 문구는 트리의 층 목록 자리에 이미 표시되므로 본문은 비워둔다
+    el.innerHTML = '';
+    renderFab();
+    return;
+  }
+  if (activeFloor == null) {
+    el.innerHTML = '<div class="empty-msg">위에서 층을 선택하세요.</div>';
+    renderFab();
+    return;
+  }
 
   const floorItems = items.filter(it => it.floor === activeFloor);
   const floorDrawings = drawingsForFloor(activeFloor);
@@ -442,14 +448,9 @@ function renderContent() {
     '</tr></thead><tbody>' + rows + '</tbody></table>'
   ) : '<div class="empty-msg">이 층에 등록된 항목이 없습니다.</div>';
 
-  el.innerHTML = chipsHtml + '<div class="floor-panel">' + drawingHtml + table + '</div>';
+  el.innerHTML = '<div class="floor-panel">' + drawingHtml + table + '</div>';
 
   renderFab();
-}
-
-function selectFloor(floor) {
-  activeFloor = floor;
-  renderContent();
 }
 
 function renderFab() {
